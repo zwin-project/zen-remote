@@ -1,0 +1,8 @@
+== Remote Display System for ZEN
+
+A display system that displays an immersive space on a head-mounted display over
+a network.
+
+This project will generate libraries for each of the client and server (ZEN).
+The client may run on Android, so the library for the client must be able to 
+build from source with all dependencies.
