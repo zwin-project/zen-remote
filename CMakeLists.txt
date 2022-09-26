@@ -20,5 +20,13 @@ endif()
 
 add_compile_options(-Wall -Winvalid-pch -Wextra -Wpedantic -Werror)
 
+include(FetchContent)
+FetchContent_Declare(
+  boost_headers_content
+  GIT_REPOSITORY https://github.com/zigen-project/boost-headers.git
+  GIT_TAG boost-1.80.0
+)
+FetchContent_MakeAvailable(boost_headers_content)
+
 add_subdirectory(client)
 add_subdirectory(server)
