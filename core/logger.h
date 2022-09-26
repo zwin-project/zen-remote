@@ -1,8 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include <memory>
-#include <zen/display-system/remote/core/logger.h>
+#include "zen/display-system/remote/core/logger.h"
 
 namespace zen::display_system::remote::log {
 

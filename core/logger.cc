@@ -1,7 +1,7 @@
-#include "logger.h"
+#include "pch.h"
 
-#include <stdarg.h>
-#include <zen/display-system/remote/core/logger.h>
+#include "logger.h"
+#include "zen/display-system/remote/core/logger.h"
 
 namespace zen::display_system::remote::log {
 
