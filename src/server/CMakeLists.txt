@@ -9,12 +9,12 @@ add_library(
 
 target_include_directories(
     zen_remote_display_system_server
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include
-    PRIVATE ../core
+    PUBLIC ${public_inc}
+    PRIVATE ${private_inc}
     PRIVATE ${boost_headers_content_SOURCE_DIR}/include
 )
 
-target_precompile_headers(zen_remote_display_system_server PRIVATE ../core/pch.h)
+target_precompile_headers(zen_remote_display_system_server PRIVATE ../pch.h)
 
 target_compile_options(
     zen_remote_display_system_server
