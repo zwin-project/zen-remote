@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "core/common.h"
 #include "zen/display-system/remote/core/logger.h"
 
 namespace zen::display_system::remote::log {

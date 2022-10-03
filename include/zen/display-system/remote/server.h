@@ -1,15 +1,16 @@
 #pragma once
 
+#include "core/loop.h"
 #include <memory>
 
 namespace zen::display_system::remote::server {
 
-struct ISession {
-  virtual ~ISession() = default;
+struct IRemote {
+  virtual ~IRemote() = default;
 
-  virtual bool Init() = 0;
+  virtual void Start() = 0;
 };
 
-std::unique_ptr<ISession> SessionCreate();
+std::unique_ptr<IRemote> CreateRemote(std::unique_ptr<ILoop> loop);
 
 }  // namespace zen::display_system::remote::server

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(zen_remote_display_system LANGUAGES C CXX VERSION 0.1.0.1)
+project(zen_remote_display_system LANGUAGES C CXX VERSION 0.1.0.2)
 
 set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -28,5 +28,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(boost_headers_content)
 
-add_subdirectory(client)
-add_subdirectory(server)
+set(public_inc ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(private_inc ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+add_subdirectory(src)
