@@ -1,11 +1,10 @@
-#include "pch.h"
+#include "server/remote.h"
 
 #include "core/connection/peer.h"
 #include "core/logger.h"
-#include "server/remote.h"
-#include "zen/display-system/remote/server.h"
+#include "zen-remote/remote.h"
 
-namespace zen::display_system::remote::server {
+namespace zen::remote {
 
 namespace ip = boost::asio::ip;
 
@@ -21,10 +20,16 @@ Remote::Start()
   peer_->StartDiscover();
 }
 
+void
+Remote::Stop()
+{
+  // TODO:
+}
+
 std::unique_ptr<IRemote>
 CreateRemote(std::unique_ptr<ILoop> loop)
 {
   return std::make_unique<Remote>(std::move(loop));
 }
 
-}  // namespace zen::display_system::remote::server
+}  // namespace zen::remote

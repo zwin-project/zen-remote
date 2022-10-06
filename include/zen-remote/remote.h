@@ -1,16 +1,19 @@
 #pragma once
 
-#include "core/loop.h"
 #include <memory>
 
-namespace zen::display_system::remote::client {
+#include "zen-remote/loop.h"
+
+namespace zen::remote {
 
 struct IRemote {
   virtual ~IRemote() = default;
 
   virtual void Start() = 0;
+
+  virtual void Stop() = 0;
 };
 
 std::unique_ptr<IRemote> CreateRemote(std::unique_ptr<ILoop> loop);
 
-}  // namespace zen::display_system::remote::client
+}  // namespace zen::remote

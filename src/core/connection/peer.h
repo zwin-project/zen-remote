@@ -2,9 +2,9 @@
 
 #include "core/common.h"
 #include "core/context.h"
-#include "zen/display-system/remote/core/loop.h"
+#include "zen-remote/loop.h"
 
-namespace zen::display_system::remote::connection {
+namespace zen::remote::connection {
 
 namespace ip = boost::asio::ip;
 
@@ -74,4 +74,4 @@ Peer::endpoint()
   return endpoint_;
 }
 
-}  // namespace zen::display_system::remote::connection
+}  // namespace zen::remote::connection

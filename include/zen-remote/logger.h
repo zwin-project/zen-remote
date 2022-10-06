@@ -1,11 +1,12 @@
 #pragma once
 
-#include <memory>
 #include <stdarg.h>
 
-namespace zen::display_system::remote::log {
+#include <memory>
 
-typedef enum Severity {
+namespace zen::remote {
+
+typedef enum class Severity {
   DEBUG = 0,  // logs for debugging during development.
   INFO,       // logs that may be useful to some users.
   WARN,       // logs for recoverable failures.
@@ -23,4 +24,4 @@ struct ILogSink {
 
 void InitializeLogger(std::unique_ptr<ILogSink> sink);
 
-}  // namespace zen::display_system::remote::log
+}  // namespace zen::remote

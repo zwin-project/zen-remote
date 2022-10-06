@@ -1,9 +1,8 @@
-#include "pch.h"
-
 #include "core/logger.h"
-#include "zen/display-system/remote/core/logger.h"
 
-namespace zen::display_system::remote::log {
+#include "zen-remote/logger.h"
+
+namespace zen::remote {
 
 void
 Logger::Print(Severity severity, const char* pretty_function, const char* file,
@@ -24,4 +23,4 @@ InitializeLogger(std::unique_ptr<ILogSink> sink)
   Logger::instance->sink_ = std::move(sink);
 }
 
-}  // namespace zen::display_system::remote::log
+}  // namespace zen::remote

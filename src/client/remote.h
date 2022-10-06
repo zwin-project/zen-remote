@@ -2,9 +2,9 @@
 
 #include "core/connection/peer.h"
 #include "core/context.h"
-#include "zen/display-system/remote/client.h"
+#include "zen-remote/remote.h"
 
-namespace zen::display_system::remote::client {
+namespace zen::remote {
 
 class Remote : public IRemote {
  public:
@@ -12,11 +12,14 @@ class Remote : public IRemote {
       : context_(std::make_unique<Context>(std::move(loop)))
   {
   }
+
   void Start() override;
+
+  void Stop() override;
 
  private:
   std::unique_ptr<connection::Peer> peer_;
   std::shared_ptr<Context> context_;
 };
 
-}  // namespace zen::display_system::remote::client
+}  // namespace zen::remote

@@ -14,7 +14,7 @@ target_include_directories(
     PRIVATE ${boost_headers_content_SOURCE_DIR}/include
 )
 
-target_precompile_headers(zen_remote_display_system_client PRIVATE ../pch.h)
+target_precompile_headers(zen_remote_display_system_client PRIVATE ../pch/pch.h)
 
 target_compile_options(
     zen_remote_display_system_client

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "core/common.h"
-#include "zen/display-system/remote/core/logger.h"
+#include "zen-remote/logger.h"
 
-namespace zen::display_system::remote::log {
+namespace zen::remote {
 
 struct Logger {
   // logger singleton set by InitializeLogger;
@@ -22,29 +22,24 @@ struct Logger {
   std::unique_ptr<ILogSink> sink_;
 };
 
-#define LOG_DEBUG(format, ...)                                                \
-  zen::display_system::remote::log::Logger::instance->Print(                  \
-      zen::display_system::remote::log::DEBUG, __PRETTY_FUNCTION__, __FILE__, \
-      __LINE__, format, ##__VA_ARGS__)
+#define LOG_DEBUG(format, ...)                                       \
+  zen::remote::Logger::instance->Print(zen::remote::Severity::DEBUG, \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
-#define LOG_INFO(format, ...)                                                \
-  zen::display_system::remote::log::Logger::instance->Print(                 \
-      zen::display_system::remote::log::INFO, __PRETTY_FUNCTION__, __FILE__, \
-      __LINE__, format, ##__VA_ARGS__)
+#define LOG_INFO(format, ...)                                       \
+  zen::remote::Logger::instance->Print(zen::remote::Severity::INFO, \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
-#define LOG_WARN(format, ...)                                                \
-  zen::display_system::remote::log::Logger::instance->Print(                 \
-      zen::display_system::remote::log::WARN, __PRETTY_FUNCTION__, __FILE__, \
-      __LINE__, format, ##__VA_ARGS__)
+#define LOG_WARN(format, ...)                                       \
+  zen::remote::Logger::instance->Print(zen::remote::Severity::WARN, \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
-#define LOG_ERROR(format, ...)                                                \
-  zen::display_system::remote::log::Logger::instance->Print(                  \
-      zen::display_system::remote::log::ERROR, __PRETTY_FUNCTION__, __FILE__, \
-      __LINE__, format, ##__VA_ARGS__)
+#define LOG_ERROR(format, ...)                                       \
+  zen::remote::Logger::instance->Print(zen::remote::Severity::ERROR, \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
-#define LOG_FATAL(format, ...)                                                \
-  zen::display_system::remote::log::Logger::instance->Print(                  \
-      zen::display_system::remote::log::FATAL, __PRETTY_FUNCTION__, __FILE__, \
-      __LINE__, format, ##__VA_ARGS__)
+#define LOG_FATAL(format, ...)                                       \
+  zen::remote::Logger::instance->Print(zen::remote::Severity::FATAL, \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
-}  // namespace zen::display_system::remote::log
+}  // namespace zen::remote
