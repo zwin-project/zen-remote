@@ -1,9 +1,10 @@
 #pragma once
 
-#include <functional>
 #include <stdint.h>
 
-namespace zen::display_system::remote {
+#include <functional>
+
+namespace zen::remote {
 
 struct FdSource {
   enum Mask {
@@ -16,7 +17,7 @@ struct FdSource {
   int fd;
   uint32_t mask;
   std::function<void(int fd, uint32_t mask)> callback;
-  void *data;  // used by ILoop implementation
+  void *data = nullptr;  // used by ILoop implementation
 };
 
 struct ILoop {
@@ -26,4 +27,4 @@ struct ILoop {
   virtual void Terminate() = 0;
 };
 
-}  // namespace zen::display_system::remote
+}  // namespace zen::remote

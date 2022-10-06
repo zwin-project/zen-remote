@@ -1,9 +1,9 @@
 #pragma once
 
 #include "core/common.h"
-#include "zen/display-system/remote/core/loop.h"
+#include "zen-remote/loop.h"
 
-namespace zen::display_system::remote {
+namespace zen::remote {
 
 class Context {
  public:
@@ -30,4 +30,4 @@ Context::io_context()
   return io_context_;
 }
 
-}  // namespace zen::display_system::remote
+}  // namespace zen::remote

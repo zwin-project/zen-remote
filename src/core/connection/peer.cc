@@ -1,9 +1,8 @@
-#include "pch.h"
-
 #include "core/connection/peer.h"
+
 #include "core/logger.h"
 
-namespace zen::display_system::remote::connection {
+namespace zen::remote::connection {
 
 namespace {
 
@@ -279,4 +278,4 @@ Peer::AcceptDiscoverBroadCast(int /*fd*/, uint32_t /*mask*/)
   signals.discoverd();
 }
 
-}  // namespace zen::display_system::remote::connection
+}  // namespace zen::remote::connection
