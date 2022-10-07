@@ -1,0 +1,37 @@
+name: build_test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-with-cmake:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Build
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+          make -j
+
+  build-with-meson:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install meson & ninja
+        run: pip install meson ninja
+      
+      - name: Build
+        run: |
+          meson build
+          ninja -C build
