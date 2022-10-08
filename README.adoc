@@ -6,3 +6,16 @@ controllers over the network.
 This project will generate libraries for each of the client and server (ZEN).
 The client may run on Android, so the library for the client must be able to 
 build from source with all dependencies.
+
+== Build & Install
+
+Clone the `zen-remote` repo and *its submodules*
+
+[source, shell]
+----
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j
+$ sudo make install
+----

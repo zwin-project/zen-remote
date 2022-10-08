@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(zen_remote LANGUAGES C CXX VERSION 0.1.0.3)
+project(
+  zen_remote
+  LANGUAGES C CXX
+  HOMEPAGE_URL https://github.com/zigen-project/zen-remote
+  DESCRIPTION "Library for ZEN to communicate with devices over a network"
+  VERSION 0.1.0.4
+)
 
 set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -20,15 +26,10 @@ endif()
 
 add_compile_options(-Wall -Winvalid-pch -Wextra -Wpedantic -Werror)
 
-include(FetchContent)
-FetchContent_Declare(
-  boost_headers_content
-  GIT_REPOSITORY https://github.com/zigen-project/boost-headers.git
-  GIT_TAG boost-1.80.0
-)
-FetchContent_MakeAvailable(boost_headers_content)
-
-set(public_inc ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(private_inc ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(public_inc ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+set(private_inc ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+set(boost_inc ${CMAKE_CURRENT_SOURCE_DIR}/3rd-party/boost-headers/include/)
 
 add_subdirectory(src)
+
+install(DIRECTORY ${public_inc} DESTINATION include)

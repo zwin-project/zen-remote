@@ -8,5 +8,5 @@ add_executable(
 
 target_link_libraries(
   test-client
-  PRIVATE zen_remote_client
+  PRIVATE zen_remote::client
 )
