@@ -2,23 +2,30 @@ file(GLOB_RECURSE CLIENT_SOURCE CONFIGURE_DEPENDS ./*.cc)
 file(GLOB_RECURSE CORE_SOURCE CONFIGURE_DEPENDS ../core/*.cc)
 
 add_library(
-    zen-remote-client SHARED
-    ${CLIENT_SOURCE}
-    ${CORE_SOURCE}
+  zen-remote-client SHARED
+  ${CLIENT_SOURCE}
+  ${CORE_SOURCE}
 )
 
 target_include_directories(
-    zen-remote-client
-    PUBLIC ${public_inc}
-    PRIVATE ${private_inc}
-    PRIVATE ${boost_inc}
+  zen-remote-client
+  PUBLIC ${zen_remote_public_headers}
+  PRIVATE ${zen_remote_private_headers}
+  PRIVATE ${zen_remote_boost_headers}
+)
+
+target_link_libraries(
+  zen-remote-client
+  PRIVATE zen_remote_grpc_proto
 )
 
 target_precompile_headers(zen-remote-client PRIVATE ../pch/pch.h)
 
 target_compile_options(
-    zen-remote-client
-    PRIVATE -Wno-gnu-zero-variadic-macro-arguments
+  zen-remote-client
+  PRIVATE
+    -Wall -Winvalid-pch -Wextra -Wpedantic -Werror
+    -Wno-gnu-zero-variadic-macro-arguments
 )
 
 add_library(zen_remote::client ALIAS zen-remote-client)
@@ -28,6 +35,6 @@ install(TARGETS zen-remote-client)
 configure_file(zen-remote-client.pc.in zen-remote-client.pc @ONLY) 
 
 install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/zen-remote-client.pc
-    DESTINATION lib/pkgconfig
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/zen-remote-client.pc
+  DESTINATION lib/pkgconfig
 )

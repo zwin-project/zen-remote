@@ -9,13 +9,55 @@ build from source with all dependencies.
 
 == Build & Install
 
+=== gRPC
+
+Clone and build https://github.com/zigen-project/grpc-dev[grpc-dev],
+using the v1.49.1 branch. We assume that you clone it to `$MY_DIR/grpc-dev`.
+
+If you have already built `grpc-dev`, this is not required.
+
+=== Build & Install
+
 Clone the `zen-remote` repo and *its submodules*
 
 [source, shell]
 ----
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake \
+    -DZEN_REMOTE_GRPC_SYSROOT=${MY_DIR}/grpc-dev/native/Debug \
+    ..
 $ make -j
 $ sudo make install
+----
+
+=== Configuration
+
+The following CMake variable can be set.
+
+. `ZEN_REMOTE_GRPC_SYSROOT`(required) +
+Specify a sysroot that contains headers, libraries, executables, etc.
+When cross-compiling for such as Android, those libraries and executables must
+be compiled for that target.
+. `ZEN_REMOTE_PROTOC_EXECUTABLE`(optional) +
+Specify the path to the `protoc` executable.
+The `protoc` specified here will be executed at build time, so please specify
+one that is executable on the host machine at build time, even if
+you cross-compile. If not specified, look for `protoc` in
+`ZEN_REMOTE_GRPC_SYSROOT` and the host machine.
+. `ZEN_REMOTE_GRPC_CPP_PLUGIN_EXECUTABLE`(optional) +
+Specify the path to the `grpc_cpp_plugin` executable. The rest is the same as
+`protoc`
+. `ZEN_REMOTE_REQUIRED_VERSION`(optional) +
+Specify the version of zen-remote you expect. We can do version
+checking, for example, when using zen-remote with `add_subdirectory`.
+. `ZEN_REMOTE_TEST_CLIENT`(optional) +
+Specify whether to build test-client or not. Default value is "ON"
+
+You can set these variables via command line arguments or `local.cmake`
+
+[shell, cmake]
+.local.cmake
+----
+set(ZEN_REMOTE_GRPC_SYSROOT $ENV{MY_DIR}/grpc-dev/native/Debug)
 ----

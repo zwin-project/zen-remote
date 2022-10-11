@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package zen.remote;
+
+service Global {
+  rpc Ping(PingReuqest) returns (PingResponse) {}
+}
+
+message PingReuqest {}
+
+message PingResponse {}

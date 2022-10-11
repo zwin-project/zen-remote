@@ -13,3 +13,5 @@ _deps
 .vscode
 subprojects/*
 !subprojects/*.wrap
+
+local.cmake
