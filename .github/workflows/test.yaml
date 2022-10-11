@@ -12,14 +12,33 @@ jobs:
   build-with-cmake:
     runs-on: ubuntu-22.04
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install meson
+
+      - name: Clone grpc-dev
+        uses: actions/checkout@v2
+        with:
+          repository: zigen-project/grpc-dev
+          path: grpc-dev
+          submodules: recursive
+          ref: 'v1.49.1' 
+      
+      - name: Build grpc-dev
+        working-directory: ./grpc-dev
+        run: |
+          touch local.mk
+          make native
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          path: zen-remote
           submodules: true
       
       - name: Build
+        working-directory: ./zen-remote
         run: |
-          mkdir -p build
-          cd build
-          cmake ..
-          make -j
+          cmake -B build -DZEN_REMOTE_GRPC_SYSROOT=$GITHUB_WORKSPACE/grpc-dev/native/Debug
+          cmake --build build
