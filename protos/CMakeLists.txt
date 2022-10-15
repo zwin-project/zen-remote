@@ -20,7 +20,7 @@ message(STATUS "grpc_cpp_plugin: ${ZEN_REMOTE_GRPC_CPP_PLUGIN_EXECUTABLE}")
 
 add_library(zen_remote_grpc_proto STATIC)
 
-set(protos "ping")
+set(protos "rendering-unit" "common")
 
 foreach(proto IN LISTS protos)
 

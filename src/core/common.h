@@ -1,6 +1,6 @@
 #pragma once
 
-namespace {
+namespace zen::remote {
 
 #define DISABLE_MOVE_AND_COPY(Class)        \
   Class(const Class &) = delete;            \
@@ -8,4 +8,7 @@ namespace {
   Class &operator=(const Class &) = delete; \
   Class &operator=(Class &&) = delete
 
-}  // namespace
+inline constexpr uint16_t kDiscoverPort = 9983;  // listen in server
+inline constexpr uint16_t kGrpcPort = 50051;     // listen in client
+
+}  // namespace zen::remote

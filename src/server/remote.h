@@ -2,24 +2,49 @@
 
 #include "core/connection/peer.h"
 #include "core/context.h"
-#include "zen-remote/remote.h"
+#include "job-queue.h"
+#include "zen-remote/server/remote.h"
 
-namespace zen::remote {
+namespace zen::remote::server {
 
 class Remote : public IRemote {
  public:
-  Remote(std::unique_ptr<ILoop> loop)
-      : context_(std::make_unique<Context>(std::move(loop)))
-  {
-  }
+  enum SerialType {
+    kObject = 0,
+    kCount,
+  };
+
+  Remote(std::unique_ptr<ILoop> loop);
 
   void Start() override;
 
   void Stop() override;
 
+  uint64_t NewSerial(SerialType type);
+
+  std::unique_ptr<JobQueue>& job_queue();
+
+  inline std::unique_ptr<connection::Peer>& peer();
+
  private:
-  std::unique_ptr<connection::Peer> peer_;
   std::shared_ptr<Context> context_;
+  std::unique_ptr<connection::Peer> peer_;
+
+  uint64_t serials[SerialType::kCount] = {0};
+
+  std::unique_ptr<JobQueue> job_queue_;
 };
 
-}  // namespace zen::remote
+inline std::unique_ptr<JobQueue>&
+Remote::job_queue()
+{
+  return job_queue_;
+}
+
+inline std::unique_ptr<connection::Peer>&
+Remote::peer()
+{
+  return peer_;
+}
+
+}  // namespace zen::remote::server

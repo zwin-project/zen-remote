@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service RenderingUnitService
+{
+  rpc New(NewObjectRequest) returns (EmptyResponse);
+  rpc Delete(DeleteObjectRequest) returns (EmptyResponse);
+}

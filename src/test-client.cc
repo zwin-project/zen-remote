@@ -1,11 +1,12 @@
 #include <sys/epoll.h>
+#include <zen-remote/client/remote.h>
 #include <zen-remote/logger.h>
 #include <zen-remote/loop.h>
-#include <zen-remote/remote.h>
 
 #include <iostream>
 
 using namespace zen::remote;
+using namespace zen::remote::client;
 
 bool running = true;
 
