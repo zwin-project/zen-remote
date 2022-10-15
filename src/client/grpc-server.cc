@@ -1,6 +1,6 @@
 #include "client/grpc-server.h"
 
-#include "client/rendering-unit.h"
+#include "client/service/rendering-unit.h"
 #include "core/logger.h"
 
 namespace zen::remote::client {
@@ -14,7 +14,7 @@ GrpcServer::Start()
 
     builder.AddListeningPort(host_port, grpc::InsecureServerCredentials());
 
-    RenderingUnitServiceImpl rendering_unit_service;
+    service::RenderingUnitServiceImpl rendering_unit_service;
 
     builder.RegisterService(&rendering_unit_service);
 
