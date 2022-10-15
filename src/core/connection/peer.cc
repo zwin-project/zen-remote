@@ -1,12 +1,12 @@
 #include "core/connection/peer.h"
 
+#include "core/common.h"
 #include "core/logger.h"
 
 namespace zen::remote::connection {
 
 namespace {
 
-constexpr int kDiscoverPort = 9983;
 #define DISCOVER_PACKET_PREAMBLE "55d65470abe34d2ca21c21e4eb1033d5"  // UUID
 #define DISCOVER_PACKET_VERSION 1
 
@@ -191,6 +191,11 @@ bool
 Peer::DiscoverClient()
 {
   boost::system::error_code err;
+  if (status_ == Status::kDiscovered) {
+    signals.discoverd();
+    return true;
+  }
+
   if (status_ != Status::kInitial) return true;
   status_ = Status::kDiscovering;
 

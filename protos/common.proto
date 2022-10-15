@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package zen.remote;
+
+message NewObjectRequest
+{
+  uint64 id = 1;
+};
+
+message DeleteObjectRequest
+{
+  uint64 id = 1;
+}
+
+message EmptyResponse {}
