@@ -2,7 +2,7 @@
 
 #include "rendering-unit.grpc.pb.h"
 
-namespace zen::remote::client {
+namespace zen::remote::client::service {
 
 class RenderingUnitServiceImpl final : public RenderingUnitService::Service {
   virtual grpc::Status New(grpc::ServerContext* context,
@@ -12,4 +12,4 @@ class RenderingUnitServiceImpl final : public RenderingUnitService::Service {
       const DeleteObjectRequest* request, EmptyResponse* response) override;
 };
 
-}  // namespace zen::remote::client
+}  // namespace zen::remote::client::service

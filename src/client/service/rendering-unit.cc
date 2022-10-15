@@ -1,8 +1,8 @@
-#include "client/rendering-unit.h"
+#include "client/service/rendering-unit.h"
 
 #include "core/logger.h"
 
-namespace zen::remote::client {
+namespace zen::remote::client::service {
 
 grpc::Status
 RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,
@@ -20,4 +20,4 @@ RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
   return grpc::Status::OK;
 }
 
-}  // namespace zen::remote::client
+}  // namespace zen::remote::client::service
