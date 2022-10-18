@@ -10,7 +10,7 @@ namespace zen::remote::server {
 class Remote : public IRemote {
  public:
   enum SerialType {
-    kObject = 0,
+    kResource = 0,
     kCount,
   };
 

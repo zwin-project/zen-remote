@@ -12,7 +12,7 @@ class RenderingUnit final : public IRenderingUnit {
   RenderingUnit() = delete;
   RenderingUnit(std::shared_ptr<Remote> remote)
       : remote_(std::move(remote)),
-        id_(remote_->NewSerial(Remote::SerialType::kObject))
+        id_(remote_->NewSerial(Remote::SerialType::kResource))
   {
   }
   ~RenderingUnit();

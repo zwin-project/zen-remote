@@ -6,6 +6,6 @@ import "common.proto";
 
 service RenderingUnitService
 {
-  rpc New(NewObjectRequest) returns (EmptyResponse);
-  rpc Delete(DeleteObjectRequest) returns (EmptyResponse);
+  rpc New(NewResourceRequest) returns (EmptyResponse);
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
 }

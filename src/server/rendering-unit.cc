@@ -25,7 +25,7 @@ RenderingUnit::Init()
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    NewObjectRequest request;
+    NewResourceRequest request;
     EmptyResponse response;
     grpc::ClientContext context;
 
@@ -58,7 +58,7 @@ RenderingUnit::~RenderingUnit()
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    DeleteObjectRequest request;
+    DeleteResourceRequest request;
     EmptyResponse response;
     grpc::ClientContext context;
 
