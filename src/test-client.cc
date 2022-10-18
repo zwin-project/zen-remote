@@ -3,7 +3,9 @@
 #include <zen-remote/logger.h>
 #include <zen-remote/loop.h>
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 using namespace zen::remote;
 using namespace zen::remote::client;
@@ -74,9 +76,7 @@ class Loop : public ILoop {
 };
 
 int
-main(int /*argc*/
-    ,
-    char const * /*argv*/[])
+main(int /*argc*/, char const * /*argv*/[])
 {
   int epoll_fd = epoll_create1(EPOLL_CLOEXEC);
 
@@ -94,7 +94,7 @@ main(int /*argc*/
   int epoll_count;
   struct epoll_event events[16];
   while (running) {
-    epoll_count = epoll_wait(epoll_fd, events, 16, -1);
+    epoll_count = epoll_wait(epoll_fd, events, 16, 0);
     for (int i = 0; i < epoll_count; i++) {
       auto source = static_cast<FdSource *>(events[i].data.ptr);
 
@@ -105,6 +105,24 @@ main(int /*argc*/
       if (events[i].events & EPOLLERR) mask |= FdSource::kError;
 
       source->callback(source->fd, mask);
+    }
+
+    {  // test code
+      static auto t = std::chrono::system_clock::now();
+      static int render_unit_count = 0;
+      int count = 0;
+      remote->pool()->ForEachRenderingUnit(
+          [&count](std::shared_ptr<IRenderingUnit> & /*unit*/) { count++; });
+      if (render_unit_count != count) {
+        fprintf(stderr, "Rendering Unit Count: %d\n", count);
+        render_unit_count = count;
+      }
+
+      // throttle back on this loop(approx. 30fps)
+      while (t < std::chrono::system_clock::now()) {
+        t += std::chrono::milliseconds(33);
+      }
+      std::this_thread::sleep_until(t);
     }
   }
 

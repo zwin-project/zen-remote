@@ -12,6 +12,10 @@ if (EXISTS local.cmake)
   include(local.cmake)
 endif()
 
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(NOT DEFINED ZEN_REMOTE_TEST_CLIENT)

@@ -14,7 +14,7 @@ GrpcServer::Start()
 
     builder.AddListeningPort(host_port, grpc::InsecureServerCredentials());
 
-    service::RenderingUnitServiceImpl rendering_unit_service;
+    service::RenderingUnitServiceImpl rendering_unit_service(pool_);
 
     builder.RegisterService(&rendering_unit_service);
 

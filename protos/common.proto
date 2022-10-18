@@ -2,12 +2,15 @@ syntax = "proto3";
 
 package zen.remote;
 
-message NewObjectRequest
+// The combination of a resource ID and its resource type is unique throughout
+// the entire lifetime of the system, and no resource may be created more than
+// once with the same ID and type combination.
+message NewResourceRequest
 {
   uint64 id = 1;
 };
 
-message DeleteObjectRequest
+message DeleteResourceRequest
 {
   uint64 id = 1;
 }

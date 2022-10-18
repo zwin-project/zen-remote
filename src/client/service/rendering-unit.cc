@@ -6,17 +6,20 @@ namespace zen::remote::client::service {
 
 grpc::Status
 RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,
-    const NewObjectRequest* request, EmptyResponse* /*response*/)
+    const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  LOG_DEBUG("New rendering unit: %ld", request->id());  // FIXME:
+  auto rendering_unit = std::make_unique<RenderingUnit>(request->id());
+
+  pool_->rendering_units()->Add(std::move(rendering_unit));
+
   return grpc::Status::OK;
 }
 
 grpc::Status
 RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
-    const DeleteObjectRequest* request, EmptyResponse* /*response*/)
+    const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  LOG_DEBUG("Delete rendering unit: %ld", request->id());  // FIXME:
+  pool_->rendering_units()->ScheduleRemove(request->id());
   return grpc::Status::OK;
 }
 
