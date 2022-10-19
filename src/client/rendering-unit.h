@@ -10,7 +10,7 @@ class RenderingUnit final : public IRenderingUnit, public IResource {
  public:
   DISABLE_MOVE_AND_COPY(RenderingUnit);
   RenderingUnit() = delete;
-  RenderingUnit(uint64_t id) : id_(id){};
+  RenderingUnit(uint64_t id);
 
   uint64_t id() override;
 

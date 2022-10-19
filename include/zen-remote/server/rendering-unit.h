@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory>
+#include <zen-remote/server/remote.h>
 
-#include "remote.h"
+#include <memory>
 
 namespace zen::remote::server {
 

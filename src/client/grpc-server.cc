@@ -1,9 +1,13 @@
 #include "client/grpc-server.h"
 
 #include "client/service/rendering-unit.h"
-#include "core/logger.h"
 
 namespace zen::remote::client {
+
+GrpcServer::GrpcServer(std::string host, uint16_t port, ResourcePool *pool)
+    : host_(host), port_(port), pool_(pool)
+{
+}
 
 void
 GrpcServer::Start()

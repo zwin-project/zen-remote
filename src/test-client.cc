@@ -112,7 +112,7 @@ main(int /*argc*/, char const * /*argv*/[])
       static int render_unit_count = 0;
       int count = 0;
       remote->pool()->ForEachRenderingUnit(
-          [&count](std::shared_ptr<IRenderingUnit> & /*unit*/) { count++; });
+          [&count](IRenderingUnit * /*unit*/) { count++; });
       if (render_unit_count != count) {
         fprintf(stderr, "Rendering Unit Count: %d\n", count);
         render_unit_count = count;

@@ -1,8 +1,13 @@
 #include "client/service/rendering-unit.h"
 
-#include "core/logger.h"
+#include "client/resource-pool.h"
 
 namespace zen::remote::client::service {
+
+RenderingUnitServiceImpl::RenderingUnitServiceImpl(ResourcePool* pool)
+    : pool_(pool)
+{
+}
 
 grpc::Status
 RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,

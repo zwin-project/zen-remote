@@ -15,10 +15,7 @@ class Job {
  public:
   DISABLE_MOVE_AND_COPY(Job);
   Job() = delete;
-  Job(std::function<void(bool cancel)> perform_func)
-      : perform_func_(perform_func)
-  {
-  }
+  Job(std::function<void(bool cancel)> perform_func);
 
  private:
   friend class JobQueue;

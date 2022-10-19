@@ -1,11 +1,15 @@
 #include "client/remote.h"
 
-#include "core/common.h"
+#include "client/grpc-server.h"
 #include "core/connection/peer.h"
 #include "core/logger.h"
-#include "zen-remote/client/remote.h"
 
 namespace zen::remote::client {
+
+Remote::Remote(std::unique_ptr<ILoop> loop)
+    : context_(std::make_unique<Context>(std::move(loop)))
+{
+}
 
 void
 Remote::Start()
@@ -18,7 +22,8 @@ Remote::Start()
   });
   peer_->StartDiscover();
 
-  grpc_server_ = std::make_unique<GrpcServer>("0.0.0.0", kGrpcPort, pool_);
+  grpc_server_ =
+      std::make_unique<GrpcServer>("0.0.0.0", kGrpcPort, &this->pool_);
   grpc_server_->Start();
 }
 
@@ -28,10 +33,10 @@ Remote::Stop()
   // TODO:
 }
 
-std::shared_ptr<IResourcePool>
+IResourcePool*
 Remote::pool()
 {
-  return pool_;
+  return &pool_;
 }
 
 std::unique_ptr<IRemote>

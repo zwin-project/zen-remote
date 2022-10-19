@@ -17,15 +17,8 @@ class Peer {
   };
 
   DISABLE_MOVE_AND_COPY(Peer);
-  Peer(Target target, std::shared_ptr<Context> context)
-      : target_(target),
-        context_(std::move(context)),
-        udp_socket_(context_->io_context()),
-        tcp_socket_(context_->io_context()),
-        tcp_acceptor_(context_->io_context()),
-        udp_socket_source_(std::make_unique<FdSource>()),
-        tcp_socket_source_(std::make_unique<FdSource>()),
-        tcp_acceptor_source_(std::make_unique<FdSource>()){};
+  Peer() = delete;
+  Peer(Target target, std::shared_ptr<Context> context);
   ~Peer() = default;
 
   bool StartDiscover();

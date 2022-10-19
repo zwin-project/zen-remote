@@ -13,23 +13,21 @@ using RenderingUnitContainer =
 class ResourcePool final : public IResourcePool {
  public:
   DISABLE_MOVE_AND_COPY(ResourcePool);
-  ResourcePool() : rendering_units_(std::make_unique<RenderingUnitContainer>())
-  {
-  }
+  ResourcePool() = default;
 
   void ForEachRenderingUnit(
-      std::function<void(std::shared_ptr<IRenderingUnit> &)> func) override;
+      std::function<void(IRenderingUnit *)> func) override;
 
-  inline std::unique_ptr<RenderingUnitContainer> &rendering_units();
+  inline RenderingUnitContainer *rendering_units();
 
  private:
-  std::unique_ptr<RenderingUnitContainer> rendering_units_;
+  RenderingUnitContainer rendering_units_;
 };
 
-inline std::unique_ptr<RenderingUnitContainer> &
+inline RenderingUnitContainer *
 ResourcePool::rendering_units()
 {
-  return rendering_units_;
+  return &rendering_units_;
 }
 
 }  // namespace zen::remote::client

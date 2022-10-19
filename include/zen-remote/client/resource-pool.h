@@ -11,7 +11,7 @@ struct IResourcePool {
   ~IResourcePool() = default;
 
   virtual void ForEachRenderingUnit(
-      std::function<void(std::shared_ptr<IRenderingUnit>&)> func) = 0;
+      std::function<void(IRenderingUnit*)> func) = 0;
 };
 
 }  // namespace zen::remote::client
