@@ -3,7 +3,7 @@
 namespace zen::remote::client {
 
 struct IRenderingUnit {
-  ~IRenderingUnit() = default;
+  virtual ~IRenderingUnit() = default;
 };
 
 }  // namespace zen::remote::client

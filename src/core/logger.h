@@ -11,7 +11,6 @@ struct Logger {
 
   DISABLE_MOVE_AND_COPY(Logger);
   Logger() = default;
-  virtual ~Logger() = default;
 
   void Print(Severity severity, const char* pretty_function, const char* file,
       int line, const char* format, ...)

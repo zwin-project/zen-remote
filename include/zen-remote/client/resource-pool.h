@@ -8,7 +8,7 @@
 namespace zen::remote::client {
 
 struct IResourcePool {
-  ~IResourcePool() = default;
+  virtual ~IResourcePool() = default;
 
   virtual void ForEachRenderingUnit(
       std::function<void(IRenderingUnit*)> func) = 0;

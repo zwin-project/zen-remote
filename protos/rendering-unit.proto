@@ -8,4 +8,44 @@ service RenderingUnitService
 {
   rpc New(NewResourceRequest) returns (EmptyResponse);
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc Commit(RenderingUnitCommitRequest) returns (EmptyResponse);
+
+  rpc GlEnableVertexAttribArray(GlEnableVertexAttribArrayRequest)
+      returns (EmptyResponse);
+
+  rpc GlDisableVertexAttribArray(GlDisableVertexAttribArrayRequest)
+      returns (EmptyResponse);
+
+  rpc GlVertexAttribPointer(GlVertexAttribPointerRequest)
+      returns (EmptyResponse);
+}
+
+message RenderingUnitCommitRequest
+{
+  uint64 id = 1;
+};
+
+message GlEnableVertexAttribArrayRequest
+{
+  uint64 id = 1;
+  uint32 index = 2;
+}
+
+message GlDisableVertexAttribArrayRequest
+{
+  uint64 id = 1;
+  uint32 index = 2;
+}
+
+message GlVertexAttribPointerRequest
+{
+  uint64 id = 1;
+  uint32 index = 2;
+  uint64 buffer_id = 3;
+  int32 size = 4;
+  uint64 type = 5;
+  bool normalized = 6;
+  int32 stride = 7;
+  uint64 offset = 8;
 }
