@@ -16,8 +16,6 @@ class RenderingUnit final : public IRenderingUnit, public IResource {
 
  private:
   const uint64_t id_;
-  bool commited_ = false;  // false until the first commit
-  bool update_ = false;    // true when pending changes need to be applied
 };
 
 }  // namespace zen::remote::client

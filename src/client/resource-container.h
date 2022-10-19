@@ -6,6 +6,7 @@ namespace zen::remote::client {
 
 enum class ResourceContainerType {
   kLoopIntensive,
+  kFindByIdIntensive,
 };
 
 template <class T, ResourceContainerType type>
@@ -22,6 +23,9 @@ class ResourceContainer {
 
 template <class T>
 class ResourceContainer<T, ResourceContainerType::kLoopIntensive> {
+  static_assert(
+      std::is_base_of<IResource, T>::value, "T must inherit from IResource");
+
  public:
   void Add(std::shared_ptr<T> resource)
   {
@@ -99,6 +103,46 @@ class ResourceContainer<T, ResourceContainerType::kLoopIntensive> {
   ReadersWriterLock resources_lock_;
   std::mutex new_resources_mtx_;
   std::mutex remove_set_mtx_;
+};
+
+template <class T>
+class ResourceContainer<T, ResourceContainerType::kFindByIdIntensive> {
+  static_assert(
+      std::is_base_of<IResource, T>::value, "T must inherit from IResource");
+
+  using map_pair = std::pair<const uint64_t, std::shared_ptr<T>>;
+
+ public:
+  void Add(std::shared_ptr<T> resource)
+  {
+    auto scope = lock_.WriteLockGuard();
+    map_.insert(map_pair{resource->id(), std::move(resource)});
+  }
+
+  std::shared_ptr<T> Get(uint64_t id)
+  {
+    auto scope = lock_.ReadLockGuard();
+    auto result = map_.find(id);
+    if (result == map_.end()) return std::shared_ptr<T>();
+    return (*result).second;
+  }
+
+  void ScheduleRemove(uint64_t id)
+  {
+    auto scope = lock_.WriteLockGuard();
+    map_.erase(id);
+  }
+
+  void ForEach(std::function<void(const std::shared_ptr<T>&)> func)
+  {
+    auto scope = lock_.ReadLockGuard();
+    std::for_each(
+        map_.begin(), map_.end(), [&func](map_pair p) { func(p.second); });
+  }
+
+ private:
+  std::unordered_map<uint64_t, std::shared_ptr<T>> map_;
+  ReadersWriterLock lock_;
 };
 
 }  // namespace zen::remote::client
