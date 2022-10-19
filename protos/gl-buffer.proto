@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service GlBufferService
+{
+  rpc New(NewResourceRequest) returns (EmptyResponse);
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+}

@@ -19,11 +19,11 @@ class Peer {
   DISABLE_MOVE_AND_COPY(Peer);
   Peer() = delete;
   Peer(Target target, std::shared_ptr<Context> context);
-  ~Peer() = default;
 
   bool StartDiscover();
 
   inline ip::tcp::endpoint endpoint();
+  inline std::shared_ptr<grpc::Channel> grpc_channel();
 
   struct {
     boost::signals2::signal<void()> discoverd;
@@ -59,12 +59,27 @@ class Peer {
   boost::asio::streambuf tcp_read_buf_;
 
   std::thread discover_broadcast_thread_;
+
+  std::shared_ptr<grpc::Channel> grpc_channel_;  // used only by the server
 };
 
 inline ip::tcp::endpoint
 Peer::endpoint()
 {
   return endpoint_;
+}
+
+inline std::shared_ptr<grpc::Channel>
+Peer::grpc_channel()
+{
+  if (!grpc_channel_) {
+    auto host_port =
+        endpoint_.address().to_string() + ":" + std::to_string(kGrpcPort);
+    grpc_channel_ =
+        grpc::CreateChannel(host_port, grpc::InsecureChannelCredentials());
+  }
+
+  return grpc_channel_;
 }
 
 }  // namespace zen::remote::connection

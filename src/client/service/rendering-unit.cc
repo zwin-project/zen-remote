@@ -28,4 +28,38 @@ RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
   return grpc::Status::OK;
 }
 
+grpc::Status
+RenderingUnitServiceImpl::Commit(grpc::ServerContext* /*context*/,
+    const RenderingUnitCommitRequest* /*request*/, EmptyResponse* /*response*/)
+{
+  return grpc::Status::OK;
+}
+
+grpc::Status
+RenderingUnitServiceImpl::GlEnableVertexAttribArray(
+    grpc::ServerContext* /*context*/,
+    const GlEnableVertexAttribArrayRequest* /*request*/,
+    EmptyResponse* /*response*/)
+{
+  return grpc::Status::OK;
+}
+
+grpc::Status
+RenderingUnitServiceImpl::GlDisableVertexAttribArray(
+    grpc::ServerContext* /*context*/,
+    const GlDisableVertexAttribArrayRequest* /*request*/,
+    EmptyResponse* /*response*/)
+{
+  return grpc::Status::OK;
+}
+
+grpc::Status
+RenderingUnitServiceImpl::GlVertexAttribPointer(
+    grpc::ServerContext* /*context*/,
+    const GlVertexAttribPointerRequest* /*request*/,
+    EmptyResponse* /*response*/)
+{
+  return grpc::Status::OK;
+}
+
 }  // namespace zen::remote::client::service

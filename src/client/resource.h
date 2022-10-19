@@ -3,7 +3,7 @@
 namespace zen::remote::client {
 
 struct IResource {
-  ~IResource() = default;
+  virtual ~IResource() = default;
 
   virtual uint64_t id() = 0;
 };

@@ -24,14 +24,7 @@ RenderingUnit::Init()
   auto job = std::make_unique<Job>([id, remote](bool cancel) {
     if (cancel) return;
 
-    auto& peer = remote->peer();
-
-    auto host_port = peer->endpoint().address().to_string() + ":" +
-                     std::to_string(kGrpcPort);
-
-    // TODO: share the channel across jobs
-    auto channel =
-        grpc::CreateChannel(host_port, grpc::InsecureChannelCredentials());
+    auto channel = remote->peer()->grpc_channel();
 
     auto stub = RenderingUnitService::NewStub(channel);
 
@@ -50,6 +43,132 @@ RenderingUnit::Init()
   remote_->job_queue()->Push(std::move(job));
 }
 
+void
+RenderingUnit::Commit()
+{
+  uint64_t id = id_;
+  auto remote = remote_;
+
+  auto job = std::make_unique<Job>([id, remote](bool cancel) {
+    if (cancel) return;
+
+    auto channel = remote->peer()->grpc_channel();
+
+    auto stub = RenderingUnitService::NewStub(channel);
+
+    RenderingUnitCommitRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
+
+    request.set_id(id);
+
+    auto status = stub->Commit(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("Failed to commit rendering unit");
+    }
+  });
+
+  remote_->job_queue()->Push(std::move(job));
+}
+
+void
+RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
+{
+  uint64_t id = id_;
+  auto remote = remote_;
+
+  auto job = std::make_unique<Job>([id, index, remote](bool cancel) {
+    if (cancel) return;
+
+    auto channel = remote->peer()->grpc_channel();
+
+    auto stub = RenderingUnitService::NewStub(channel);
+
+    GlEnableVertexAttribArrayRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
+
+    request.set_id(id);
+    request.set_index(index);
+
+    auto status = stub->GlEnableVertexAttribArray(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("GlEnableVertexAttribArray failed");
+    }
+  });
+
+  remote_->job_queue()->Push(std::move(job));
+}
+
+void
+RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
+{
+  uint64_t id = id_;
+  auto remote = remote_;
+
+  auto job = std::make_unique<Job>([id, index, remote](bool cancel) {
+    if (cancel) return;
+
+    auto channel = remote->peer()->grpc_channel();
+
+    auto stub = RenderingUnitService::NewStub(channel);
+
+    GlDisableVertexAttribArrayRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
+
+    request.set_id(id);
+    request.set_index(index);
+
+    auto status =
+        stub->GlDisableVertexAttribArray(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("GlDisableVertexAttribArray failed");
+    }
+  });
+
+  remote_->job_queue()->Push(std::move(job));
+}
+
+void
+RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
+    int32_t size, uint64_t type, bool normalized, int32_t stride,
+    uint64_t offset)
+{
+  uint64_t id = id_;
+  auto remote = remote_;
+
+  auto job =
+      std::make_unique<Job>([id, index, buffer_id, size, type, normalized,
+                                stride, offset, remote](bool cancel) {
+        if (cancel) return;
+
+        auto channel = remote->peer()->grpc_channel();
+
+        auto stub = RenderingUnitService::NewStub(channel);
+
+        GlVertexAttribPointerRequest request;
+        EmptyResponse response;
+        grpc::ClientContext context;
+
+        request.set_id(id);
+        request.set_index(index);
+        request.set_buffer_id(buffer_id);
+        request.set_size(size);
+        request.set_type(type);
+        request.set_normalized(normalized);
+        request.set_stride(stride);
+        request.set_offset(offset);
+
+        auto status = stub->GlVertexAttribPointer(&context, request, &response);
+        if (!status.ok()) {
+          LOG_WARN("GlDisableVertexAttribArray failed");
+        }
+      });
+
+  remote_->job_queue()->Push(std::move(job));
+}
+
 RenderingUnit::~RenderingUnit()
 {
   uint64_t id = id_;
@@ -58,13 +177,7 @@ RenderingUnit::~RenderingUnit()
   auto job = std::make_unique<Job>([id, remote](bool cancel) {
     if (cancel) return;
 
-    auto& peer = remote->peer();
-
-    auto host_port = peer->endpoint().address().to_string() + ":" +
-                     std::to_string(kGrpcPort);
-
-    auto channel =
-        grpc::CreateChannel(host_port, grpc::InsecureChannelCredentials());
+    auto channel = remote->peer()->grpc_channel();
 
     auto stub = RenderingUnitService::NewStub(channel);
 
