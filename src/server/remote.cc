@@ -2,6 +2,7 @@
 
 #include "core/connection/peer.h"
 #include "core/logger.h"
+#include "job-queue.h"
 #include "zen-remote/server/remote.h"
 
 namespace zen::remote::server {

@@ -2,6 +2,8 @@
 
 namespace zen::remote::client {
 
+RenderingUnit::RenderingUnit(uint64_t id) : id_(id) {}
+
 uint64_t
 RenderingUnit::id()
 {

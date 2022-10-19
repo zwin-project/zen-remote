@@ -1,8 +1,11 @@
 #pragma once
 
-#include "client/resource-pool.h"
 #include "core/common.h"
 #include "rendering-unit.grpc.pb.h"
+
+namespace zen::remote::client {
+class ResourcePool;
+}
 
 namespace zen::remote::client::service {
 
@@ -10,8 +13,7 @@ class RenderingUnitServiceImpl final : public RenderingUnitService::Service {
  public:
   DISABLE_MOVE_AND_COPY(RenderingUnitServiceImpl);
   RenderingUnitServiceImpl() = delete;
-  RenderingUnitServiceImpl(std::shared_ptr<ResourcePool> pool)
-      : pool_(std::move(pool)){};
+  RenderingUnitServiceImpl(ResourcePool* pool);
 
  private:
   virtual grpc::Status New(grpc::ServerContext* context,
@@ -20,7 +22,7 @@ class RenderingUnitServiceImpl final : public RenderingUnitService::Service {
   virtual grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
-  std::shared_ptr<ResourcePool> pool_;
+  ResourcePool* pool_;
 };
 
 }  // namespace zen::remote::client::service

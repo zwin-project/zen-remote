@@ -11,7 +11,8 @@ class ReadersWriterLock {
   class ReadScope {
    public:
     DISABLE_MOVE_AND_COPY(ReadScope);
-    ReadScope(ReadersWriterLock* lock) : lock_(lock){};
+    ReadScope() = delete;
+    ReadScope(ReadersWriterLock* lock);
 
     ~ReadScope();
 
@@ -22,7 +23,8 @@ class ReadersWriterLock {
   class WriteScope {
    public:
     DISABLE_MOVE_AND_COPY(WriteScope);
-    WriteScope(ReadersWriterLock* lock) : lock_(lock){};
+    WriteScope() = delete;
+    WriteScope(ReadersWriterLock* lock);
 
     ~WriteScope();
 
@@ -44,9 +46,9 @@ class ReadersWriterLock {
   void BeginWrite();
   void EndWrite();
 
-  uint32_t active_reader_count_;
-  uint32_t waiting_writer_count_;
-  bool writer_active_;
+  uint32_t active_reader_count_ = 0;
+  uint32_t waiting_writer_count_ = 0;
+  bool writer_active_ = false;
   std::condition_variable cond_;
   std::mutex mtx_;
 };

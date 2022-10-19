@@ -1,9 +1,9 @@
 #pragma once
 
-#include <memory>
+#include <zen-remote/client/resource-pool.h>
+#include <zen-remote/loop.h>
 
-#include "zen-remote/client/resource-pool.h"
-#include "zen-remote/loop.h"
+#include <memory>
 
 namespace zen::remote::client {
 
@@ -14,7 +14,7 @@ struct IRemote {
 
   virtual void Stop() = 0;
 
-  virtual std::shared_ptr<IResourcePool> pool() = 0;
+  virtual IResourcePool* pool() = 0;
 };
 
 std::unique_ptr<IRemote> CreateRemote(std::unique_ptr<ILoop> loop);

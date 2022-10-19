@@ -1,11 +1,21 @@
 #pragma once
 
-#include "core/connection/peer.h"
-#include "core/context.h"
-#include "job-queue.h"
+#include "core/common.h"
 #include "zen-remote/server/remote.h"
 
+namespace zen::remote {
+
+class Context;
+
+namespace connection {
+class Peer;
+}
+
+}  // namespace zen::remote
+
 namespace zen::remote::server {
+
+class JobQueue;
 
 class Remote : public IRemote {
  public:
@@ -14,6 +24,8 @@ class Remote : public IRemote {
     kCount,
   };
 
+  DISABLE_MOVE_AND_COPY(Remote);
+  Remote() = delete;
   Remote(std::unique_ptr<ILoop> loop);
 
   void Start() override;

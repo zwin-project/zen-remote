@@ -1,9 +1,19 @@
 #include "server/rendering-unit.h"
 
+#include "core/connection/peer.h"
 #include "core/logger.h"
 #include "rendering-unit.grpc.pb.h"
+#include "server/job-queue.h"
+#include "server/job.h"
+#include "server/remote.h"
 
 namespace zen::remote::server {
+
+RenderingUnit::RenderingUnit(std::shared_ptr<Remote> remote)
+    : remote_(std::move(remote)),
+      id_(remote_->NewSerial(Remote::SerialType::kResource))
+{
+}
 
 void
 RenderingUnit::Init()

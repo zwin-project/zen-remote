@@ -2,7 +2,15 @@
 
 namespace zen::remote {
 
+ReadersWriterLock::ReadScope::ReadScope(ReadersWriterLock* lock) : lock_(lock)
+{
+}
+
 ReadersWriterLock::ReadScope::~ReadScope() { lock_->EndRead(); }
+
+ReadersWriterLock::WriteScope::WriteScope(ReadersWriterLock* lock) : lock_(lock)
+{
+}
 
 ReadersWriterLock::WriteScope::~WriteScope() { lock_->EndWrite(); }
 

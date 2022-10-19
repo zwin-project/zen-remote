@@ -1,19 +1,17 @@
 #pragma once
 
-#include "client/resource-pool.h"
 #include "core/common.h"
 
 namespace zen::remote::client {
+
+class ResourcePool;
 
 class GrpcServer {
  public:
   DISABLE_MOVE_AND_COPY(GrpcServer);
   GrpcServer() = delete;
-  GrpcServer(
-      std::string host, uint16_t port, std::shared_ptr<ResourcePool> pool)
-      : host_(host), port_(port), pool_(std::move(pool))
-  {
-  }
+  GrpcServer(std::string host, uint16_t port, ResourcePool *pool);
+
   ~GrpcServer();
 
   void Start();
@@ -23,7 +21,8 @@ class GrpcServer {
   const uint16_t port_;
   std::thread thread_;
   std::unique_ptr<grpc::Server> server_;
-  std::shared_ptr<ResourcePool> pool_;
+
+  ResourcePool *pool_;
 };
 
 }  // namespace zen::remote::client

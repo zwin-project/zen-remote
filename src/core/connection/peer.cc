@@ -25,6 +25,18 @@ struct DiscoverPacket {
 namespace asio = boost::asio;
 namespace ip = boost::asio::ip;
 
+Peer::Peer(Target target, std::shared_ptr<Context> context)
+    : target_(target),
+      context_(std::move(context)),
+      udp_socket_(context_->io_context()),
+      tcp_socket_(context_->io_context()),
+      tcp_acceptor_(context_->io_context()),
+      udp_socket_source_(std::make_unique<FdSource>()),
+      tcp_socket_source_(std::make_unique<FdSource>()),
+      tcp_acceptor_source_(std::make_unique<FdSource>())
+{
+}
+
 bool
 Peer::StartDiscover()
 {
