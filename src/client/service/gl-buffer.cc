@@ -8,15 +8,20 @@ GlBufferServiceImpl::GlBufferServiceImpl(ResourcePool* pool) : pool_(pool) {}
 
 grpc::Status
 GlBufferServiceImpl::New(grpc::ServerContext* /*context*/,
-    const NewResourceRequest* /*request*/, EmptyResponse* /*response*/)
+    const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
+  auto gl_buffer = std::make_unique<GlBuffer>(request->id());
+
+  pool_->gl_buffers()->Add(std::move(gl_buffer));
+
   return grpc::Status::OK;
 }
 
 grpc::Status
 GlBufferServiceImpl::Delete(grpc::ServerContext* /*context*/,
-    const DeleteResourceRequest* /*request*/, EmptyResponse* /*response*/)
+    const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
+  pool_->gl_buffers()->ScheduleRemove(request->id());
   return grpc::Status::OK;
 }
 
