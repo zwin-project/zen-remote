@@ -8,7 +8,6 @@ namespace zen::remote::server {
 
 struct IRenderingUnit {
   virtual ~IRenderingUnit() = default;
-  virtual void Commit() = 0;
   virtual void GlEnableVertexAttribArray(uint32_t index) = 0;
   virtual void GlDisableVertexAttribArray(uint32_t index) = 0;
   virtual void GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
@@ -17,6 +16,6 @@ struct IRenderingUnit {
 };
 
 std::unique_ptr<IRenderingUnit> CreateRenderingUnit(
-    std::shared_ptr<IRemote> remote);
+    std::shared_ptr<IRemote> remote, uint64_t virtual_object_id);
 
 }  // namespace zen::remote::server

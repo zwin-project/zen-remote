@@ -11,9 +11,13 @@ RenderingUnitServiceImpl::RenderingUnitServiceImpl(ResourcePool* pool)
 
 grpc::Status
 RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,
-    const NewResourceRequest* request, EmptyResponse* /*response*/)
+    const NewRenderingUnitRequest* request, EmptyResponse* /*response*/)
 {
-  auto rendering_unit = std::make_unique<RenderingUnit>(request->id());
+  auto rendering_unit = std::make_shared<RenderingUnit>(request->id());
+  auto virtual_object =
+      pool_->virtual_objects()->Get(request->virtual_object_id());
+
+  virtual_object->AddRenderingUnit(rendering_unit);
 
   pool_->rendering_units()->Add(std::move(rendering_unit));
 
@@ -25,13 +29,6 @@ RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
   pool_->rendering_units()->ScheduleRemove(request->id());
-  return grpc::Status::OK;
-}
-
-grpc::Status
-RenderingUnitServiceImpl::Commit(grpc::ServerContext* /*context*/,
-    const RenderingUnitCommitRequest* /*request*/, EmptyResponse* /*response*/)
-{
   return grpc::Status::OK;
 }
 

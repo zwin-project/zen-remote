@@ -1,17 +1,15 @@
 #pragma once
 
-#include <zen-remote/client/rendering-unit.h>
+#include <zen-remote/client/virtual-object.h>
 
 #include <functional>
-#include <memory>
 
 namespace zen::remote::client {
 
 struct IResourcePool {
   virtual ~IResourcePool() = default;
 
-  virtual void ForEachRenderingUnit(
-      std::function<void(IRenderingUnit*)> func) = 0;
+  virtual void Traverse(std::function<void(IVirtualObject*)> func) = 0;
 };
 
 }  // namespace zen::remote::client

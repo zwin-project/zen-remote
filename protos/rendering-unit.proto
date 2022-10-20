@@ -6,10 +6,9 @@ import "common.proto";
 
 service RenderingUnitService
 {
-  rpc New(NewResourceRequest) returns (EmptyResponse);
-  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+  rpc New(NewRenderingUnitRequest) returns (EmptyResponse);
 
-  rpc Commit(RenderingUnitCommitRequest) returns (EmptyResponse);
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
 
   rpc GlEnableVertexAttribArray(GlEnableVertexAttribArrayRequest)
       returns (EmptyResponse);
@@ -21,10 +20,11 @@ service RenderingUnitService
       returns (EmptyResponse);
 }
 
-message RenderingUnitCommitRequest
+message NewRenderingUnitRequest
 {
   uint64 id = 1;
-};
+  uint64 virtual_object_id = 2;
+}
 
 message GlEnableVertexAttribArrayRequest
 {

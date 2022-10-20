@@ -1,22 +1,22 @@
-#include "server/gl-buffer.h"
+#include "server/virtual-object.h"
 
 #include "core/connection/peer.h"
 #include "core/logger.h"
-#include "gl-buffer.grpc.pb.h"
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/remote.h"
+#include "virtual-object.grpc.pb.h"
 
 namespace zen::remote::server {
 
-GlBuffer::GlBuffer(std::shared_ptr<Remote> remote)
+VirtualObject::VirtualObject(std::shared_ptr<Remote> remote)
     : remote_(std::move(remote)),
       id_(remote_->NewSerial(Remote::SerialType::kResource))
 {
 }
 
 void
-GlBuffer::Init()
+VirtualObject::Init()
 {
   uint64_t id = id_;
   auto remote = remote_;
@@ -26,7 +26,7 @@ GlBuffer::Init()
 
     auto channel = remote->peer()->grpc_channel();
 
-    auto stub = GlBufferService::NewStub(channel);
+    auto stub = VirtualObjectService::NewStub(channel);
 
     NewResourceRequest request;
     EmptyResponse response;
@@ -36,14 +36,14 @@ GlBuffer::Init()
 
     auto status = stub->New(&context, request, &response);
     if (!status.ok()) {
-      LOG_WARN("Failed to create a new GL buffer");
+      LOG_WARN("Failed to create a new virtual object");
     }
   });
 
   remote_->job_queue()->Push(std::move(job));
 }
 
-GlBuffer::~GlBuffer()
+VirtualObject::~VirtualObject()
 {
   uint64_t id = id_;
   auto remote = remote_;
@@ -53,7 +53,7 @@ GlBuffer::~GlBuffer()
 
     auto channel = remote->peer()->grpc_channel();
 
-    auto stub = GlBufferService::NewStub(channel);
+    auto stub = VirtualObjectService::NewStub(channel);
 
     DeleteResourceRequest request;
     EmptyResponse response;
@@ -63,7 +63,7 @@ GlBuffer::~GlBuffer()
 
     auto status = stub->Delete(&context, request, &response);
     if (!status.ok()) {
-      LOG_WARN("Failed to destroy a gl buffer");
+      LOG_WARN("Failed to destroy a new virtual object");
     }
   });
 
@@ -71,20 +71,20 @@ GlBuffer::~GlBuffer()
 }
 
 uint64_t
-GlBuffer::id()
+VirtualObject::id()
 {
   return id_;
 }
 
-std::unique_ptr<IGlBuffer>
-CreateGlBuffer(std::shared_ptr<IRemote> remote)
+std::unique_ptr<IVirtualObject>
+CreateVirtualObject(std::shared_ptr<IRemote> remote)
 {
-  auto gl_buffer =
-      std::make_unique<GlBuffer>(std::dynamic_pointer_cast<Remote>(remote));
+  auto virtual_object = std::make_unique<VirtualObject>(
+      std::dynamic_pointer_cast<Remote>(remote));
 
-  gl_buffer->Init();
+  virtual_object->Init();
 
-  return gl_buffer;
+  return virtual_object;
 }
 
 }  // namespace zen::remote::server

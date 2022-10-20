@@ -24,6 +24,7 @@ set(protos
   "common"
   "gl-buffer"
   "rendering-unit"
+  "virtual-object"
 )
 
 foreach(proto IN LISTS protos)
