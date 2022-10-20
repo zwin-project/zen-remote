@@ -14,8 +14,7 @@ class RenderingUnit final : public IRenderingUnit {
   RenderingUnit(std::shared_ptr<Remote> remote);
   ~RenderingUnit();
 
-  void Init();
-  void Commit() override;
+  void Init(uint64_t virtual_object_id);
   void GlEnableVertexAttribArray(uint32_t index) override;
   void GlDisableVertexAttribArray(uint32_t index) override;
   void GlVertexAttribPointer(uint32_t index, uint64_t buffer_id, int32_t size,

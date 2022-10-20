@@ -2,6 +2,7 @@
 
 #include "client/service/gl-buffer.h"
 #include "client/service/rendering-unit.h"
+#include "client/service/virtual-object.h"
 
 namespace zen::remote::client {
 
@@ -19,11 +20,13 @@ GrpcServer::Start()
 
     builder.AddListeningPort(host_port, grpc::InsecureServerCredentials());
 
-    service::RenderingUnitServiceImpl rendering_unit_service(pool_);
     service::GlBufferServiceImpl gl_buffer_service(pool_);
+    service::RenderingUnitServiceImpl rendering_unit_service(pool_);
+    service::VirtualObjectServiceImpl virtual_object_service(pool_);
 
-    builder.RegisterService(&rendering_unit_service);
     builder.RegisterService(&gl_buffer_service);
+    builder.RegisterService(&rendering_unit_service);
+    builder.RegisterService(&virtual_object_service);
 
     server_ = builder.BuildAndStart();
     server_->Wait();

@@ -5,10 +5,11 @@
 namespace zen::remote::client {
 
 void
-ResourcePool::ForEachRenderingUnit(std::function<void(IRenderingUnit*)> func)
+ResourcePool::Traverse(std::function<void(IVirtualObject *)> func)
 {
-  rendering_units_.ForEach(
-      [func](const std::shared_ptr<RenderingUnit> unit) { func(unit.get()); });
+  virtual_objects_.ForEach(
+      [func](const std::shared_ptr<VirtualObject> virtual_object) {
+        func(virtual_object.get());
+      });
 }
-
 }  // namespace zen::remote::client

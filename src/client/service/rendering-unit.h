@@ -16,14 +16,10 @@ class RenderingUnitServiceImpl final : public RenderingUnitService::Service {
   RenderingUnitServiceImpl(ResourcePool* pool);
 
   virtual grpc::Status New(grpc::ServerContext* context,
-      const NewResourceRequest* request, EmptyResponse* response) override;
+      const NewRenderingUnitRequest* request, EmptyResponse* response) override;
 
   virtual grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
-
-  virtual grpc::Status Commit(grpc::ServerContext* context,
-      const RenderingUnitCommitRequest* request,
-      EmptyResponse* response) override;
 
   virtual grpc::Status GlEnableVertexAttribArray(grpc::ServerContext* context,
       const GlEnableVertexAttribArrayRequest* request,

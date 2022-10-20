@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service VirtualObjectService
+{
+  rpc New(NewResourceRequest) returns (EmptyResponse);
+
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc Commit(VirtualObjectCommitRequest) returns (EmptyResponse);
+}
+
+message VirtualObjectCommitRequest
+{
+  uint64 id = 1;
+}
