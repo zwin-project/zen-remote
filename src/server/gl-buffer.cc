@@ -18,10 +18,7 @@ GlBuffer::GlBuffer(std::shared_ptr<Remote> remote)
 void
 GlBuffer::Init()
 {
-  uint64_t id = id_;
-  auto remote = remote_;
-
-  auto job = std::make_unique<Job>([id, remote](bool cancel) {
+  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -45,10 +42,7 @@ GlBuffer::Init()
 
 GlBuffer::~GlBuffer()
 {
-  uint64_t id = id_;
-  auto remote = remote_;
-
-  auto job = std::make_unique<Job>([id, remote](bool cancel) {
+  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();

@@ -113,7 +113,7 @@ main(int /*argc*/, char const * /*argv*/[])
 
       counter++;
       if (counter > 30) {  // once per once second
-        fprintf(stderr, "== current resources ==");
+        fprintf(stderr, "== current resources ==\n");
         remote->pool()->Traverse([](auto virtual_object) {
           fprintf(stderr, "Virtual Object:\n");
           virtual_object->ForEachRenderingUnit(
