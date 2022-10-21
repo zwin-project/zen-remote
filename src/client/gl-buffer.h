@@ -12,6 +12,9 @@ class GlBuffer final : public IGlBuffer, public IResource {
   GlBuffer() = delete;
   GlBuffer(uint64_t id);
 
+  /** Used in the update thread */
+  void Commit();
+
   uint64_t id() override;
 
  private:

@@ -13,7 +13,8 @@ grpc::Status
 VirtualObjectServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto virtual_object = std::make_unique<VirtualObject>(request->id());
+  auto virtual_object = std::make_unique<VirtualObject>(
+      request->id(), pool_->update_rendering_queue());
 
   pool_->virtual_objects()->Add(std::move(virtual_object));
 
@@ -31,9 +32,12 @@ VirtualObjectServiceImpl::Delete(grpc::ServerContext* /*context*/,
 
 grpc::Status
 VirtualObjectServiceImpl::Commit(grpc::ServerContext* /*context*/,
-    const VirtualObjectCommitRequest* /*request*/, EmptyResponse* /*response*/)
+    const VirtualObjectCommitRequest* request, EmptyResponse* /*response*/)
 {
-  // TODO:
+  auto virtual_object = pool_->virtual_objects()->Get(request->id());
+
+  virtual_object->Commit();
+
   return grpc::Status::OK;
 }
 

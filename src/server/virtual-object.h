@@ -16,6 +16,8 @@ class VirtualObject final : public IVirtualObject {
 
   void Init();
 
+  void Commit() override;
+
   uint64_t id() override;
 
  private:

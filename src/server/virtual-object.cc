@@ -18,10 +18,7 @@ VirtualObject::VirtualObject(std::shared_ptr<Remote> remote)
 void
 VirtualObject::Init()
 {
-  uint64_t id = id_;
-  auto remote = remote_;
-
-  auto job = std::make_unique<Job>([id, remote](bool cancel) {
+  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -36,7 +33,32 @@ VirtualObject::Init()
 
     auto status = stub->New(&context, request, &response);
     if (!status.ok()) {
-      LOG_WARN("Failed to create a new virtual object");
+      LOG_WARN("Failed to create a new remote virtual object");
+    }
+  });
+
+  remote_->job_queue()->Push(std::move(job));
+}
+
+void
+VirtualObject::Commit()
+{
+  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+    if (cancel) return;
+
+    auto channel = remote->peer()->grpc_channel();
+
+    auto stub = VirtualObjectService::NewStub(channel);
+
+    VirtualObjectCommitRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
+
+    request.set_id(id);
+
+    auto status = stub->Commit(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("Failed to commit a remote virtual object");
     }
   });
 
@@ -45,10 +67,7 @@ VirtualObject::Init()
 
 VirtualObject::~VirtualObject()
 {
-  uint64_t id = id_;
-  auto remote = remote_;
-
-  auto job = std::make_unique<Job>([id, remote](bool cancel) {
+  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -63,7 +82,7 @@ VirtualObject::~VirtualObject()
 
     auto status = stub->Delete(&context, request, &response);
     if (!status.ok()) {
-      LOG_WARN("Failed to destroy a new virtual object");
+      LOG_WARN("Failed to destroy a remote virtual object");
     }
   });
 
