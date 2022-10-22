@@ -39,6 +39,9 @@ jobs:
       
       - name: Build
         working-directory: ./zen-remote
+        env:
+          CXX: clang++
+          CC: clang
         run: |
           cmake -B build -DZEN_REMOTE_GRPC_SYSROOT=$GITHUB_WORKSPACE/grpc-dev/native/Debug
-          cmake --build build
+          cmake --build build -j

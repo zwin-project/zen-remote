@@ -21,6 +21,8 @@ RenderingUnit::Commit()
   }
 
   // TODO: commit pending state
+  (void)rendering_;
+  (void)update_rendering_queue_;
 }
 
 void

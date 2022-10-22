@@ -20,14 +20,14 @@ VirtualObject::id()
 void
 VirtualObject::ForEachRenderingUnit(std::function<void(IRenderingUnit *)> func)
 {
-  ForEachWeakPtr<std::list, RenderingUnit>(rendering_.rendering_units_,
+  ForEachWeakPtr<RenderingUnit>(rendering_.rendering_units_,
       [func](std::shared_ptr<RenderingUnit> unit) { func(unit.get()); });
 }
 
 void
 VirtualObject::Commit()
 {
-  ForEachWeakPtr<std::list, RenderingUnit>(pending_.rendering_units_,
+  ForEachWeakPtr<RenderingUnit>(pending_.rendering_units_,
       [](std::shared_ptr<RenderingUnit> unit) { unit->Commit(); });
 
   auto command = std::make_unique<Command>(
