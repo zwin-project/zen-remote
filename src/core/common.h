@@ -6,14 +6,14 @@ namespace zen::remote {
  * Iterates the container of std::weak_ptr. If the weak_ptr is empty, it is
  * removed from the container.
  */
-template <template <class> typename C, typename T>
+template <class T, template <class, class> class C, class A>
 void
-ForEachWeakPtr(C<std::weak_ptr<T>> &container,
+ForEachWeakPtr(C<std::weak_ptr<T>, A> &container,
     std::function<void(std::shared_ptr<T>)> func)
 {
   // Add other types of container if needed
-  static_assert(std::is_same<C<int>, std::list<int>>::value ||
-                    std::is_same<C<int>, std::vector<int>>::value,
+  static_assert(std::is_same<C<int, A>, std::list<int, A>>::value ||
+                    std::is_same<C<int, A>, std::vector<int, A>>::value,
       "C must be one of [std::list, std::vector]");
 
   for (auto it = container.begin(); it != container.end();) {

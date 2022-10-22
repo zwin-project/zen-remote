@@ -24,6 +24,8 @@ Clone the `zen-remote` repo and *its submodules*
 ----
 $ mkdir build
 $ cd build
+$ export CXX=clang++ # use clang
+$ export CC=clang
 $ cmake \
     -DZEN_REMOTE_GRPC_SYSROOT=${MY_DIR}/grpc-dev/native/Debug \
     ..
