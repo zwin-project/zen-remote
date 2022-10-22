@@ -111,16 +111,7 @@ main(int /*argc*/, char const * /*argv*/[])
       static auto t = std::chrono::system_clock::now();
       static int counter = 0;
 
-      counter++;
-      if (counter > 30) {  // once per once second
-        fprintf(stderr, "== current resources ==\n");
-        remote->pool()->Traverse([](auto virtual_object) {
-          fprintf(stderr, "Virtual Object:\n");
-          virtual_object->ForEachRenderingUnit(
-              [](auto /*unit*/) { fprintf(stderr, "  RenderingUnit:\n"); });
-        });
-        counter = 0;
-      }
+      remote->pool()->Traverse([](auto /*virtual_object*/) {});
 
       // throttle back on this loop(approx. 30fps)
       while (t < std::chrono::system_clock::now()) {

@@ -17,12 +17,12 @@ class JobQueue {
   JobQueue() = default;
   ~JobQueue();
 
-  void Push(std::unique_ptr<Job> job);
+  void Push(std::unique_ptr<IJob> job);
 
   void StartWorkerThread();
 
  private:
-  std::queue<std::unique_ptr<Job>> queue_;
+  std::queue<std::unique_ptr<IJob>> queue_;
   std::mutex queue_mtx_;
 
   std::condition_variable cond_;

@@ -18,7 +18,7 @@ VirtualObject::VirtualObject(std::shared_ptr<Remote> remote)
 void
 VirtualObject::Init()
 {
-  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -43,7 +43,7 @@ VirtualObject::Init()
 void
 VirtualObject::Commit()
 {
-  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -67,7 +67,7 @@ VirtualObject::Commit()
 
 VirtualObject::~VirtualObject()
 {
-  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();

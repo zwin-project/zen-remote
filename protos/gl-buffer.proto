@@ -7,5 +7,15 @@ import "common.proto";
 service GlBufferService
 {
   rpc New(NewResourceRequest) returns (EmptyResponse);
+
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc GlBufferData(GlBufferDataRequest) returns (EmptyResponse);
+}
+
+message GlBufferDataRequest
+{
+  uint64 id = 1;
+  uint64 usage = 2;
+  bytes data = 3;
 }

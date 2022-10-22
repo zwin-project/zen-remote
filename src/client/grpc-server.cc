@@ -28,6 +28,8 @@ GrpcServer::Start()
     builder.RegisterService(&rendering_unit_service);
     builder.RegisterService(&virtual_object_service);
 
+    builder.SetMaxReceiveMessageSize(-1);
+
     server_ = builder.BuildAndStart();
     server_->Wait();
   });

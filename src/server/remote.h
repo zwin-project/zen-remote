@@ -34,9 +34,9 @@ class Remote : public IRemote {
 
   uint64_t NewSerial(SerialType type);
 
-  std::unique_ptr<JobQueue>& job_queue();
-
+  inline std::shared_ptr<Context> context();
   inline std::unique_ptr<connection::Peer>& peer();
+  inline std::unique_ptr<JobQueue>& job_queue();
 
  private:
   std::shared_ptr<Context> context_;
@@ -46,6 +46,12 @@ class Remote : public IRemote {
 
   std::unique_ptr<JobQueue> job_queue_;
 };
+
+inline std::shared_ptr<Context>
+Remote::context()
+{
+  return context_;
+}
 
 inline std::unique_ptr<JobQueue>&
 Remote::job_queue()
