@@ -21,6 +21,9 @@ class GlBufferServiceImpl final : public GlBufferService::Service {
   virtual grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
+  virtual grpc::Status GlBufferData(grpc::ServerContext* context,
+      const GlBufferDataRequest* request, EmptyResponse* response) override;
+
  private:
   ResourcePool* pool_;
 };

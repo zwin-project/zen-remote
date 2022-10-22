@@ -1,5 +1,7 @@
+#include <fcntl.h>
 #include <grpcpp/grpcpp.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <boost/array.hpp>

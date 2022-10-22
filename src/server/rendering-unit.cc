@@ -18,8 +18,8 @@ RenderingUnit::RenderingUnit(std::shared_ptr<Remote> remote)
 void
 RenderingUnit::Init(uint64_t virtual_object_id)
 {
-  auto job = std::make_unique<Job>(
-      [id = id_, virtual_object_id, remote = remote_](bool cancel) {
+  auto job =
+      CreateJob([id = id_, virtual_object_id, remote = remote_](bool cancel) {
         if (cancel) return;
 
         auto channel = remote->peer()->grpc_channel();
@@ -45,27 +45,25 @@ RenderingUnit::Init(uint64_t virtual_object_id)
 void
 RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 {
-  auto job =
-      std::make_unique<Job>([id = id_, index, remote = remote_](bool cancel) {
-        if (cancel) return;
+  auto job = CreateJob([id = id_, index, remote = remote_](bool cancel) {
+    if (cancel) return;
 
-        auto channel = remote->peer()->grpc_channel();
+    auto channel = remote->peer()->grpc_channel();
 
-        auto stub = RenderingUnitService::NewStub(channel);
+    auto stub = RenderingUnitService::NewStub(channel);
 
-        GlEnableVertexAttribArrayRequest request;
-        EmptyResponse response;
-        grpc::ClientContext context;
+    GlEnableVertexAttribArrayRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
 
-        request.set_id(id);
-        request.set_index(index);
+    request.set_id(id);
+    request.set_index(index);
 
-        auto status =
-            stub->GlEnableVertexAttribArray(&context, request, &response);
-        if (!status.ok()) {
-          LOG_WARN("GlEnableVertexAttribArray failed");
-        }
-      });
+    auto status = stub->GlEnableVertexAttribArray(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("GlEnableVertexAttribArray failed");
+    }
+  });
 
   remote_->job_queue()->Push(std::move(job));
 }
@@ -73,27 +71,26 @@ RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 void
 RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
 {
-  auto job =
-      std::make_unique<Job>([id = id_, index, remote = remote_](bool cancel) {
-        if (cancel) return;
+  auto job = CreateJob([id = id_, index, remote = remote_](bool cancel) {
+    if (cancel) return;
 
-        auto channel = remote->peer()->grpc_channel();
+    auto channel = remote->peer()->grpc_channel();
 
-        auto stub = RenderingUnitService::NewStub(channel);
+    auto stub = RenderingUnitService::NewStub(channel);
 
-        GlDisableVertexAttribArrayRequest request;
-        EmptyResponse response;
-        grpc::ClientContext context;
+    GlDisableVertexAttribArrayRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
 
-        request.set_id(id);
-        request.set_index(index);
+    request.set_id(id);
+    request.set_index(index);
 
-        auto status =
-            stub->GlDisableVertexAttribArray(&context, request, &response);
-        if (!status.ok()) {
-          LOG_WARN("GlDisableVertexAttribArray failed");
-        }
-      });
+    auto status =
+        stub->GlDisableVertexAttribArray(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("GlDisableVertexAttribArray failed");
+    }
+  });
 
   remote_->job_queue()->Push(std::move(job));
 }
@@ -103,40 +100,39 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
     int32_t size, uint64_t type, bool normalized, int32_t stride,
     uint64_t offset)
 {
-  auto job =
-      std::make_unique<Job>([id = id_, index, buffer_id, size, type, normalized,
-                                stride, offset, remote = remote_](bool cancel) {
-        if (cancel) return;
+  auto job = CreateJob([id = id_, index, buffer_id, size, type, normalized,
+                           stride, offset, remote = remote_](bool cancel) {
+    if (cancel) return;
 
-        auto channel = remote->peer()->grpc_channel();
+    auto channel = remote->peer()->grpc_channel();
 
-        auto stub = RenderingUnitService::NewStub(channel);
+    auto stub = RenderingUnitService::NewStub(channel);
 
-        GlVertexAttribPointerRequest request;
-        EmptyResponse response;
-        grpc::ClientContext context;
+    GlVertexAttribPointerRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
 
-        request.set_id(id);
-        request.set_index(index);
-        request.set_buffer_id(buffer_id);
-        request.set_size(size);
-        request.set_type(type);
-        request.set_normalized(normalized);
-        request.set_stride(stride);
-        request.set_offset(offset);
+    request.set_id(id);
+    request.set_index(index);
+    request.set_buffer_id(buffer_id);
+    request.set_size(size);
+    request.set_type(type);
+    request.set_normalized(normalized);
+    request.set_stride(stride);
+    request.set_offset(offset);
 
-        auto status = stub->GlVertexAttribPointer(&context, request, &response);
-        if (!status.ok()) {
-          LOG_WARN("GlDisableVertexAttribArray failed");
-        }
-      });
+    auto status = stub->GlVertexAttribPointer(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("GlDisableVertexAttribArray failed");
+    }
+  });
 
   remote_->job_queue()->Push(std::move(job));
 }
 
 RenderingUnit::~RenderingUnit()
 {
-  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();

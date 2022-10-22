@@ -26,8 +26,8 @@ class Remote : public IRemote {
   IResourcePool* pool() override;
 
  private:
-  std::unique_ptr<connection::Peer> peer_;
   std::shared_ptr<Context> context_;
+  std::unique_ptr<connection::Peer> peer_;
   std::unique_ptr<GrpcServer> grpc_server_;
   ResourcePool pool_;
 };

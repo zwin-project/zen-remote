@@ -14,7 +14,7 @@ JobQueue::~JobQueue()
 }
 
 void
-JobQueue::Push(std::unique_ptr<Job> job)
+JobQueue::Push(std::unique_ptr<IJob> job)
 {
   {
     std::lock_guard<std::mutex> lock(queue_mtx_);

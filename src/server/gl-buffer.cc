@@ -3,6 +3,7 @@
 #include "core/connection/peer.h"
 #include "core/logger.h"
 #include "gl-buffer.grpc.pb.h"
+#include "server/buffer.h"
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/remote.h"
@@ -18,7 +19,7 @@ GlBuffer::GlBuffer(std::shared_ptr<Remote> remote)
 void
 GlBuffer::Init()
 {
-  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -40,9 +41,38 @@ GlBuffer::Init()
   remote_->job_queue()->Push(std::move(job));
 }
 
+void
+GlBuffer::GlBufferData(
+    std::unique_ptr<IBuffer> buffer, size_t size, uint64_t usage)
+{
+  auto job = CreateJob([id = id_, remote = remote_, buffer = std::move(buffer),
+                           size, usage](bool cancel) {
+    if (cancel) return;
+
+    auto channel = remote->peer()->grpc_channel();
+
+    auto stub = GlBufferService::NewStub(channel);
+
+    GlBufferDataRequest request;
+    EmptyResponse response;
+    grpc::ClientContext context;
+
+    request.set_id(id);
+    request.set_usage(usage);
+    request.set_data(buffer->data(), size);
+
+    auto status = stub->GlBufferData(&context, request, &response);
+    if (!status.ok()) {
+      LOG_WARN("Failed to call remote GlBufferData");
+    }
+  });
+
+  remote_->job_queue()->Push(std::move(job));
+}
+
 GlBuffer::~GlBuffer()
 {
-  auto job = std::make_unique<Job>([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();

@@ -11,17 +11,31 @@ namespace zen::remote::server {
  * the cancel argument 'true'. In this case, "perform_func" should return as
  * quickly as possible.
  */
-class Job {
+struct IJob {
+  virtual ~IJob() = default;
+  virtual void Perform(bool cancel) = 0;
+};
+
+/**
+ * This accepts non-copyable perform_func
+ */
+template <typename F>
+class Job final : public IJob {
  public:
   DISABLE_MOVE_AND_COPY(Job);
   Job() = delete;
-  Job(std::function<void(bool cancel)> perform_func);
+  Job(F&& perform_func) : perform_func_(std::forward<F>(perform_func)) {}
 
- private:
-  friend class JobQueue;
-  void Perform(bool cancel);
+  void Perform(bool cancel) override { perform_func_(cancel); }
 
-  std::function<void(bool cancel)> perform_func_;
+  F perform_func_;
 };
+
+template <typename F>
+std::unique_ptr<IJob>
+CreateJob(F&& perform_func)
+{
+  return std::unique_ptr<IJob>(new Job<F>(std::forward<F>(perform_func)));
+}
 
 }  // namespace zen::remote::server

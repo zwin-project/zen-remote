@@ -15,6 +15,9 @@ class GlBuffer final : public IGlBuffer, public IResource {
   /** Used in the update thread */
   void Commit();
 
+  /** Used in the update thread */
+  void GlBufferData(const void *data, size_t size, uint64_t usage);
+
   uint64_t id() override;
 
  private:
