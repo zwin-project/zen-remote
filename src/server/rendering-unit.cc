@@ -26,17 +26,22 @@ RenderingUnit::Init(uint64_t virtual_object_id)
 
         auto stub = RenderingUnitService::NewStub(channel);
 
-        NewRenderingUnitRequest request;
-        EmptyResponse response;
-        grpc::ClientContext context;
+        auto context = new grpc::ClientContext();
+        auto request = new NewRenderingUnitRequest();
+        auto response = new EmptyResponse();
 
-        request.set_id(id);
-        request.set_virtual_object_id(virtual_object_id);
+        request->set_id(id);
+        request->set_virtual_object_id(virtual_object_id);
 
-        auto status = stub->New(&context, request, &response);
-        if (!status.ok()) {
-          LOG_WARN("Failed to create a new rendering unit");
-        }
+        stub->async()->New(context, request, response,
+            [context, request, response](grpc::Status status) {
+              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+                LOG_WARN("Failed to call remote RenderingUnit::New");
+              }
+              delete context;
+              delete request;
+              delete response;
+            });
       });
 
   remote_->job_queue()->Push(std::move(job));
@@ -52,17 +57,24 @@ RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    GlEnableVertexAttribArrayRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new GlEnableVertexAttribArrayRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
-    request.set_index(index);
+    request->set_id(id);
+    request->set_index(index);
 
-    auto status = stub->GlEnableVertexAttribArray(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("GlEnableVertexAttribArray failed");
-    }
+    stub->async()->GlEnableVertexAttribArray(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN(
+                "Failed to call remote "
+                "RenderingUnit::GlEnableVertexAttribArray");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -78,18 +90,24 @@ RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    GlDisableVertexAttribArrayRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto request = new GlDisableVertexAttribArrayRequest();
+    auto response = new EmptyResponse();
+    auto context = new grpc::ClientContext();
 
-    request.set_id(id);
-    request.set_index(index);
+    request->set_id(id);
+    request->set_index(index);
 
-    auto status =
-        stub->GlDisableVertexAttribArray(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("GlDisableVertexAttribArray failed");
-    }
+    stub->async()->GlDisableVertexAttribArray(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN(
+                "Failed to call remote "
+                "RenderingUnit::GlDisableVertexAttribArray");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -108,23 +126,30 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    GlVertexAttribPointerRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new GlVertexAttribPointerRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
-    request.set_index(index);
-    request.set_buffer_id(buffer_id);
-    request.set_size(size);
-    request.set_type(type);
-    request.set_normalized(normalized);
-    request.set_stride(stride);
-    request.set_offset(offset);
+    request->set_id(id);
+    request->set_index(index);
+    request->set_buffer_id(buffer_id);
+    request->set_size(size);
+    request->set_type(type);
+    request->set_normalized(normalized);
+    request->set_stride(stride);
+    request->set_offset(offset);
 
-    auto status = stub->GlVertexAttribPointer(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("GlDisableVertexAttribArray failed");
-    }
+    stub->async()->GlVertexAttribPointer(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN(
+                "Failed to call remote "
+                "RenderingUnit::GlDisableVertexAttribArray");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -139,16 +164,21 @@ RenderingUnit::~RenderingUnit()
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    DeleteResourceRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new DeleteResourceRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
+    request->set_id(id);
 
-    auto status = stub->Delete(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to destroy a rendering unit");
-    }
+    stub->async()->Delete(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote RenderingUnit::Delete");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
