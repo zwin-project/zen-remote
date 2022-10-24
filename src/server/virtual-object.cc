@@ -25,16 +25,21 @@ VirtualObject::Init()
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    NewResourceRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new NewResourceRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
+    request->set_id(id);
 
-    auto status = stub->New(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to create a new remote virtual object");
-    }
+    stub->async()->New(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote VirtualObject::New");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -50,16 +55,21 @@ VirtualObject::Commit()
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    VirtualObjectCommitRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new VirtualObjectCommitRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
+    request->set_id(id);
 
-    auto status = stub->Commit(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to commit a remote virtual object");
-    }
+    stub->async()->Commit(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote VirtualObject::Commit");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -74,16 +84,21 @@ VirtualObject::~VirtualObject()
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    DeleteResourceRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new DeleteResourceRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
+    request->set_id(id);
 
-    auto status = stub->Delete(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to destroy a remote virtual object");
-    }
+    stub->async()->Delete(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote VirtualObject::Delete");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));

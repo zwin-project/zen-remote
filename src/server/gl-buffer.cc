@@ -26,16 +26,21 @@ GlBuffer::Init()
 
     auto stub = GlBufferService::NewStub(channel);
 
-    NewResourceRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new NewResourceRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
+    request->set_id(id);
 
-    auto status = stub->New(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to create a new GL buffer");
-    }
+    stub->async()->New(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlBuffer::New");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -53,18 +58,23 @@ GlBuffer::GlBufferData(
 
     auto stub = GlBufferService::NewStub(channel);
 
-    GlBufferDataRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new GlBufferDataRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
-    request.set_usage(usage);
-    request.set_data(buffer->data(), size);
+    request->set_id(id);
+    request->set_usage(usage);
+    request->set_data(buffer->data(), size);
 
-    auto status = stub->GlBufferData(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to call remote GlBufferData");
-    }
+    stub->async()->GlBufferData(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlBuffer::GlBufferData");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
@@ -79,16 +89,21 @@ GlBuffer::~GlBuffer()
 
     auto stub = GlBufferService::NewStub(channel);
 
-    DeleteResourceRequest request;
-    EmptyResponse response;
-    grpc::ClientContext context;
+    auto context = new grpc::ClientContext();
+    auto request = new DeleteResourceRequest();
+    auto response = new EmptyResponse();
 
-    request.set_id(id);
+    request->set_id(id);
 
-    auto status = stub->Delete(&context, request, &response);
-    if (!status.ok()) {
-      LOG_WARN("Failed to destroy a gl buffer");
-    }
+    stub->async()->Delete(context, request, response,
+        [context, request, response](grpc::Status status) {
+          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlBuffer::Delete");
+          }
+          delete context;
+          delete request;
+          delete response;
+        });
   });
 
   remote_->job_queue()->Push(std::move(job));
