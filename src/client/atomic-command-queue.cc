@@ -3,7 +3,7 @@
 namespace zen::remote::client {
 
 void
-AtomicCommandQueue::Push(std::unique_ptr<Command> command)
+AtomicCommandQueue::Push(std::unique_ptr<ICommand> command)
 {
   std::lock_guard<std::mutex> lock(mtx_);
   queue_.emplace_back(std::move(command), false);
@@ -14,7 +14,7 @@ AtomicCommandQueue::Commit()
 {
   std::lock_guard<std::mutex> lock(mtx_);
   commit_count_++;
-  queue_.emplace_back(std::unique_ptr<Command>(), true);
+  queue_.emplace_back(std::unique_ptr<ICommand>(), true);
 }
 
 bool
@@ -55,7 +55,7 @@ AtomicCommandQueue::commit_count()
 }
 
 AtomicCommandQueue::CommandInfo::CommandInfo(
-    std::unique_ptr<Command> command, bool is_commit_command)
+    std::unique_ptr<ICommand> command, bool is_commit_command)
     : command(std::move(command)), is_commit_command(is_commit_command)
 {
 }

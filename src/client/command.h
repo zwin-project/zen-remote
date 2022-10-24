@@ -4,15 +4,32 @@
 
 namespace zen::remote::client {
 
-class Command {
+struct ICommand {
+  virtual ~ICommand() = default;
+  virtual void Execute() = 0;
+};
+
+/**
+ * This accepts non-copyable executor
+ */
+template <typename F>
+class Command final : public ICommand {
  public:
   DISABLE_MOVE_AND_COPY(Command);
-  Command(std::function<void()> executer);
+  Command() = delete;
+  Command(F&& executer) : executer_(std::forward<F>(executer)){};
 
-  void Execute();
+  void Execute() override { executer_(); }
 
  private:
-  const std::function<void()> executer_;
+  F executer_;
 };
+
+template <typename F>
+std::unique_ptr<ICommand>
+CreateCommand(F&& executor)
+{
+  return std::unique_ptr<ICommand>(new Command<F>(std::forward<F>(executor)));
+}
 
 }  // namespace zen::remote::client

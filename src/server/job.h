@@ -28,6 +28,7 @@ class Job final : public IJob {
 
   void Perform(bool cancel) override { perform_func_(cancel); }
 
+ private:
   F perform_func_;
 };
 
