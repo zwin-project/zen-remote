@@ -15,7 +15,7 @@ class AtomicCommandQueue {
   DISABLE_MOVE_AND_COPY(AtomicCommandQueue);
   AtomicCommandQueue() = default;
 
-  void Push(std::unique_ptr<Command> command);
+  void Push(std::unique_ptr<ICommand> command);
 
   void Commit();
 
@@ -28,9 +28,9 @@ class AtomicCommandQueue {
 
  private:
   struct CommandInfo {
-    CommandInfo(std::unique_ptr<Command> command, bool is_commit_command);
+    CommandInfo(std::unique_ptr<ICommand> command, bool is_commit_command);
 
-    std::unique_ptr<Command> command;  // empty if is_commit_command == true
+    std::unique_ptr<ICommand> command;  // empty if is_commit_command == true
     bool is_commit_command;
   };
 

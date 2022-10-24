@@ -30,8 +30,8 @@ VirtualObject::Commit()
   ForEachWeakPtr<RenderingUnit>(pending_.rendering_units_,
       [](std::shared_ptr<RenderingUnit> unit) { unit->Commit(); });
 
-  auto command = std::make_unique<Command>(
-      [rendering_units = pending_.rendering_units_, this]() {
+  auto command =
+      CreateCommand([rendering_units = pending_.rendering_units_, this]() {
         rendering_.rendering_units_ = rendering_units;
       });
 
