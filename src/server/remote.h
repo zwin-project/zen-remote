@@ -21,6 +21,7 @@ class Remote : public IRemote {
  public:
   enum SerialType {
     kResource = 0,
+    kRequest = 1,
     kCount,
   };
 

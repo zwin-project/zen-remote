@@ -21,6 +21,7 @@ class GrpcServer {
   const uint16_t port_;
   std::thread thread_;
   std::unique_ptr<grpc::Server> server_;
+  std::unique_ptr<grpc::ServerCompletionQueue> completion_queue_;
 
   ResourcePool *pool_;
 };

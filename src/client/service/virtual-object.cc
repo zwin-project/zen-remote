@@ -1,12 +1,36 @@
 #include "client/service/virtual-object.h"
 
 #include "client/resource-pool.h"
+#include "client/service/serial-async-caller.h"
 
 namespace zen::remote::client::service {
 
 VirtualObjectServiceImpl::VirtualObjectServiceImpl(ResourcePool* pool)
     : pool_(pool)
 {
+}
+
+void
+VirtualObjectServiceImpl::Register(grpc::ServerBuilder& builder)
+{
+  builder.RegisterService(&async_);
+}
+
+void
+VirtualObjectServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue,
+    SerialCommandQueue* command_queue)
+{
+  SerialAsyncCaller<&VirtualObjectService::AsyncService::RequestNew,
+      &VirtualObjectServiceImpl::New>::Listen(&async_, this, completion_queue,
+      command_queue);
+
+  SerialAsyncCaller<&VirtualObjectService::AsyncService::RequestDelete,
+      &VirtualObjectServiceImpl::Delete>::Listen(&async_, this,
+      completion_queue, command_queue);
+
+  SerialAsyncCaller<&VirtualObjectService::AsyncService::RequestCommit,
+      &VirtualObjectServiceImpl::Commit>::Listen(&async_, this,
+      completion_queue, command_queue);
 }
 
 grpc::Status

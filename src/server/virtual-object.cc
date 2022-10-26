@@ -5,6 +5,7 @@
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/remote.h"
+#include "server/serial-request-context.h"
 #include "virtual-object.grpc.pb.h"
 
 namespace zen::remote::server {
@@ -25,7 +26,7 @@ VirtualObject::Init()
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new NewResourceRequest();
     auto response = new EmptyResponse();
 
@@ -55,7 +56,7 @@ VirtualObject::Commit()
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new VirtualObjectCommitRequest();
     auto response = new EmptyResponse();
 
@@ -84,7 +85,7 @@ VirtualObject::~VirtualObject()
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new DeleteResourceRequest();
     auto response = new EmptyResponse();
 
