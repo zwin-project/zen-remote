@@ -6,6 +6,7 @@
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/remote.h"
+#include "server/serial-request-context.h"
 
 namespace zen::remote::server {
 
@@ -26,7 +27,7 @@ RenderingUnit::Init(uint64_t virtual_object_id)
 
         auto stub = RenderingUnitService::NewStub(channel);
 
-        auto context = new grpc::ClientContext();
+        auto context = new SerialRequestContext(remote);
         auto request = new NewRenderingUnitRequest();
         auto response = new EmptyResponse();
 
@@ -57,7 +58,7 @@ RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new GlEnableVertexAttribArrayRequest();
     auto response = new EmptyResponse();
 
@@ -90,9 +91,9 @@ RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
 
     auto stub = RenderingUnitService::NewStub(channel);
 
+    auto context = new SerialRequestContext(remote);
     auto request = new GlDisableVertexAttribArrayRequest();
     auto response = new EmptyResponse();
-    auto context = new grpc::ClientContext();
 
     request->set_id(id);
     request->set_index(index);
@@ -126,7 +127,7 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new GlVertexAttribPointerRequest();
     auto response = new EmptyResponse();
 
@@ -164,7 +165,7 @@ RenderingUnit::~RenderingUnit()
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new DeleteResourceRequest();
     auto response = new EmptyResponse();
 

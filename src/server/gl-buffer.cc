@@ -7,6 +7,7 @@
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/remote.h"
+#include "server/serial-request-context.h"
 
 namespace zen::remote::server {
 
@@ -26,7 +27,7 @@ GlBuffer::Init()
 
     auto stub = GlBufferService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new NewResourceRequest();
     auto response = new EmptyResponse();
 
@@ -58,7 +59,7 @@ GlBuffer::GlBufferData(
 
     auto stub = GlBufferService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new GlBufferDataRequest();
     auto response = new EmptyResponse();
 
@@ -89,7 +90,7 @@ GlBuffer::~GlBuffer()
 
     auto stub = GlBufferService::NewStub(channel);
 
-    auto context = new grpc::ClientContext();
+    auto context = new SerialRequestContext(remote);
     auto request = new DeleteResourceRequest();
     auto response = new EmptyResponse();
 

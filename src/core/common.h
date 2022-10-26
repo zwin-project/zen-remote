@@ -2,6 +2,26 @@
 
 namespace zen::remote {
 
+template <size_t N, class... Args>
+struct arg_type {
+  using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+};
+
+template <size_t N, class C, class R, class... Args>
+struct arg_type<N, R (C::*)(Args...)> {
+  using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+};
+
+template <class C>
+struct class_type {
+  using type = C;
+};
+
+template <class C, class R, class... Args>
+struct class_type<R (C::*)(Args...)> {
+  using type = C;
+};
+
 /**
  * Iterates the container of std::weak_ptr. If the weak_ptr is empty, it is
  * removed from the container.
@@ -34,5 +54,7 @@ ForEachWeakPtr(C<std::weak_ptr<T>, A> &container,
 
 inline constexpr uint16_t kDiscoverPort = 9983;  // listen in server
 inline constexpr uint16_t kGrpcPort = 50051;     // listen in client
+
+inline constexpr char kGrpcMetadataSerialKey[] = "serial";
 
 }  // namespace zen::remote

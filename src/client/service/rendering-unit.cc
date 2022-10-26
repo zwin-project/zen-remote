@@ -1,12 +1,47 @@
 #include "client/service/rendering-unit.h"
 
 #include "client/resource-pool.h"
+#include "client/service/serial-async-caller.h"
 
 namespace zen::remote::client::service {
 
 RenderingUnitServiceImpl::RenderingUnitServiceImpl(ResourcePool* pool)
     : pool_(pool)
 {
+}
+
+void
+RenderingUnitServiceImpl::Register(grpc::ServerBuilder& builder)
+{
+  builder.RegisterService(&async_);
+}
+
+void
+RenderingUnitServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue,
+    SerialCommandQueue* command_queue)
+{
+  SerialAsyncCaller<&RenderingUnitService::AsyncService::RequestNew,
+      &RenderingUnitServiceImpl::New>::Listen(&async_, this, completion_queue,
+      command_queue);
+
+  SerialAsyncCaller<&RenderingUnitService::AsyncService::RequestDelete,
+      &RenderingUnitServiceImpl::Delete>::Listen(&async_, this,
+      completion_queue, command_queue);
+
+  SerialAsyncCaller<
+      &RenderingUnitService::AsyncService::RequestGlEnableVertexAttribArray,
+      &RenderingUnitServiceImpl::GlEnableVertexAttribArray>::Listen(&async_,
+      this, completion_queue, command_queue);
+
+  SerialAsyncCaller<
+      &RenderingUnitService::AsyncService::RequestGlDisableVertexAttribArray,
+      &RenderingUnitServiceImpl::GlDisableVertexAttribArray>::Listen(&async_,
+      this, completion_queue, command_queue);
+
+  SerialAsyncCaller<
+      &RenderingUnitService::AsyncService::RequestGlVertexAttribPointer,
+      &RenderingUnitServiceImpl::GlVertexAttribPointer>::Listen(&async_, this,
+      completion_queue, command_queue);
 }
 
 grpc::Status
