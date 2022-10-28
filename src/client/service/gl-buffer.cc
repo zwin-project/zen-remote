@@ -34,7 +34,8 @@ grpc::Status
 GlBufferServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto gl_buffer = std::make_unique<GlBuffer>(request->id());
+  auto gl_buffer = std::make_unique<GlBuffer>(
+      request->id(), pool_->update_rendering_queue());
 
   pool_->gl_buffers()->Add(std::move(gl_buffer));
 
@@ -55,8 +56,8 @@ GlBufferServiceImpl::GlBufferData(grpc::ServerContext* /*context*/,
 {
   auto gl_buffer = pool_->gl_buffers()->Get(request->id());
 
-  gl_buffer->GlBufferData(
-      request->data().c_str(), request->data().length(), request->usage());
+  gl_buffer->GlBufferData(request->data().c_str(), request->target(),
+      request->data().length(), request->usage());
 
   return grpc::Status::OK;
 }

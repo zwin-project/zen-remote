@@ -23,7 +23,14 @@ class Remote : public IRemote {
 
   void Stop() override;
 
-  IResourcePool* pool() override;
+  /** Call only once before rendering for multiple cameras. */
+  void UpdateScene() override;
+
+  /**
+   * Before calling this, bind a framebuffer, set a viewport, and clear the
+   * framebuffer
+   */
+  void Render(Camera *camera) override;
 
  private:
   std::shared_ptr<Context> context_;

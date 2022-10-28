@@ -1,9 +1,10 @@
 #pragma once
 
-#include <zen-remote/client/resource-pool.h>
 #include <zen-remote/loop.h>
 
 #include <memory>
+
+#include "camera.h"
 
 namespace zen::remote::client {
 
@@ -14,7 +15,9 @@ struct IRemote {
 
   virtual void Stop() = 0;
 
-  virtual IResourcePool* pool() = 0;
+  virtual void UpdateScene() = 0;
+
+  virtual void Render(Camera *camera) = 0;
 };
 
 std::unique_ptr<IRemote> CreateRemote(std::unique_ptr<ILoop> loop);

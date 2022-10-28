@@ -16,6 +16,7 @@ service GlBufferService
 message GlBufferDataRequest
 {
   uint64 id = 1;
-  uint64 usage = 2;
-  bytes data = 3;
+  uint64 target = 2;
+  uint64 usage = 3;
+  bytes data = 4;
 }

@@ -2,6 +2,7 @@
 
 #include "client/atomic-command-queue.h"
 #include "client/rendering-unit.h"
+#include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
 
@@ -9,19 +10,6 @@ VirtualObject::VirtualObject(
     uint64_t id, AtomicCommandQueue *update_rendering_queue)
     : id_(id), update_rendering_queue_(update_rendering_queue)
 {
-}
-
-uint64_t
-VirtualObject::id()
-{
-  return id_;
-}
-
-void
-VirtualObject::ForEachRenderingUnit(std::function<void(IRenderingUnit *)> func)
-{
-  ForEachWeakPtr<RenderingUnit>(rendering_.rendering_units_,
-      [func](std::shared_ptr<RenderingUnit> unit) { func(unit.get()); });
 }
 
 void
@@ -32,6 +20,7 @@ VirtualObject::Commit()
 
   auto command =
       CreateCommand([rendering_units = pending_.rendering_units_, this]() {
+        if (!rendering_.commited) rendering_.commited = true;
         rendering_.rendering_units_ = rendering_units;
       });
 
@@ -44,6 +33,19 @@ void
 VirtualObject::AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit)
 {
   pending_.rendering_units_.push_back(rendering_unit);
+}
+
+void
+VirtualObject::Render(Camera *camera)
+{
+  ForEachWeakPtr<RenderingUnit>(rendering_.rendering_units_,
+      [camera](std::shared_ptr<RenderingUnit> unit) { unit->Render(camera); });
+}
+
+uint64_t
+VirtualObject::id()
+{
+  return id_;
 }
 
 }  // namespace zen::remote::client

@@ -2,14 +2,14 @@
 
 #include "client/resource.h"
 #include "core/common.h"
-#include "zen-remote/client/virtual-object.h"
 
 namespace zen::remote::client {
 
+struct Camera;
 class RenderingUnit;
 class AtomicCommandQueue;
 
-class VirtualObject final : public IVirtualObject, public IResource {
+class VirtualObject final : public IResource {
  public:
   DISABLE_MOVE_AND_COPY(VirtualObject);
   VirtualObject() = delete;
@@ -22,10 +22,12 @@ class VirtualObject final : public IVirtualObject, public IResource {
   void AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit);
 
   /** Used in the rendering thread */
-  void ForEachRenderingUnit(
-      std::function<void(IRenderingUnit *)> func) override;
+  void Render(Camera *camera);
 
   uint64_t id() override;
+
+  /** Used in the rendering thread */
+  inline bool commited();
 
  private:
   const uint64_t id_;
@@ -36,8 +38,15 @@ class VirtualObject final : public IVirtualObject, public IResource {
   } pending_;
 
   struct {
+    bool commited = false;
     std::list<std::weak_ptr<RenderingUnit>> rendering_units_;
   } rendering_;
 };
+
+inline bool
+VirtualObject::commited()
+{
+  return rendering_.commited;
+}
 
 }  // namespace zen::remote::client
