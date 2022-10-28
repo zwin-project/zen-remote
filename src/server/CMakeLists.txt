@@ -38,3 +38,9 @@ install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/zen-remote-server.pc
   DESTINATION lib/pkgconfig
 )
+
+install(
+  DIRECTORY ${zen_remote_public_headers} 
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  REGEX "zen-remote/client" EXCLUDE
+)

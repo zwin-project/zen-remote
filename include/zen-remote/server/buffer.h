@@ -11,6 +11,8 @@ struct IBuffer {
 };
 
 /**
+ * Until `on_release` is called, the data must be available.
+ *
  * @param data is a pointer where the data is stored
  * @param on_release is an asynchronous callback that is called when the data is
  * no longer used by zen-remote. This callback is called by the loop associated

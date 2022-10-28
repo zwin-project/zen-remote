@@ -16,8 +16,8 @@ class GlBuffer final : public IGlBuffer {
 
   void Init();
 
-  void GlBufferData(
-      std::unique_ptr<IBuffer> buffer, size_t size, uint64_t usage) override;
+  void GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
+      size_t size, uint64_t usage) override;
 
   uint64_t id() override;
 

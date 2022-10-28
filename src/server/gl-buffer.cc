@@ -48,11 +48,11 @@ GlBuffer::Init()
 }
 
 void
-GlBuffer::GlBufferData(
-    std::unique_ptr<IBuffer> buffer, size_t size, uint64_t usage)
+GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
+    size_t size, uint64_t usage)
 {
   auto job = CreateJob([id = id_, remote = remote_, buffer = std::move(buffer),
-                           size, usage](bool cancel) {
+                           target, size, usage](bool cancel) {
     if (cancel) return;
 
     auto channel = remote->peer()->grpc_channel();
@@ -64,6 +64,7 @@ GlBuffer::GlBufferData(
     auto response = new EmptyResponse();
 
     request->set_id(id);
+    request->set_target(target);
     request->set_usage(usage);
     request->set_data(buffer->data(), size);
 

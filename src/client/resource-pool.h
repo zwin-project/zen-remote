@@ -6,7 +6,6 @@
 #include "client/resource-container.h"
 #include "client/virtual-object.h"
 #include "core/common.h"
-#include "zen-remote/client/resource-pool.h"
 
 namespace zen::remote::client {
 
@@ -35,12 +34,13 @@ using GlBufferContainer =
  * Instead, use a lambda capture or something similar to preserve the state at
  * the time of commit. This also helps keep multi-threading safe.
  */
-class ResourcePool final : public IResourcePool {
+class ResourcePool {
  public:
   DISABLE_MOVE_AND_COPY(ResourcePool);
   ResourcePool() = default;
 
-  void Traverse(std::function<void(IVirtualObject *)> func) override;
+  /** Used in the rendering thread */
+  void UpdateRenderingState();
 
   inline VirtualObjectContainer *virtual_objects();
   inline RenderingUnitContainer *rendering_units();

@@ -2,6 +2,8 @@
 
 #include "client/atomic-command-queue.h"
 #include "client/gl-buffer.h"
+#include "client/tmp-rendering-helper.h"
+#include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
 
@@ -9,6 +11,13 @@ RenderingUnit::RenderingUnit(
     uint64_t id, AtomicCommandQueue* update_rendering_queue)
     : id_(id), update_rendering_queue_(update_rendering_queue)
 {
+}
+
+RenderingUnit::~RenderingUnit()
+{
+  if (rendering_.vao != 0) {
+    glDeleteVertexArrays(1, &rendering_.vao);
+  }
 }
 
 void
@@ -20,9 +29,36 @@ RenderingUnit::Commit()
     }
   }
 
-  // TODO: commit pending state
-  (void)rendering_;
-  (void)update_rendering_queue_;
+  auto command = CreateCommand([attribs = pending_.vertex_attribs, this]() {
+    if (rendering_.vao == 0) {
+      glGenVertexArrays(1, &rendering_.vao);
+      rendering_.program_id = TmpRenderingHelper::CompilePrograms(
+          default_vertex_shader, default_color_fragment_shader);
+    }
+
+    glBindVertexArray(rendering_.vao);
+    for (auto& [index, attrib] : attribs) {
+      if (attrib.filled == false || attrib.enabled == false) {
+        glDisableVertexAttribArray(index);
+        continue;
+      }
+
+      if (auto buffer = attrib.gl_buffer.lock()) {
+        glEnableVertexAttribArray(index);
+
+        glBindBuffer(buffer->target(), buffer->buffer_id());
+        glVertexAttribPointer(index, attrib.size, attrib.type,
+            attrib.normalized, attrib.stride, (void*)attrib.offset);
+
+        glBindBuffer(buffer->target(), 0);
+      } else {
+        glDisableVertexAttribArray(index);
+      }
+    }
+    glBindVertexArray(0);
+  });
+
+  update_rendering_queue_->Push(std::move(command));
 }
 
 void
@@ -63,6 +99,18 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index,
   (*result).second.stride = stride;
   (*result).second.offset = offset;
   (*result).second.filled = true;
+}
+
+void
+RenderingUnit::Render(Camera* camera)
+{
+  glBindVertexArray(rendering_.vao);
+  glUseProgram(rendering_.program_id);
+  GLint mvp_location = glGetUniformLocation(rendering_.program_id, "mvp");
+  glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
+  glDrawArrays(GL_LINES, 0, 2);
+  glBindVertexArray(0);
+  glUseProgram(0);
 }
 
 uint64_t

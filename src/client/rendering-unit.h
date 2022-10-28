@@ -2,18 +2,19 @@
 
 #include "client/resource.h"
 #include "core/common.h"
-#include "zen-remote/client/rendering-unit.h"
 
 namespace zen::remote::client {
 
 class GlBuffer;
 class AtomicCommandQueue;
+struct Camera;
 
-class RenderingUnit final : public IRenderingUnit, public IResource {
+class RenderingUnit final : public IResource {
  public:
   DISABLE_MOVE_AND_COPY(RenderingUnit);
   RenderingUnit() = delete;
   RenderingUnit(uint64_t id, AtomicCommandQueue *update_rendering_queue);
+  ~RenderingUnit();
 
   /** Used in the update thread */
   void Commit();
@@ -28,6 +29,9 @@ class RenderingUnit final : public IRenderingUnit, public IResource {
   void GlVertexAttribPointer(uint32_t index, std::weak_ptr<GlBuffer> gl_buffer,
       int32_t size, uint64_t type, bool normalized, int32_t stride,
       uint64_t offset);
+
+  /** Used in the rendering thread */
+  void Render(Camera *camera);
 
   uint64_t id() override;
 
@@ -54,7 +58,8 @@ class RenderingUnit final : public IRenderingUnit, public IResource {
   } pending_;
 
   struct {
-    // TODO:
+    GLuint vao = 0;
+    GLuint program_id;  // FIXME: use requested one
   } rendering_;
 };
 

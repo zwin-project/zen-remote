@@ -33,10 +33,19 @@ Remote::Stop()
   // TODO:
 }
 
-IResourcePool*
-Remote::pool()
+void
+Remote::UpdateScene()
 {
-  return &pool_;
+  pool_.UpdateRenderingState();
+}
+
+void
+Remote::Render(Camera *camera)
+{
+  pool_.virtual_objects()->ForEach(
+      [camera](const std::shared_ptr<VirtualObject> &virtual_object) {
+        if (virtual_object->commited()) virtual_object->Render(camera);
+      });
 }
 
 std::unique_ptr<IRemote>
