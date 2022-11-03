@@ -16,14 +16,14 @@ GlBaseTechnique::~GlBaseTechnique() {}
 void
 GlBaseTechnique::Commit()
 {
-  if (pending_.data_damaged == false) return;
+  if (pending_.damaged == false) return;
 
   auto command = CreateCommand(
       [this]() { rendering_.render_mode = pending_.render_mode; });
 
   update_rendering_queue_->Push(std::move(command));
 
-  pending_.data_damaged = false;
+  pending_.damaged = false;
 }
 
 void
@@ -33,7 +33,7 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
   pending_.render_mode.mode = mode;
   pending_.render_mode.count = count;
   pending_.render_mode.first = first;
-  pending_.data_damaged = true;
+  pending_.damaged = true;
 }
 
 void

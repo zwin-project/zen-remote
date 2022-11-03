@@ -41,7 +41,7 @@ class GlBaseTechnique final : public IResource {
   };
 
   struct {
-    bool data_damaged = true;
+    bool damaged = true;
     RenderMode render_mode;
   } pending_;
 
