@@ -29,6 +29,11 @@ RenderingUnit::Commit()
     }
   }
 
+  auto gl_base_technique = gl_base_technique_.lock();
+  if (gl_base_technique) {
+    gl_base_technique->Commit();
+  }
+
   auto command = CreateCommand([attribs = pending_.vertex_attribs, this]() {
     if (rendering_.vao == 0) {
       glGenVertexArrays(1, &rendering_.vao);

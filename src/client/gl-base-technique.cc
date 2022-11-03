@@ -16,20 +16,35 @@ GlBaseTechnique::~GlBaseTechnique() {}
 void
 GlBaseTechnique::Commit()
 {
-  auto command = CreateCommand([]() {});
+  if (pending_.data_damaged == false) return;
+
+  auto command = CreateCommand(
+      [this]() { rendering_.render_mode = pending_.render_mode; });
 
   update_rendering_queue_->Push(std::move(command));
+
+  pending_.data_damaged = false;
 }
 
 void
 GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 {
-  LOG_DEBUG("remote client: DrawArrays(%u, %d, %u)", mode, first, count);
+  pending_.render_mode.render_method = RenderMethod::kArrays;
+  pending_.render_mode.mode = mode;
+  pending_.render_mode.count = count;
+  pending_.render_mode.first = first;
+  pending_.data_damaged = true;
 }
 
 void
 GlBaseTechnique::Render()
 {
+  switch (rendering_.render_mode.render_method) {
+    case RenderMethod::kArrays:
+      glDrawArrays(rendering_.render_mode.mode, rendering_.render_mode.first,
+          rendering_.render_mode.count);
+      break;
+  }
 }
 
 uint64_t

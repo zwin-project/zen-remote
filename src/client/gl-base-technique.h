@@ -32,5 +32,21 @@ class GlBaseTechnique final : public IResource {
  private:
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
+
+  struct RenderMode {
+    RenderMethod render_method;
+    uint32_t mode;
+    int32_t count;
+    int32_t first;
+  };
+
+  struct {
+    bool data_damaged = true;
+    RenderMode render_mode;
+  } pending_;
+
+  struct {
+    RenderMode render_mode;
+  } rendering_;
 };
 }  // namespace zen::remote::client
