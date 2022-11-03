@@ -29,8 +29,7 @@ RenderingUnit::Commit()
     }
   }
 
-  auto gl_base_technique = gl_base_technique_.lock();
-  if (gl_base_technique) {
+  if (auto gl_base_technique = gl_base_technique_.lock()) {
     gl_base_technique->Commit();
   }
 
@@ -121,8 +120,7 @@ RenderingUnit::Render(Camera* camera)
   GLint mvp_location = glGetUniformLocation(rendering_.program_id, "mvp");
   glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
 
-  auto gl_base_technique = gl_base_technique_.lock();
-  if (gl_base_technique) {
+  if (auto gl_base_technique = gl_base_technique_.lock()) {
     gl_base_technique->Render();
   }
 
