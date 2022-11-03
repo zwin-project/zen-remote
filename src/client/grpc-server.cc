@@ -1,15 +1,16 @@
 #include "client/grpc-server.h"
 
+#include "client/service/async-session-service-caller.h"
 #include "client/service/gl-buffer.h"
 #include "client/service/rendering-unit.h"
-#include "client/service/serial-async-caller.h"
+#include "client/service/session.h"
 #include "client/service/virtual-object.h"
 #include "core/logger.h"
 
 namespace zen::remote::client {
 
-GrpcServer::GrpcServer(std::string host, uint16_t port, ResourcePool *pool)
-    : host_(host), port_(port), pool_(pool)
+GrpcServer::GrpcServer(std::string host, uint16_t port, Remote *remote)
+    : host_(host), port_(port), remote_(remote)
 {
 }
 
@@ -23,12 +24,12 @@ GrpcServer::Start()
 
     builder.AddListeningPort(host_port, grpc::InsecureServerCredentials());
 
-    std::vector<std::unique_ptr<service::ISerialAsyncService>> services;
-    SerialCommandQueue command_queue;
+    std::vector<std::unique_ptr<service::IAsyncService>> services;
 
-    services.emplace_back(new service::VirtualObjectServiceImpl(pool_));
-    services.emplace_back(new service::RenderingUnitServiceImpl(pool_));
-    services.emplace_back(new service::GlBufferServiceImpl(pool_));
+    services.emplace_back(new service::VirtualObjectServiceImpl(remote_));
+    services.emplace_back(new service::RenderingUnitServiceImpl(remote_));
+    services.emplace_back(new service::GlBufferServiceImpl(remote_));
+    services.emplace_back(new service::SessionServiceImpl(remote_));
 
     for (auto &service : services) {
       service->Register(builder);
@@ -41,7 +42,7 @@ GrpcServer::Start()
     server_ = builder.BuildAndStart();
 
     for (auto &service : services) {
-      service->Listen(completion_queue_.get(), &command_queue);
+      service->Listen(completion_queue_.get());
     }
 
     void *tag;
@@ -52,7 +53,7 @@ GrpcServer::Start()
         LOG_ERROR("Failed to poll gRPC queue");
         break;
       }
-      static_cast<service::ISerialAsyncCaller *>(tag)->Proceed();
+      static_cast<service::IAsyncSessionServiceCaller *>(tag)->Proceed();
     }
     // FIXME: Some SerialAsyncCallers should not be deleted
   });

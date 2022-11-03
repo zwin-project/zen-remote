@@ -1,13 +1,8 @@
 #pragma once
 
-#include "client/resource-pool.h"
+#include "client/session-manager.h"
 #include "core/common.h"
-#include "core/context.h"
 #include "zen-remote/client/remote.h"
-
-namespace zen::remote::connection {
-class Peer;
-}
 
 namespace zen::remote::client {
 
@@ -30,13 +25,20 @@ class Remote : public IRemote {
    * Before calling this, bind a framebuffer, set a viewport, and clear the
    * framebuffer
    */
-  void Render(Camera *camera) override;
+  void Render(Camera* camera) override;
+
+  inline SessionManager* session_manager();
 
  private:
-  std::shared_ptr<Context> context_;
-  std::unique_ptr<connection::Peer> peer_;
   std::unique_ptr<GrpcServer> grpc_server_;
-  ResourcePool pool_;
+  SessionManager session_manager_;
+  std::shared_ptr<ILoop> loop_;
 };
+
+inline SessionManager*
+Remote::session_manager()
+{
+  return &session_manager_;
+}
 
 }  // namespace zen::remote::client

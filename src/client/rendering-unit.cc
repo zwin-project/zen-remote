@@ -29,34 +29,37 @@ RenderingUnit::Commit()
     }
   }
 
-  auto command = CreateCommand([attribs = pending_.vertex_attribs, this]() {
-    if (rendering_.vao == 0) {
-      glGenVertexArrays(1, &rendering_.vao);
-      rendering_.program_id = TmpRenderingHelper::CompilePrograms(
-          default_vertex_shader, default_color_fragment_shader);
-    }
+  auto command =
+      CreateCommand([attribs = pending_.vertex_attribs, this](bool cancel) {
+        if (cancel) return;
 
-    glBindVertexArray(rendering_.vao);
-    for (auto& [index, attrib] : attribs) {
-      if (attrib.filled == false || attrib.enabled == false) {
-        glDisableVertexAttribArray(index);
-        continue;
-      }
+        if (rendering_.vao == 0) {
+          glGenVertexArrays(1, &rendering_.vao);
+          rendering_.program_id = TmpRenderingHelper::CompilePrograms(
+              default_vertex_shader, default_color_fragment_shader);
+        }
 
-      if (auto buffer = attrib.gl_buffer.lock()) {
-        glEnableVertexAttribArray(index);
+        glBindVertexArray(rendering_.vao);
+        for (auto& [index, attrib] : attribs) {
+          if (attrib.filled == false || attrib.enabled == false) {
+            glDisableVertexAttribArray(index);
+            continue;
+          }
 
-        glBindBuffer(buffer->target(), buffer->buffer_id());
-        glVertexAttribPointer(index, attrib.size, attrib.type,
-            attrib.normalized, attrib.stride, (void*)attrib.offset);
+          if (auto buffer = attrib.gl_buffer.lock()) {
+            glEnableVertexAttribArray(index);
 
-        glBindBuffer(buffer->target(), 0);
-      } else {
-        glDisableVertexAttribArray(index);
-      }
-    }
-    glBindVertexArray(0);
-  });
+            glBindBuffer(buffer->target(), buffer->buffer_id());
+            glVertexAttribPointer(index, attrib.size, attrib.type,
+                attrib.normalized, attrib.stride, (void*)attrib.offset);
+
+            glBindBuffer(buffer->target(), 0);
+          } else {
+            glDisableVertexAttribArray(index);
+          }
+        }
+        glBindVertexArray(0);
+      });
 
   update_rendering_queue_->Push(std::move(command));
 }

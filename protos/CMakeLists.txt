@@ -24,6 +24,7 @@ set(protos
   "common"
   "gl-buffer"
   "rendering-unit"
+  "session"
   "virtual-object"
 )
 

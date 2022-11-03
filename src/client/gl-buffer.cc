@@ -29,7 +29,12 @@ GlBuffer::Commit()
 
   auto command =
       CreateCommand([data, target = pending_.target, size = pending_.size,
-                        usage = pending_.usage, this]() {
+                        usage = pending_.usage, this](bool cancel) {
+        if (cancel) {
+          free(data);
+          return;
+        }
+
         if (rendering_.buffer_id == 0) {
           glGenBuffers(1, &rendering_.buffer_id);
         }

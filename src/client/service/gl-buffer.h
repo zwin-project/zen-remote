@@ -1,26 +1,25 @@
 #pragma once
 
-#include "client/service/serial-async-service.h"
+#include "client/service/async-service.h"
 #include "core/common.h"
 #include "gl-buffer.grpc.pb.h"
 
 namespace zen::remote::client {
-class ResourcePool;
+class Remote;
 }
 
 namespace zen::remote::client::service {
 
 class GlBufferServiceImpl final : public GlBufferService::Service,
-                                  public ISerialAsyncService {
+                                  public IAsyncService {
  public:
   DISABLE_MOVE_AND_COPY(GlBufferServiceImpl);
   GlBufferServiceImpl() = delete;
-  GlBufferServiceImpl(ResourcePool* pool);
+  GlBufferServiceImpl(Remote* remote);
 
   void Register(grpc::ServerBuilder& builder) override;
 
-  void Listen(grpc::ServerCompletionQueue* completion_queue,
-      SerialCommandQueue* command_queue) override;
+  void Listen(grpc::ServerCompletionQueue* completion_queue) override;
 
   grpc::Status New(grpc::ServerContext* context,
       const NewResourceRequest* request, EmptyResponse* response) override;
@@ -33,7 +32,7 @@ class GlBufferServiceImpl final : public GlBufferService::Service,
 
  private:
   GlBufferService::AsyncService async_;
-  ResourcePool* pool_;
+  Remote* remote_;
 };
 
 }  // namespace zen::remote::client::service

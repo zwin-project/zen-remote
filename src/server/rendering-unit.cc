@@ -1,18 +1,16 @@
 #include "server/rendering-unit.h"
 
-#include "core/connection/peer.h"
 #include "core/logger.h"
 #include "rendering-unit.grpc.pb.h"
 #include "server/job-queue.h"
 #include "server/job.h"
-#include "server/remote.h"
 #include "server/serial-request-context.h"
+#include "server/session.h"
 
 namespace zen::remote::server {
 
-RenderingUnit::RenderingUnit(std::shared_ptr<Remote> remote)
-    : remote_(std::move(remote)),
-      id_(remote_->NewSerial(Remote::SerialType::kResource))
+RenderingUnit::RenderingUnit(std::shared_ptr<Session> session)
+    : session_(std::move(session)), id_(session_->NewSerial(Session::kResource))
 {
 }
 
@@ -20,14 +18,14 @@ void
 RenderingUnit::Init(uint64_t virtual_object_id)
 {
   auto job =
-      CreateJob([id = id_, virtual_object_id, remote = remote_](bool cancel) {
+      CreateJob([id = id_, virtual_object_id, session = session_](bool cancel) {
         if (cancel) return;
 
-        auto channel = remote->peer()->grpc_channel();
+        auto channel = session->grpc_channel();
 
         auto stub = RenderingUnitService::NewStub(channel);
 
-        auto context = new SerialRequestContext(remote);
+        auto context = new SerialRequestContext(session.get());
         auto request = new NewRenderingUnitRequest();
         auto response = new EmptyResponse();
 
@@ -45,20 +43,20 @@ RenderingUnit::Init(uint64_t virtual_object_id)
             });
       });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 void
 RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 {
-  auto job = CreateJob([id = id_, index, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, index, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new GlEnableVertexAttribArrayRequest();
     auto response = new EmptyResponse();
 
@@ -78,20 +76,20 @@ RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 void
 RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
 {
-  auto job = CreateJob([id = id_, index, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, index, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new GlDisableVertexAttribArrayRequest();
     auto response = new EmptyResponse();
 
@@ -111,7 +109,7 @@ RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 void
@@ -120,14 +118,14 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
     uint64_t offset)
 {
   auto job = CreateJob([id = id_, index, buffer_id, size, type, normalized,
-                           stride, offset, remote = remote_](bool cancel) {
+                           stride, offset, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new GlVertexAttribPointerRequest();
     auto response = new EmptyResponse();
 
@@ -153,19 +151,19 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 RenderingUnit::~RenderingUnit()
 {
-  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = RenderingUnitService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new DeleteResourceRequest();
     auto response = new EmptyResponse();
 
@@ -182,14 +180,15 @@ RenderingUnit::~RenderingUnit()
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 std::unique_ptr<IRenderingUnit>
-CreateRenderingUnit(std::shared_ptr<IRemote> remote, uint64_t virtual_object_id)
+CreateRenderingUnit(
+    std::shared_ptr<ISession> session, uint64_t virtual_object_id)
 {
   auto rendering_unit = std::make_unique<RenderingUnit>(
-      std::dynamic_pointer_cast<Remote>(remote));
+      std::dynamic_pointer_cast<Session>(session));
 
   rendering_unit->Init(virtual_object_id);
 

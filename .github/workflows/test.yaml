@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install meson
+          sudo apt-get install meson libglew-dev
 
       - name: Clone grpc-dev
         uses: actions/checkout@v2

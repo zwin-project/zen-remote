@@ -1,12 +1,14 @@
 #include "client/service/virtual-object.h"
 
+#include "client/remote.h"
 #include "client/resource-pool.h"
-#include "client/service/serial-async-caller.h"
+#include "client/service/async-session-service-caller.h"
+#include "client/session.h"
 
 namespace zen::remote::client::service {
 
-VirtualObjectServiceImpl::VirtualObjectServiceImpl(ResourcePool* pool)
-    : pool_(pool)
+VirtualObjectServiceImpl::VirtualObjectServiceImpl(Remote* remote)
+    : remote_(remote)
 {
 }
 
@@ -17,30 +19,31 @@ VirtualObjectServiceImpl::Register(grpc::ServerBuilder& builder)
 }
 
 void
-VirtualObjectServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue,
-    SerialCommandQueue* command_queue)
+VirtualObjectServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
 {
-  SerialAsyncCaller<&VirtualObjectService::AsyncService::RequestNew,
+  AsyncSessionServiceCaller<&VirtualObjectService::AsyncService::RequestNew,
       &VirtualObjectServiceImpl::New>::Listen(&async_, this, completion_queue,
-      command_queue);
+      remote_);
 
-  SerialAsyncCaller<&VirtualObjectService::AsyncService::RequestDelete,
+  AsyncSessionServiceCaller<&VirtualObjectService::AsyncService::RequestDelete,
       &VirtualObjectServiceImpl::Delete>::Listen(&async_, this,
-      completion_queue, command_queue);
+      completion_queue, remote_);
 
-  SerialAsyncCaller<&VirtualObjectService::AsyncService::RequestCommit,
+  AsyncSessionServiceCaller<&VirtualObjectService::AsyncService::RequestCommit,
       &VirtualObjectServiceImpl::Commit>::Listen(&async_, this,
-      completion_queue, command_queue);
+      completion_queue, remote_);
 }
 
 grpc::Status
 VirtualObjectServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto virtual_object = std::make_unique<VirtualObject>(
-      request->id(), pool_->update_rendering_queue());
+  auto pool = remote_->session_manager()->current()->pool();
 
-  pool_->virtual_objects()->Add(std::move(virtual_object));
+  auto virtual_object = std::make_unique<VirtualObject>(
+      request->id(), pool->update_rendering_queue());
+
+  pool->virtual_objects()->Add(std::move(virtual_object));
 
   return grpc::Status::OK;
 }
@@ -49,7 +52,9 @@ grpc::Status
 VirtualObjectServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  pool_->virtual_objects()->ScheduleRemove(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  pool->virtual_objects()->ScheduleRemove(request->id());
 
   return grpc::Status::OK;
 }
@@ -58,7 +63,9 @@ grpc::Status
 VirtualObjectServiceImpl::Commit(grpc::ServerContext* /*context*/,
     const VirtualObjectCommitRequest* request, EmptyResponse* /*response*/)
 {
-  auto virtual_object = pool_->virtual_objects()->Get(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto virtual_object = pool->virtual_objects()->Get(request->id());
 
   virtual_object->Commit();
 

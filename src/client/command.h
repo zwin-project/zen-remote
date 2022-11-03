@@ -7,6 +7,7 @@ namespace zen::remote::client {
 struct ICommand {
   virtual ~ICommand() = default;
   virtual void Execute() = 0;
+  virtual void Cancel() = 0;
 };
 
 /**
@@ -19,7 +20,9 @@ class Command final : public ICommand {
   Command() = delete;
   Command(F&& executer) : executer_(std::forward<F>(executer)){};
 
-  void Execute() override { executer_(); }
+  void Execute() override { executer_(false); }
+
+  void Cancel() override { executer_(true); }
 
  private:
   F executer_;

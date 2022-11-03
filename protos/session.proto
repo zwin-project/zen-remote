@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service SessionService
+{
+  rpc New(NewSessionRequest) returns (NewSessionResponse);
+}
+
+message NewSessionRequest {}
+
+message NewSessionResponse
+{
+  uint64 id = 1;
+}

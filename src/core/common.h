@@ -46,6 +46,16 @@ ForEachWeakPtr(C<std::weak_ptr<T>, A> &container,
   }
 }
 
+template <typename... Args>
+std::string
+Format(const std::string &format, Args... args)
+{
+  size_t len = std::snprintf(nullptr, 0, format.c_str(), args...);
+  std::string result(len, ' ');
+  std::snprintf(result.data(), len + 1, format.c_str(), args...);
+  return result;
+}
+
 #define DISABLE_MOVE_AND_COPY(Class)        \
   Class(const Class &) = delete;            \
   Class(Class &&) = delete;                 \
@@ -56,5 +66,6 @@ inline constexpr uint16_t kDiscoverPort = 9983;  // listen in server
 inline constexpr uint16_t kGrpcPort = 50051;     // listen in client
 
 inline constexpr char kGrpcMetadataSerialKey[] = "serial";
+inline constexpr char kGrpcMetadataSessionKey[] = "session";
 
 }  // namespace zen::remote

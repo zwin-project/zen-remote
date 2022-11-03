@@ -1,12 +1,14 @@
 #include "client/service/rendering-unit.h"
 
+#include "client/remote.h"
 #include "client/resource-pool.h"
-#include "client/service/serial-async-caller.h"
+#include "client/service/async-session-service-caller.h"
+#include "client/session.h"
 
 namespace zen::remote::client::service {
 
-RenderingUnitServiceImpl::RenderingUnitServiceImpl(ResourcePool* pool)
-    : pool_(pool)
+RenderingUnitServiceImpl::RenderingUnitServiceImpl(Remote* remote)
+    : remote_(remote)
 {
 }
 
@@ -17,45 +19,46 @@ RenderingUnitServiceImpl::Register(grpc::ServerBuilder& builder)
 }
 
 void
-RenderingUnitServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue,
-    SerialCommandQueue* command_queue)
+RenderingUnitServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
 {
-  SerialAsyncCaller<&RenderingUnitService::AsyncService::RequestNew,
+  AsyncSessionServiceCaller<&RenderingUnitService::AsyncService::RequestNew,
       &RenderingUnitServiceImpl::New>::Listen(&async_, this, completion_queue,
-      command_queue);
+      remote_);
 
-  SerialAsyncCaller<&RenderingUnitService::AsyncService::RequestDelete,
+  AsyncSessionServiceCaller<&RenderingUnitService::AsyncService::RequestDelete,
       &RenderingUnitServiceImpl::Delete>::Listen(&async_, this,
-      completion_queue, command_queue);
+      completion_queue, remote_);
 
-  SerialAsyncCaller<
+  AsyncSessionServiceCaller<
       &RenderingUnitService::AsyncService::RequestGlEnableVertexAttribArray,
       &RenderingUnitServiceImpl::GlEnableVertexAttribArray>::Listen(&async_,
-      this, completion_queue, command_queue);
+      this, completion_queue, remote_);
 
-  SerialAsyncCaller<
+  AsyncSessionServiceCaller<
       &RenderingUnitService::AsyncService::RequestGlDisableVertexAttribArray,
       &RenderingUnitServiceImpl::GlDisableVertexAttribArray>::Listen(&async_,
-      this, completion_queue, command_queue);
+      this, completion_queue, remote_);
 
-  SerialAsyncCaller<
+  AsyncSessionServiceCaller<
       &RenderingUnitService::AsyncService::RequestGlVertexAttribPointer,
       &RenderingUnitServiceImpl::GlVertexAttribPointer>::Listen(&async_, this,
-      completion_queue, command_queue);
+      completion_queue, remote_);
 }
 
 grpc::Status
 RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewRenderingUnitRequest* request, EmptyResponse* /*response*/)
 {
+  auto pool = remote_->session_manager()->current()->pool();
+
   auto rendering_unit = std::make_shared<RenderingUnit>(
-      request->id(), pool_->update_rendering_queue());
+      request->id(), pool->update_rendering_queue());
   auto virtual_object =
-      pool_->virtual_objects()->Get(request->virtual_object_id());
+      pool->virtual_objects()->Get(request->virtual_object_id());
 
   virtual_object->AddRenderingUnit(rendering_unit);
 
-  pool_->rendering_units()->Add(std::move(rendering_unit));
+  pool->rendering_units()->Add(std::move(rendering_unit));
 
   return grpc::Status::OK;
 }
@@ -64,7 +67,9 @@ grpc::Status
 RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  pool_->rendering_units()->ScheduleRemove(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  pool->rendering_units()->ScheduleRemove(request->id());
   return grpc::Status::OK;
 }
 
@@ -74,7 +79,9 @@ RenderingUnitServiceImpl::GlEnableVertexAttribArray(
     const GlEnableVertexAttribArrayRequest* request,
     EmptyResponse* /*response*/)
 {
-  auto rendering_unit = pool_->rendering_units()->Get(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto rendering_unit = pool->rendering_units()->Get(request->id());
 
   rendering_unit->GlEnableVertexAttribArray(request->index());
 
@@ -87,7 +94,9 @@ RenderingUnitServiceImpl::GlDisableVertexAttribArray(
     const GlDisableVertexAttribArrayRequest* request,
     EmptyResponse* /*response*/)
 {
-  auto rendering_unit = pool_->rendering_units()->Get(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto rendering_unit = pool->rendering_units()->Get(request->id());
 
   rendering_unit->GlDisableVertexAttribArray(request->index());
 
@@ -99,8 +108,10 @@ RenderingUnitServiceImpl::GlVertexAttribPointer(
     grpc::ServerContext* /*context*/,
     const GlVertexAttribPointerRequest* request, EmptyResponse* /*response*/)
 {
-  auto rendering_unit = pool_->rendering_units()->Get(request->id());
-  auto gl_buffer = pool_->gl_buffers()->Get(request->buffer_id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto rendering_unit = pool->rendering_units()->Get(request->id());
+  auto gl_buffer = pool->gl_buffers()->Get(request->buffer_id());
 
   rendering_unit->GlVertexAttribPointer(request->index(), gl_buffer,
       request->size(), request->type(), request->normalized(),

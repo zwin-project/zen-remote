@@ -19,6 +19,7 @@ class SerialCommandQueue {
  public:
   DISABLE_MOVE_AND_COPY(SerialCommandQueue);
   SerialCommandQueue() = default;
+  ~SerialCommandQueue();
 
   void Push(uint64_t serial, std::unique_ptr<ICommand> command);
 

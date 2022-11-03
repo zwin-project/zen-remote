@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Remote;
+class Session;
 
 class RenderingUnit final : public IRenderingUnit {
  public:
   DISABLE_MOVE_AND_COPY(RenderingUnit);
   RenderingUnit() = delete;
-  RenderingUnit(std::shared_ptr<Remote> remote);
+  RenderingUnit(std::shared_ptr<Session> session);
   ~RenderingUnit();
 
   void Init(uint64_t virtual_object_id);
@@ -21,7 +21,7 @@ class RenderingUnit final : public IRenderingUnit {
       uint64_t type, bool normalized, int32_t stride, uint64_t offset) override;
 
  private:
-  std::shared_ptr<Remote> remote_;
+  std::shared_ptr<Session> session_;
   uint64_t id_;
 };
 
