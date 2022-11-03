@@ -18,8 +18,9 @@ GlBaseTechnique::Commit()
 {
   if (pending_.damaged == false) return;
 
-  auto command = CreateCommand(
-      [this]() { rendering_.render_mode = pending_.render_mode; });
+  auto command = CreateCommand([render_mode = pending_.render_mode, this]() {
+    rendering_.render_mode = render_mode;
+  });
 
   update_rendering_queue_->Push(std::move(command));
 
