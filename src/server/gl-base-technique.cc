@@ -20,33 +20,31 @@ GlBaseTechnique::GlBaseTechnique(std::shared_ptr<Remote> remote)
 void
 GlBaseTechnique::Init(uint64_t rendering_unit_id)
 {
-  auto job = CreateJob([id = id_, rendering_unit_id, remote = remote_](
-                           bool cancel) {
-    if (cancel) return;
+  auto job =
+      CreateJob([id = id_, rendering_unit_id, remote = remote_](bool cancel) {
+        if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+        auto channel = remote->peer()->grpc_channel();
 
-    auto stub = GlBaseTechniqueService::NewStub(channel);
+        auto stub = GlBaseTechniqueService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
-    auto request = new NewGlBaseTechniqueRequest();
-    auto response = new EmptyResponse();
+        auto context = new SerialRequestContext(remote);
+        auto request = new NewGlBaseTechniqueRequest();
+        auto response = new EmptyResponse();
 
-    request->set_id(id);
-    request->set_rendering_unit_id(rendering_unit_id);
+        request->set_id(id);
+        request->set_rendering_unit_id(rendering_unit_id);
 
-    stub->async()->New(context, request, response,
-        [context, request, response](grpc::Status status) {
-          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
-            LOG_WARN("Failed to call remote GlBaseTechnique::New [%d] %s | %s",
-                status.error_code(), status.error_message().c_str(),
-                status.error_details().c_str());
-          }
-          delete context;
-          delete request;
-          delete response;
-        });
-  });
+        stub->async()->New(context, request, response,
+            [context, request, response](grpc::Status status) {
+              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+                LOG_WARN("Failed to call remote GlBaseTechnique::New");
+              }
+              delete context;
+              delete request;
+              delete response;
+            });
+      });
 
   remote_->job_queue()->Push(std::move(job));
 }
