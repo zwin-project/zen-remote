@@ -7,10 +7,6 @@ namespace zen::remote::client {
 
 class AtomicCommandQueue;
 
-enum class RenderMethod {
-  kArrays,
-};
-
 class GlBaseTechnique final : public IResource {
  public:
   DISABLE_MOVE_AND_COPY(GlBaseTechnique);
@@ -32,6 +28,10 @@ class GlBaseTechnique final : public IResource {
  private:
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
+
+  enum class RenderMethod {
+    kArrays,
+  };
 
   struct RenderMode {
     RenderMethod render_method;
