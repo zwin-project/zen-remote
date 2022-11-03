@@ -62,6 +62,13 @@ RenderingUnit::Commit()
 }
 
 void
+RenderingUnit::SetGlBaseTechnique(
+    std::weak_ptr<GlBaseTechnique> gl_base_technique)
+{
+  gl_base_technique_ = gl_base_technique;
+}
+
+void
 RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 {
   auto result = pending_.vertex_attribs.find(index);
@@ -108,7 +115,12 @@ RenderingUnit::Render(Camera* camera)
   glUseProgram(rendering_.program_id);
   GLint mvp_location = glGetUniformLocation(rendering_.program_id, "mvp");
   glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
-  glDrawArrays(GL_LINES, 0, 2);
+
+  auto gl_base_technique = gl_base_technique_.lock();
+  if (gl_base_technique) {
+    gl_base_technique->Render();
+  }
+
   glBindVertexArray(0);
   glUseProgram(0);
 }

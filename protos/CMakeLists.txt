@@ -22,6 +22,7 @@ add_library(zen_remote_grpc_proto STATIC)
 
 set(protos
   "common"
+  "gl-base-technique"
   "gl-buffer"
   "rendering-unit"
   "virtual-object"

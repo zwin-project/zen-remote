@@ -1,5 +1,6 @@
 #include "client/grpc-server.h"
 
+#include "client/service/gl-base-technique.h"
 #include "client/service/gl-buffer.h"
 #include "client/service/rendering-unit.h"
 #include "client/service/serial-async-caller.h"
@@ -29,6 +30,7 @@ GrpcServer::Start()
     services.emplace_back(new service::VirtualObjectServiceImpl(pool_));
     services.emplace_back(new service::RenderingUnitServiceImpl(pool_));
     services.emplace_back(new service::GlBufferServiceImpl(pool_));
+    services.emplace_back(new service::GlBaseTechniqueServiceImpl(pool_));
 
     for (auto &service : services) {
       service->Register(builder);
