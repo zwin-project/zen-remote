@@ -1,26 +1,25 @@
 #pragma once
 
-#include "client/service/serial-async-service.h"
+#include "client/service/async-service.h"
 #include "core/common.h"
 #include "virtual-object.grpc.pb.h"
 
 namespace zen::remote::client {
-class ResourcePool;
+class Remote;
 }
 
 namespace zen::remote::client::service {
 
 class VirtualObjectServiceImpl final : public VirtualObjectService::Service,
-                                       public ISerialAsyncService {
+                                       public IAsyncService {
  public:
   DISABLE_MOVE_AND_COPY(VirtualObjectServiceImpl);
   VirtualObjectServiceImpl() = delete;
-  VirtualObjectServiceImpl(ResourcePool* pool);
+  VirtualObjectServiceImpl(Remote* remote);
 
   void Register(grpc::ServerBuilder& builder) override;
 
-  void Listen(grpc::ServerCompletionQueue* completion_queue,
-      SerialCommandQueue* command_queue) override;
+  void Listen(grpc::ServerCompletionQueue* completion_queue) override;
 
   grpc::Status New(grpc::ServerContext* context,
       const NewResourceRequest* request, EmptyResponse* response) override;
@@ -34,7 +33,7 @@ class VirtualObjectServiceImpl final : public VirtualObjectService::Service,
 
  private:
   VirtualObjectService::AsyncService async_;
-  ResourcePool* pool_;
+  Remote* remote_;
 };
 
 }  // namespace zen::remote::client::service

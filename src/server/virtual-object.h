@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Remote;
+class Session;
 
 class VirtualObject final : public IVirtualObject {
  public:
   DISABLE_MOVE_AND_COPY(VirtualObject);
   VirtualObject() = delete;
-  VirtualObject(std::shared_ptr<Remote>);
+  VirtualObject(std::shared_ptr<Session> session);
   ~VirtualObject();
 
   void Init();
@@ -21,7 +21,7 @@ class VirtualObject final : public IVirtualObject {
   uint64_t id() override;
 
  private:
-  std::shared_ptr<Remote> remote_;
+  std::shared_ptr<Session> session_;
   uint64_t id_;
 };
 

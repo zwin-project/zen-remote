@@ -1,14 +1,12 @@
 #include "server/buffer.h"
 
-#include "core/context.h"
 #include "core/logger.h"
-#include "server/remote.h"
 
 namespace zen::remote::server {
 
-Buffer::Buffer(void *data, std::function<void()> on_release,
-    std::shared_ptr<Remote> remote)
-    : data_(data), on_release_(on_release), remote_(remote)
+Buffer::Buffer(
+    void *data, std::function<void()> on_release, std::unique_ptr<ILoop> loop)
+    : data_(data), on_release_(on_release), loop_(std::move(loop))
 {
   pipe_[0] = 0;
   pipe_[1] = 0;
@@ -34,19 +32,19 @@ Buffer::Init()
   delete_event_source->fd = pipe_[0];
   delete_event_source->mask =
       FdSource::kReadable | FdSource::kHangup | FdSource::kError;
-  delete_event_source->callback =
-      [delete_event_source, on_release = on_release_,
-          context = remote_->context(), pipe_out = pipe_[0],
-          pipe_in = pipe_[1]](int /*fd*/, uint32_t /*mask*/) {
-        on_release();
+  delete_event_source->callback = [delete_event_source,
+                                      on_release = on_release_, loop = loop_,
+                                      pipe_out = pipe_[0], pipe_in = pipe_[1]](
+                                      int /*fd*/, uint32_t /*mask*/) {
+    on_release();
 
-        close(pipe_out);
-        close(pipe_in);
-        context->loop()->RemoveFd(delete_event_source);
-        delete delete_event_source;
-      };
+    close(pipe_out);
+    close(pipe_in);
+    loop->RemoveFd(delete_event_source);
+    delete delete_event_source;
+  };
 
-  remote_->context()->loop()->AddFd(delete_event_source);
+  loop_->AddFd(delete_event_source);
 
   return true;
 }
@@ -58,11 +56,10 @@ Buffer::data()
 }
 
 std::unique_ptr<IBuffer>
-CreateBuffer(void *data, std::function<void()> on_release,
-    std::shared_ptr<IRemote> remote)
+CreateBuffer(
+    void *data, std::function<void()> on_release, std::unique_ptr<ILoop> loop)
 {
-  auto buffer = std::make_unique<Buffer>(
-      data, on_release, std::dynamic_pointer_cast<Remote>(remote));
+  auto buffer = std::make_unique<Buffer>(data, on_release, std::move(loop));
 
   if (buffer->Init() == false)
     return std::unique_ptr<IBuffer>();

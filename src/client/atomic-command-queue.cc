@@ -2,6 +2,21 @@
 
 namespace zen::remote::client {
 
+AtomicCommandQueue::~AtomicCommandQueue()
+{
+  while (!queue_.empty()) {
+    if (queue_.front().is_commit_command) {
+      queue_.pop_front();
+    } else {
+      auto &command = queue_.front().command;
+
+      command->Cancel();
+
+      queue_.pop_front();
+    }
+  }
+}
+
 void
 AtomicCommandQueue::Push(std::unique_ptr<ICommand> command)
 {

@@ -4,12 +4,12 @@
 
 namespace zen::remote::server {
 
-class Remote;
+class Session;
 
 class SerialRequestContext final : public grpc::ClientContext {
  public:
   DISABLE_MOVE_AND_COPY(SerialRequestContext);
-  SerialRequestContext(const std::shared_ptr<Remote> &remote);
+  SerialRequestContext(Session* session);
 };
 
 }  // namespace zen::remote::server

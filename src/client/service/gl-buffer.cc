@@ -1,11 +1,13 @@
 #include "client/service/gl-buffer.h"
 
+#include "client/remote.h"
 #include "client/resource-pool.h"
-#include "client/service/serial-async-caller.h"
+#include "client/service/async-session-service-caller.h"
+#include "client/session.h"
 
 namespace zen::remote::client::service {
 
-GlBufferServiceImpl::GlBufferServiceImpl(ResourcePool* pool) : pool_(pool) {}
+GlBufferServiceImpl::GlBufferServiceImpl(Remote* remote) : remote_(remote) {}
 
 void
 GlBufferServiceImpl::Register(grpc::ServerBuilder& builder)
@@ -14,30 +16,31 @@ GlBufferServiceImpl::Register(grpc::ServerBuilder& builder)
 }
 
 void
-GlBufferServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue,
-    SerialCommandQueue* command_queue)
+GlBufferServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
 {
-  SerialAsyncCaller<&GlBufferService::AsyncService::RequestNew,
+  AsyncSessionServiceCaller<&GlBufferService::AsyncService::RequestNew,
       &GlBufferServiceImpl::New>::Listen(&async_, this, completion_queue,
-      command_queue);
+      remote_);
 
-  SerialAsyncCaller<&GlBufferService::AsyncService::RequestDelete,
+  AsyncSessionServiceCaller<&GlBufferService::AsyncService::RequestDelete,
       &GlBufferServiceImpl::Delete>::Listen(&async_, this, completion_queue,
-      command_queue);
+      remote_);
 
-  SerialAsyncCaller<&GlBufferService::AsyncService::RequestGlBufferData,
+  AsyncSessionServiceCaller<&GlBufferService::AsyncService::RequestGlBufferData,
       &GlBufferServiceImpl::GlBufferData>::Listen(&async_, this,
-      completion_queue, command_queue);
+      completion_queue, remote_);
 }
 
 grpc::Status
 GlBufferServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto gl_buffer = std::make_unique<GlBuffer>(
-      request->id(), pool_->update_rendering_queue());
+  auto pool = remote_->session_manager()->current()->pool();
 
-  pool_->gl_buffers()->Add(std::move(gl_buffer));
+  auto gl_buffer =
+      std::make_unique<GlBuffer>(request->id(), pool->update_rendering_queue());
+
+  pool->gl_buffers()->Add(std::move(gl_buffer));
 
   return grpc::Status::OK;
 }
@@ -46,7 +49,9 @@ grpc::Status
 GlBufferServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  pool_->gl_buffers()->ScheduleRemove(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  pool->gl_buffers()->ScheduleRemove(request->id());
   return grpc::Status::OK;
 }
 
@@ -54,7 +59,9 @@ grpc::Status
 GlBufferServiceImpl::GlBufferData(grpc::ServerContext* /*context*/,
     const GlBufferDataRequest* request, EmptyResponse* /*response*/)
 {
-  auto gl_buffer = pool_->gl_buffers()->Get(request->id());
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto gl_buffer = pool->gl_buffers()->Get(request->id());
 
   gl_buffer->GlBufferData(request->data().c_str(), request->target(),
       request->data().length(), request->usage());

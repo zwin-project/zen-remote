@@ -15,9 +15,9 @@ struct IRemote {
 
   virtual void Stop() = 0;
 
-  virtual void UpdateScene() = 0;
+  virtual void UpdateScene() = 0;  // deprecated
 
-  virtual void Render(Camera *camera) = 0;
+  virtual void Render(Camera *camera) = 0;  // deprecated
 };
 
 std::unique_ptr<IRemote> CreateRemote(std::unique_ptr<ILoop> loop);

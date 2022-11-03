@@ -2,6 +2,17 @@
 
 namespace zen::remote::client {
 
+SerialCommandQueue::~SerialCommandQueue()
+{
+  while (!list_.empty()) {
+    auto& [serial, command] = list_.front();
+
+    command->Cancel();
+
+    list_.pop_front();
+  }
+}
+
 void
 SerialCommandQueue::Push(uint64_t serial, std::unique_ptr<ICommand> command)
 {

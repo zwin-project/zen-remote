@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Remote;
+class Session;
 
 class GlBuffer final : public IGlBuffer {
  public:
   DISABLE_MOVE_AND_COPY(GlBuffer);
   GlBuffer() = delete;
-  GlBuffer(std::shared_ptr<Remote> remote);
+  GlBuffer(std::shared_ptr<Session> session);
   ~GlBuffer();
 
   void Init();
@@ -22,7 +22,7 @@ class GlBuffer final : public IGlBuffer {
   uint64_t id() override;
 
  private:
-  std::shared_ptr<Remote> remote_;
+  std::shared_ptr<Session> session_;
   uint64_t id_;
 };
 

@@ -22,9 +22,9 @@ function(set_default variable default)
 endfunction()
 
 set_default(CMAKE_BUILD_TYPE Debug)
-set_default(ZEN_REMOTE_CLIENT OFF)
+set_default(ZEN_REMOTE_CLIENT ON)
 set_default(ZEN_REMOTE_SERVER ON)
-set_default(ZEN_REMOTE_GRAPHICS_API GLESv3)
+set_default(ZEN_REMOTE_GRAPHICS_API OpenGL)
 
 if(ZEN_REMOTE_REQUIRED_VERSION VERSION_GREATER ${PROJECT_VERSION})
   message(FATAL_ERROR string(CONCAT

@@ -4,13 +4,13 @@
 
 namespace zen::remote::client {
 
-class ResourcePool;
+class Remote;
 
 class GrpcServer {
  public:
   DISABLE_MOVE_AND_COPY(GrpcServer);
   GrpcServer() = delete;
-  GrpcServer(std::string host, uint16_t port, ResourcePool *pool);
+  GrpcServer(std::string host, uint16_t port, Remote* remote);
 
   ~GrpcServer();
 
@@ -23,7 +23,7 @@ class GrpcServer {
   std::unique_ptr<grpc::Server> server_;
   std::unique_ptr<grpc::ServerCompletionQueue> completion_queue_;
 
-  ResourcePool *pool_;
+  Remote* remote_;
 };
 
 }  // namespace zen::remote::client

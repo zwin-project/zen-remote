@@ -1,26 +1,25 @@
 #pragma once
 
-#include "client/service/serial-async-service.h"
+#include "client/service/async-service.h"
 #include "core/common.h"
 #include "rendering-unit.grpc.pb.h"
 
 namespace zen::remote::client {
-class ResourcePool;
+class Remote;
 }
 
 namespace zen::remote::client::service {
 
 class RenderingUnitServiceImpl final : public RenderingUnitService::Service,
-                                       public ISerialAsyncService {
+                                       public IAsyncService {
  public:
   DISABLE_MOVE_AND_COPY(RenderingUnitServiceImpl);
   RenderingUnitServiceImpl() = delete;
-  RenderingUnitServiceImpl(ResourcePool* pool);
+  RenderingUnitServiceImpl(Remote* remote);
 
   void Register(grpc::ServerBuilder& builder) override;
 
-  void Listen(grpc::ServerCompletionQueue* completion_queue,
-      SerialCommandQueue* command_queue) override;
+  void Listen(grpc::ServerCompletionQueue* completion_queue) override;
 
   grpc::Status New(grpc::ServerContext* context,
       const NewRenderingUnitRequest* request, EmptyResponse* response) override;
@@ -42,7 +41,7 @@ class RenderingUnitServiceImpl final : public RenderingUnitService::Service,
 
  private:
   RenderingUnitService::AsyncService async_;
-  ResourcePool* pool_;
+  Remote* remote_;
 };
 
 }  // namespace zen::remote::client::service

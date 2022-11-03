@@ -1,14 +1,14 @@
 #include "server/serial-request-context.h"
 
-#include "server/remote.h"
+#include "server/session.h"
 
 namespace zen::remote::server {
 
-SerialRequestContext::SerialRequestContext(
-    const std::shared_ptr<Remote> &remote)
+SerialRequestContext::SerialRequestContext(Session *session)
 {
   this->AddMetadata(kGrpcMetadataSerialKey,
-      std::to_string(remote->NewSerial(Remote::kRequest)));
+      std::to_string(session->NewSerial(Session::kRequest)));
+  this->AddMetadata(kGrpcMetadataSessionKey, std::to_string(session->id()));
 }
 
 }  // namespace zen::remote::server

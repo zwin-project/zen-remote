@@ -14,6 +14,7 @@ class AtomicCommandQueue {
  public:
   DISABLE_MOVE_AND_COPY(AtomicCommandQueue);
   AtomicCommandQueue() = default;
+  ~AtomicCommandQueue();
 
   void Push(std::unique_ptr<ICommand> command);
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <zen-remote/server/buffer.h>
-#include <zen-remote/server/remote.h>
+#include <zen-remote/server/session.h>
 
 #include <memory>
 
@@ -16,6 +16,6 @@ struct IGlBuffer {
   virtual uint64_t id() = 0;
 };
 
-std::unique_ptr<IGlBuffer> CreateGlBuffer(std::shared_ptr<IRemote> remote);
+std::unique_ptr<IGlBuffer> CreateGlBuffer(std::shared_ptr<ISession> session);
 
 }  // namespace zen::remote::server

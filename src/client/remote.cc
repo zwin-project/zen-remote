@@ -1,29 +1,21 @@
 #include "client/remote.h"
 
 #include "client/grpc-server.h"
-#include "core/connection/peer.h"
+#include "client/resource-pool.h"
+#include "client/session-manager.h"
+#include "client/session.h"
 #include "core/logger.h"
 
 namespace zen::remote::client {
 
-Remote::Remote(std::unique_ptr<ILoop> loop)
-    : context_(std::make_unique<Context>(std::move(loop)))
-{
-}
+Remote::Remote(std::unique_ptr<ILoop> loop) : loop_(std::move(loop)) {}
 
 void
 Remote::Start()
 {
-  peer_ = std::make_unique<connection::Peer>(
-      connection::Peer::Target::kServer, context_);
-  peer_->signals.discoverd.connect([this] {
-    std::string server_ip = peer_->endpoint().address().to_string();
-    LOG_INFO("Server Found: %s", server_ip.c_str());
-  });
-  peer_->StartDiscover();
+  session_manager_.Start();
 
-  grpc_server_ =
-      std::make_unique<GrpcServer>("0.0.0.0", kGrpcPort, &this->pool_);
+  grpc_server_ = std::make_unique<GrpcServer>("0.0.0.0", kGrpcPort, this);
   grpc_server_->Start();
 }
 
@@ -36,14 +28,20 @@ Remote::Stop()
 void
 Remote::UpdateScene()
 {
-  pool_.UpdateRenderingState();
+  auto pool = session_manager_.GetCurrentResourcePool();
+  if (!pool) return;
+
+  pool->UpdateRenderingState();
 }
 
 void
-Remote::Render(Camera *camera)
+Remote::Render(Camera* camera)
 {
-  pool_.virtual_objects()->ForEach(
-      [camera](const std::shared_ptr<VirtualObject> &virtual_object) {
+  auto pool = session_manager_.GetCurrentResourcePool();
+  if (!pool) return;
+
+  pool->virtual_objects()->ForEach(
+      [camera](const std::shared_ptr<VirtualObject>& virtual_object) {
         if (virtual_object->commited()) virtual_object->Render(camera);
       });
 }

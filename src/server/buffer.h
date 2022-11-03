@@ -1,11 +1,10 @@
 #pragma once
 
 #include "core/common.h"
+#include "zen-remote/loop.h"
 #include "zen-remote/server/buffer.h"
 
 namespace zen::remote::server {
-
-class Remote;
 
 /**
  * No matter which thread destroys this buffer, the `on_release` callback is
@@ -16,7 +15,7 @@ class Buffer final : public IBuffer {
   DISABLE_MOVE_AND_COPY(Buffer);
   Buffer() = delete;
   Buffer(void *data, std::function<void()> on_release,
-      std::shared_ptr<Remote> remote);
+      std::unique_ptr<ILoop> loop);
   ~Buffer();
 
   bool Init();
@@ -26,7 +25,7 @@ class Buffer final : public IBuffer {
  private:
   void *data_;
   std::function<void()> on_release_;
-  std::shared_ptr<Remote> remote_;
+  std::shared_ptr<ILoop> loop_;
 
   int pipe_[2];
 };

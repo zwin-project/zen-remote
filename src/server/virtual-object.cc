@@ -1,32 +1,30 @@
 #include "server/virtual-object.h"
 
-#include "core/connection/peer.h"
 #include "core/logger.h"
 #include "server/job-queue.h"
 #include "server/job.h"
-#include "server/remote.h"
 #include "server/serial-request-context.h"
+#include "server/session.h"
 #include "virtual-object.grpc.pb.h"
 
 namespace zen::remote::server {
 
-VirtualObject::VirtualObject(std::shared_ptr<Remote> remote)
-    : remote_(std::move(remote)),
-      id_(remote_->NewSerial(Remote::SerialType::kResource))
+VirtualObject::VirtualObject(std::shared_ptr<Session> session)
+    : session_(std::move(session)), id_(session_->NewSerial(Session::kResource))
 {
 }
 
 void
 VirtualObject::Init()
 {
-  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new NewResourceRequest();
     auto response = new EmptyResponse();
 
@@ -43,20 +41,20 @@ VirtualObject::Init()
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 void
 VirtualObject::Commit()
 {
-  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new VirtualObjectCommitRequest();
     auto response = new EmptyResponse();
 
@@ -73,19 +71,19 @@ VirtualObject::Commit()
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 VirtualObject::~VirtualObject()
 {
-  auto job = CreateJob([id = id_, remote = remote_](bool cancel) {
+  auto job = CreateJob([id = id_, session = session_](bool cancel) {
     if (cancel) return;
 
-    auto channel = remote->peer()->grpc_channel();
+    auto channel = session->grpc_channel();
 
     auto stub = VirtualObjectService::NewStub(channel);
 
-    auto context = new SerialRequestContext(remote);
+    auto context = new SerialRequestContext(session.get());
     auto request = new DeleteResourceRequest();
     auto response = new EmptyResponse();
 
@@ -102,7 +100,7 @@ VirtualObject::~VirtualObject()
         });
   });
 
-  remote_->job_queue()->Push(std::move(job));
+  session_->job_queue()->Push(std::move(job));
 }
 
 uint64_t
@@ -112,10 +110,10 @@ VirtualObject::id()
 }
 
 std::unique_ptr<IVirtualObject>
-CreateVirtualObject(std::shared_ptr<IRemote> remote)
+CreateVirtualObject(std::shared_ptr<ISession> session)
 {
   auto virtual_object = std::make_unique<VirtualObject>(
-      std::dynamic_pointer_cast<Remote>(remote));
+      std::dynamic_pointer_cast<Session>(session));
 
   virtual_object->Init();
 
