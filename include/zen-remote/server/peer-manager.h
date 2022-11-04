@@ -13,8 +13,8 @@ struct IPeerManager {
 
   virtual std::shared_ptr<IPeer> Get(uint64_t peer_id) = 0;
 
-  Signal<void(std::shared_ptr<IPeer> peer)> on_peer_discover;
-  Signal<void(std::shared_ptr<IPeer> peer)> on_peer_lost;
+  Signal<void(uint64_t peer_id)> on_peer_discover;
+  Signal<void(uint64_t peer_id)> on_peer_lost;
   Signal<void(std::string message)> on_error;
   Signal<void(std::string message)> on_warn;
 };

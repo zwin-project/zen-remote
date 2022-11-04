@@ -107,7 +107,7 @@ PeerManager::AcceptUdpBroadcast(int /*fd*/, uint32_t mask)
   auto peer = std::make_shared<Peer>(client_endpoint.address().to_string());
   peers_.push_back(peer);
 
-  on_peer_discover(peer);
+  on_peer_discover(peer->id());
 }
 
 PeerManager::PeerManager(std::unique_ptr<ILoop> loop)
