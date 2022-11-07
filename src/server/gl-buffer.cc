@@ -18,29 +18,32 @@ GlBuffer::GlBuffer(std::shared_ptr<Session> session)
 void
 GlBuffer::Init()
 {
-  auto job = CreateJob([id = id_, session = session_](bool cancel) {
-    if (cancel) return;
+  auto context = new SerialRequestContext(session_.get());
 
-    auto channel = session->grpc_channel();
-
-    auto stub = GlBufferService::NewStub(channel);
-
-    auto context = new SerialRequestContext(session.get());
-    auto request = new NewResourceRequest();
-    auto response = new EmptyResponse();
-
-    request->set_id(id);
-
-    stub->async()->New(context, request, response,
-        [context, request, response](grpc::Status status) {
-          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
-            LOG_WARN("Failed to call remote GlBuffer::New");
-          }
+  auto job = CreateJob(
+      [id = id_, channel = session_->grpc_channel(), context](bool cancel) {
+        if (cancel) {
           delete context;
-          delete request;
-          delete response;
-        });
-  });
+          return;
+        }
+
+        auto stub = GlBufferService::NewStub(channel);
+
+        auto request = new NewResourceRequest();
+        auto response = new EmptyResponse();
+
+        request->set_id(id);
+
+        stub->async()->New(context, request, response,
+            [context, request, response](grpc::Status status) {
+              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+                LOG_WARN("Failed to call remote GlBuffer::New");
+              }
+              delete context;
+              delete request;
+              delete response;
+            });
+      });
 
   session_->job_queue()->Push(std::move(job));
 }
@@ -49,16 +52,18 @@ void
 GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
     size_t size, uint64_t usage)
 {
-  auto job =
-      CreateJob([id = id_, session = session_, buffer = std::move(buffer),
-                    target, size, usage](bool cancel) {
-        if (cancel) return;
+  auto context = new SerialRequestContext(session_.get());
 
-        auto channel = session->grpc_channel();
+  auto job = CreateJob(
+      [id = id_, channel = session_->grpc_channel(), context,
+          buffer = std::move(buffer), target, size, usage](bool cancel) {
+        if (cancel) {
+          delete context;
+          return;
+        }
 
         auto stub = GlBufferService::NewStub(channel);
 
-        auto context = new SerialRequestContext(session.get());
         auto request = new GlBufferDataRequest();
         auto response = new EmptyResponse();
 
@@ -83,29 +88,32 @@ GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
 
 GlBuffer::~GlBuffer()
 {
-  auto job = CreateJob([id = id_, session = session_](bool cancel) {
-    if (cancel) return;
+  auto context = new SerialRequestContext(session_.get());
 
-    auto channel = session->grpc_channel();
-
-    auto stub = GlBufferService::NewStub(channel);
-
-    auto context = new SerialRequestContext(session.get());
-    auto request = new DeleteResourceRequest();
-    auto response = new EmptyResponse();
-
-    request->set_id(id);
-
-    stub->async()->Delete(context, request, response,
-        [context, request, response](grpc::Status status) {
-          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
-            LOG_WARN("Failed to call remote GlBuffer::Delete");
-          }
+  auto job = CreateJob(
+      [id = id_, channel = session_->grpc_channel(), context](bool cancel) {
+        if (cancel) {
           delete context;
-          delete request;
-          delete response;
-        });
-  });
+          return;
+        }
+
+        auto stub = GlBufferService::NewStub(channel);
+
+        auto request = new DeleteResourceRequest();
+        auto response = new EmptyResponse();
+
+        request->set_id(id);
+
+        stub->async()->Delete(context, request, response,
+            [context, request, response](grpc::Status status) {
+              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+                LOG_WARN("Failed to call remote GlBuffer::Delete");
+              }
+              delete context;
+              delete request;
+              delete response;
+            });
+      });
 
   session_->job_queue()->Push(std::move(job));
 }

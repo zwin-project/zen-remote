@@ -4,7 +4,10 @@ namespace zen::remote::server {
 
 JobQueue::~JobQueue()
 {
-  running_ = false;
+  {
+    std::lock_guard<std::mutex> lock(queue_mtx_);
+    running_ = false;
+  }
 
   if (!thread_.joinable()) return;
 
