@@ -21,7 +21,10 @@ Session::Connect(std::shared_ptr<IPeer> peer)
 
   auto status = stub->New(&context, request, &response);
 
-  if (!status.ok()) return false;
+  if (!status.ok()) {
+    LOG_DEBUG("Failed to start session: %s", status.error_message().c_str());
+    return false;
+  }
 
   id_ = response.id();
 
