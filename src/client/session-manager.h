@@ -22,8 +22,10 @@ class SessionManager {
   /**
    * Destroy current session and set new session.
    * Used in the update thread
+   *
+   * @returns id of the new session
    */
-  std::unique_ptr<Session>& ResetCurrent();
+  uint64_t ResetCurrent();
 
   /**
    * Used in the rendering thread
@@ -38,8 +40,9 @@ class SessionManager {
 
   struct {
     std::thread thread;
+    std::mutex thread_mutex;  // lock thread itself
     bool running;
-    std::mutex mutex;
+    std::mutex mutex;  // Be careful of deadlock with thread_mutex
     std::condition_variable cond;
   } broadcast_;
 

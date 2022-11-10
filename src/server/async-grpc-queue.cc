@@ -6,12 +6,17 @@ namespace zen::remote::server {
 
 AsyncGrpcQueue::~AsyncGrpcQueue() { Terminate(); }
 
+AsyncGrpcQueue::AsyncGrpcQueue()
+    : cq_(std::make_shared<grpc::CompletionQueue>())
+{
+}
+
 void
 AsyncGrpcQueue::Push(std::unique_ptr<AsyncGrpcCallerBase> caller)
 {
   auto caller_raw = caller.release();
 
-  caller_raw->Start(&cq_);
+  caller_raw->Start(cq_.get());
 }
 
 void
@@ -19,11 +24,11 @@ AsyncGrpcQueue::Start()
 {
   if (thread_.joinable()) return;
 
-  thread_ = std::thread([this] {
+  thread_ = std::thread([cq = cq_] {
     void *tag;
     bool ok = false;
 
-    while (cq_.Next(&tag, &ok)) {
+    while (cq->Next(&tag, &ok)) {
       auto caller = static_cast<AsyncGrpcCallerBase *>(tag);
 
       caller->Finish();
@@ -38,9 +43,9 @@ AsyncGrpcQueue::Terminate()
 {
   if (!thread_.joinable()) return;
 
-  cq_.Shutdown();
+  cq_->Shutdown();
 
-  thread_.join();
+  thread_.detach();
 }
 
 }  // namespace zen::remote::server

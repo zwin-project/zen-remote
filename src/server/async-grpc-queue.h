@@ -9,7 +9,7 @@ struct AsyncGrpcCallerBase;
 class AsyncGrpcQueue {
  public:
   DISABLE_MOVE_AND_COPY(AsyncGrpcQueue);
-  AsyncGrpcQueue() = default;
+  AsyncGrpcQueue();
   ~AsyncGrpcQueue();
 
   void Push(std::unique_ptr<AsyncGrpcCallerBase> caller);
@@ -20,7 +20,7 @@ class AsyncGrpcQueue {
 
  private:
   std::thread thread_;
-  grpc::CompletionQueue cq_;
+  std::shared_ptr<grpc::CompletionQueue> cq_;
 };
 
 }  // namespace zen::remote::server

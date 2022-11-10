@@ -21,7 +21,7 @@ class PeerManager final : public IPeerManager {
   void AcceptUdpBroadcast(int fd, uint32_t mask);
 
   std::list<std::shared_ptr<Peer>> peers_;
-  std::unique_ptr<ILoop> loop_;
+  std::shared_ptr<ILoop> loop_;
   boost::asio::io_context io_context_;
   boost::asio::ip::udp::socket udp_socket_;
   std::unique_ptr<FdSource> udp_socket_source_;

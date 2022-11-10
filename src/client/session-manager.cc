@@ -9,21 +9,35 @@ namespace zen::remote::client {
 namespace asio = boost::asio;
 namespace ip = boost::asio::ip;
 
-SessionManager::~SessionManager() { StopDiscoverBroadcast(); }
+SessionManager::~SessionManager()
+{
+  std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
+  StopDiscoverBroadcast();
+}
 
 bool
 SessionManager::Start()
 {
+  std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
   StartDiscoverBroadcast();
   return true;
 }
 
-std::unique_ptr<Session>&
+uint64_t
 SessionManager::ResetCurrent()
 {
-  std::lock_guard<std::mutex> lock(current_mutex_);
-  current_ = std::make_unique<Session>();
-  return current_;
+  uint64_t id;
+  {
+    std::lock_guard<std::mutex> lock(current_mutex_);
+    current_ = std::make_unique<Session>();
+    id = current_->id();
+  }
+
+  {
+    std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
+    StopDiscoverBroadcast();
+  }
+  return id;
 }
 
 std::shared_ptr<ResourcePool>

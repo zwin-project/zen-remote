@@ -26,9 +26,9 @@ grpc::Status
 SessionServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewSessionRequest* /*request*/, NewSessionResponse* response)
 {
-  auto&& session = remote_->session_manager()->ResetCurrent();
+  auto id = remote_->session_manager()->ResetCurrent();
 
-  response->set_id(session->id());
+  response->set_id(id);
 
   return grpc::Status::OK;
 }
