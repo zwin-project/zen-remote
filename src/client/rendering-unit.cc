@@ -29,9 +29,20 @@ RenderingUnit::Commit()
     }
   }
 
+  if (auto gl_base_technique = gl_base_technique_.lock()) {
+    gl_base_technique->Commit();
+  }
+
   auto command =
       CreateCommand([attribs = pending_.vertex_attribs, this](bool cancel) {
-        if (cancel) return;
+        if (cancel) {
+          return;
+        }
+        if (rendering_.vao == 0) {
+          glGenVertexArrays(1, &rendering_.vao);
+          rendering_.program_id = TmpRenderingHelper::CompilePrograms(
+              default_vertex_shader, default_color_fragment_shader);
+        }
 
         if (rendering_.vao == 0) {
           glGenVertexArrays(1, &rendering_.vao);
@@ -62,6 +73,13 @@ RenderingUnit::Commit()
       });
 
   update_rendering_queue_->Push(std::move(command));
+}
+
+void
+RenderingUnit::SetGlBaseTechnique(
+    std::weak_ptr<GlBaseTechnique> gl_base_technique)
+{
+  gl_base_technique_ = gl_base_technique;
 }
 
 void
@@ -111,7 +129,11 @@ RenderingUnit::Render(Camera* camera)
   glUseProgram(rendering_.program_id);
   GLint mvp_location = glGetUniformLocation(rendering_.program_id, "mvp");
   glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
-  glDrawArrays(GL_LINES, 0, 2);
+
+  if (auto gl_base_technique = gl_base_technique_.lock()) {
+    gl_base_technique->Render();
+  }
+
   glBindVertexArray(0);
   glUseProgram(0);
 }

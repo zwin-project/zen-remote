@@ -1,5 +1,6 @@
 #pragma once
 
+#include "client/gl-base-technique.h"
 #include "client/resource.h"
 #include "core/common.h"
 
@@ -18,6 +19,9 @@ class RenderingUnit final : public IResource {
 
   /** Used in the update thread */
   void Commit();
+
+  /** Used in the update thread */
+  void SetGlBaseTechnique(std::weak_ptr<GlBaseTechnique> gl_base_technique);
 
   /** Used in the update thread */
   void GlEnableVertexAttribArray(uint32_t index);
@@ -52,6 +56,8 @@ class RenderingUnit final : public IResource {
 
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
+
+  std::weak_ptr<GlBaseTechnique> gl_base_technique_;
 
   struct {
     std::unordered_map<uint32_t, VertexAttrib> vertex_attribs;

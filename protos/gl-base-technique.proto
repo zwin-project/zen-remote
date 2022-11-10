@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service GlBaseTechniqueService
+{
+  rpc New(NewGlBaseTechniqueRequest) returns (EmptyResponse);
+
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc GlDrawArrays(GlDrawArraysRequest) returns (EmptyResponse);
+}
+
+message NewGlBaseTechniqueRequest
+{
+  uint64 id = 1;
+  uint64 rendering_unit_id = 2;
+}
+
+message GlDrawArraysRequest
+{
+  uint64 id = 1;
+  uint32 mode = 2;
+  int32 first = 3;
+  uint32 count = 4;
+}
