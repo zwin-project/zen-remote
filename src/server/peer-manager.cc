@@ -101,10 +101,26 @@ PeerManager::AcceptUdpBroadcast(int /*fd*/, uint32_t mask)
   }
 
   for (auto& peer : peers_) {
-    if (peer->host() == client_endpoint.address().to_string()) return;
+    if (peer->host() == client_endpoint.address().to_string()) {
+      peer->Ping();
+      return;
+    }
   }
 
-  auto peer = std::make_shared<Peer>(client_endpoint.address().to_string());
+  auto peer = CreatePeer(client_endpoint.address().to_string(), loop_);
+  if (!peer) {
+    LOG_ERROR("Failed to create a peer");
+    return;
+  };
+
+  peer->on_expired = [this, id = peer->id()]() {
+    peers_.remove_if(
+        [id](std::shared_ptr<Peer>& peer) { return peer->id() == id; });
+    on_peer_lost(id);
+  };
+
+  peer->Ping();
+
   peers_.push_back(peer);
 
   on_peer_discover(peer->id());
