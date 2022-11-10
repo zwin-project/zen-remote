@@ -1,6 +1,7 @@
 #pragma once
 
 #include "client/atomic-command-queue.h"
+#include "client/gl-base-technique.h"
 #include "client/gl-buffer.h"
 #include "client/rendering-unit.h"
 #include "client/resource-container.h"
@@ -17,6 +18,9 @@ using RenderingUnitContainer =
 
 using GlBufferContainer =
     ResourceContainer<GlBuffer, ResourceContainerType::kFindByIdIntensive>;
+
+using GlBaseTechniqueContainer = ResourceContainer<GlBaseTechnique,
+    ResourceContainerType::kFindByIdIntensive>;
 
 /**
  * @brief Retain all resources
@@ -45,6 +49,7 @@ class ResourcePool {
   inline VirtualObjectContainer *virtual_objects();
   inline RenderingUnitContainer *rendering_units();
   inline GlBufferContainer *gl_buffers();
+  inline GlBaseTechniqueContainer *gl_base_techniques();
 
   /** Commands to update rendering state of resources */
   inline AtomicCommandQueue *update_rendering_queue();
@@ -53,6 +58,7 @@ class ResourcePool {
   VirtualObjectContainer virtual_objects_;
   RenderingUnitContainer rendering_units_;
   GlBufferContainer gl_buffers_;
+  GlBaseTechniqueContainer gl_base_techniques_;
 
   AtomicCommandQueue update_rendering_queue_;
 };
@@ -73,6 +79,12 @@ inline GlBufferContainer *
 ResourcePool::gl_buffers()
 {
   return &gl_buffers_;
+}
+
+inline GlBaseTechniqueContainer *
+ResourcePool::gl_base_techniques()
+{
+  return &gl_base_techniques_;
 }
 
 inline AtomicCommandQueue *

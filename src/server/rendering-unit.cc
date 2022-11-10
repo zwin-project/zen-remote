@@ -199,6 +199,12 @@ RenderingUnit::~RenderingUnit()
   session_->job_queue()->Push(std::move(job));
 }
 
+uint64_t
+RenderingUnit::id()
+{
+  return id_;
+}
+
 std::unique_ptr<IRenderingUnit>
 CreateRenderingUnit(
     std::shared_ptr<ISession> session, uint64_t virtual_object_id)
