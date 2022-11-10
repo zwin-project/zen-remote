@@ -30,8 +30,7 @@ Buffer::Init()
   auto delete_event_source = new FdSource();
 
   delete_event_source->fd = pipe_[0];
-  delete_event_source->mask =
-      FdSource::kReadable | FdSource::kHangup | FdSource::kError;
+  delete_event_source->mask = FdSource::kReadable;
   delete_event_source->callback = [delete_event_source,
                                       on_release = on_release_, loop = loop_,
                                       pipe_out = pipe_[0], pipe_in = pipe_[1]](

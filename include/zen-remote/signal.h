@@ -29,6 +29,21 @@ class Signal<R(Args...)> {
   };
 
  public:
+  class Connection {
+   public:
+    Connection(typename std::list<std::unique_ptr<ICaller>>::iterator iter,
+        Signal<T> *signal)
+        : iter_(iter), signal_(signal)
+    {
+    }
+
+    void Disconnect() { signal_->list_.erase(iter_); }
+
+   private:
+    typename std::list<std::unique_ptr<ICaller>>::iterator iter_;
+    Signal<T> *signal_;
+  };
+
   Signal(const Signal &) = delete;
   Signal(Signal &&) = delete;
   Signal &operator=(const Signal &) = delete;
@@ -36,20 +51,26 @@ class Signal<R(Args...)> {
   Signal() = default;
 
   template <typename F>
-  void Connect(F &&func)
+  std::unique_ptr<Connection> Connect(F &&func)
   {
     list_.emplace_back(
         std::unique_ptr<ICaller>(new Caller<F>(std::forward<F>(func))));
+    auto iter = std::prev(list_.end());
+    return std::make_unique<Connection>(iter, this);
   }
 
   void operator()(Args... args) const
   {
-    for (auto &callback : list_) {
-      callback->Call(args...);
+    // `iter` may be erased from the list in `Call`.
+    auto iter = list_.begin();
+    while (iter != list_.end()) {
+      auto next = std::next(iter);
+      (*iter)->Call(args...);
+      iter = next;
     }
   }
 
- public:
+ private:
   std::list<std::unique_ptr<ICaller>> list_;
 };
 
