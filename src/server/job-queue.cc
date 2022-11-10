@@ -2,25 +2,20 @@
 
 namespace zen::remote::server {
 
-JobQueue::~JobQueue()
-{
-  {
-    std::lock_guard<std::mutex> lock(queue_mtx_);
-    running_ = false;
-  }
-
-  if (!thread_.joinable()) return;
-
-  cond_.notify_one();
-
-  thread_.join();
-}
+JobQueue::~JobQueue() { Terminate(); }
 
 void
 JobQueue::Push(std::unique_ptr<IJob> job)
 {
   {
-    std::lock_guard<std::mutex> lock(queue_mtx_);
+    std::unique_lock<std::mutex> lock(queue_mtx_);
+
+    if (running_ == false) {
+      lock.unlock();
+      job->Perform(true);
+      return;
+    }
+
     queue_.push(std::move(job));
   }
 
@@ -58,6 +53,23 @@ JobQueue::StartWorkerThread()
       queue_.pop();
     }
   });
+}
+
+void
+JobQueue::Terminate()
+{
+  {
+    std::lock_guard<std::mutex> lock(queue_mtx_);
+    if (running_ == false) return;
+
+    running_ = false;
+  }
+
+  if (!thread_.joinable()) return;
+
+  cond_.notify_one();
+
+  thread_.join();
 }
 
 }  // namespace zen::remote::server

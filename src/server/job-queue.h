@@ -21,6 +21,8 @@ class JobQueue {
 
   void StartWorkerThread();
 
+  void Terminate();
+
  private:
   std::queue<std::unique_ptr<IJob>> queue_;
   std::mutex queue_mtx_;

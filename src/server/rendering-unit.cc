@@ -2,6 +2,8 @@
 
 #include "core/logger.h"
 #include "rendering-unit.grpc.pb.h"
+#include "server/async-grpc-caller.h"
+#include "server/async-grpc-queue.h"
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/serial-request-context.h"
@@ -17,34 +19,33 @@ RenderingUnit::RenderingUnit(std::shared_ptr<Session> session)
 void
 RenderingUnit::Init(uint64_t virtual_object_id)
 {
-  auto context = new SerialRequestContext(session_.get());
+  auto context_raw = new SerialRequestContext(session_.get());
 
-  auto job =
-      CreateJob([id = id_, virtual_object_id,
-                    channel = session_->grpc_channel(), context](bool cancel) {
-        if (cancel) {
-          delete context;
-          return;
-        }
+  auto job = CreateJob([id = id_, virtual_object_id,
+                           connection = session_->connection(), context_raw,
+                           grpc_queue = session_->grpc_queue()](bool cancel) {
+    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+    if (cancel) {
+      return;
+    }
 
-        auto stub = RenderingUnitService::NewStub(channel);
+    auto stub = RenderingUnitService::NewStub(connection->grpc_channel());
 
-        auto request = new NewRenderingUnitRequest();
-        auto response = new EmptyResponse();
-
-        request->set_id(id);
-        request->set_virtual_object_id(virtual_object_id);
-
-        stub->async()->New(context, request, response,
-            [context, request, response](grpc::Status status) {
-              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+    auto caller =
+        new AsyncGrpcCaller<&RenderingUnitService::Stub::PrepareAsyncNew>(
+            std::move(stub), std::move(context),
+            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+              if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote RenderingUnit::New");
+                connection->NotifyDisconnection();
               }
-              delete context;
-              delete request;
-              delete response;
             });
-      });
+
+    caller->request()->set_id(id);
+    caller->request()->set_virtual_object_id(virtual_object_id);
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
 
   session_->job_queue()->Push(std::move(job));
 }
@@ -52,35 +53,35 @@ RenderingUnit::Init(uint64_t virtual_object_id)
 void
 RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 {
-  auto context = new SerialRequestContext(session_.get());
+  auto context_raw = new SerialRequestContext(session_.get());
 
-  auto job = CreateJob([id = id_, index, channel = session_->grpc_channel(),
-                           context](bool cancel) {
-    if (cancel) {
-      delete context;
-      return;
-    }
+  auto job = CreateJob(
+      [id = id_, index, connection = session_->connection(), context_raw,
+          grpc_queue = session_->grpc_queue()](bool cancel) {
+        auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+        if (cancel) {
+          return;
+        }
 
-    auto stub = RenderingUnitService::NewStub(channel);
+        auto stub = RenderingUnitService::NewStub(connection->grpc_channel());
 
-    auto request = new GlEnableVertexAttribArrayRequest();
-    auto response = new EmptyResponse();
+        auto caller = new AsyncGrpcCaller<
+            &RenderingUnitService::Stub::PrepareAsyncGlEnableVertexAttribArray>(
+            std::move(stub), std::move(context),
+            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+              if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+                LOG_WARN(
+                    "Failed to call remote "
+                    "RenderingUnit::GlEnableVertexAttribArray");
+                connection->NotifyDisconnection();
+              }
+            });
 
-    request->set_id(id);
-    request->set_index(index);
+        caller->request()->set_id(id);
+        caller->request()->set_index(index);
 
-    stub->async()->GlEnableVertexAttribArray(context, request, response,
-        [context, request, response](grpc::Status status) {
-          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
-            LOG_WARN(
-                "Failed to call remote "
-                "RenderingUnit::GlEnableVertexAttribArray");
-          }
-          delete context;
-          delete request;
-          delete response;
-        });
-  });
+        grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+      });
 
   session_->job_queue()->Push(std::move(job));
 }
@@ -88,34 +89,34 @@ RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 void
 RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
 {
-  auto context = new SerialRequestContext(session_.get());
+  auto context_raw = new SerialRequestContext(session_.get());
 
-  auto job = CreateJob([id = id_, index, channel = session_->grpc_channel(),
-                           context](bool cancel) {
+  auto job = CreateJob([id = id_, index, connection = session_->connection(),
+                           context_raw,
+                           grpc_queue = session_->grpc_queue()](bool cancel) {
+    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
-      delete context;
       return;
     }
 
-    auto stub = RenderingUnitService::NewStub(channel);
+    auto stub = RenderingUnitService::NewStub(connection->grpc_channel());
 
-    auto request = new GlDisableVertexAttribArrayRequest();
-    auto response = new EmptyResponse();
-
-    request->set_id(id);
-    request->set_index(index);
-
-    stub->async()->GlDisableVertexAttribArray(context, request, response,
-        [context, request, response](grpc::Status status) {
-          if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+    auto caller = new AsyncGrpcCaller<
+        &RenderingUnitService::Stub::PrepareAsyncGlDisableVertexAttribArray>(
+        std::move(stub), std::move(context),
+        [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+          if (!status->ok() && status->error_code() != grpc::CANCELLED) {
             LOG_WARN(
                 "Failed to call remote "
                 "RenderingUnit::GlDisableVertexAttribArray");
+            connection->NotifyDisconnection();
           }
-          delete context;
-          delete request;
-          delete response;
         });
+
+    caller->request()->set_id(id);
+    caller->request()->set_index(index);
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
   session_->job_queue()->Push(std::move(job));
@@ -126,41 +127,41 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
     int32_t size, uint64_t type, bool normalized, int32_t stride,
     uint64_t offset)
 {
-  auto context = new SerialRequestContext(session_.get());
+  auto context_raw = new SerialRequestContext(session_.get());
 
-  auto job = CreateJob(
-      [id = id_, index, buffer_id, size, type, normalized, stride, offset,
-          channel = session_->grpc_channel(), context](bool cancel) {
+  auto job =
+      CreateJob([id = id_, index, buffer_id, size, type, normalized, stride,
+                    offset, connection = session_->connection(), context_raw,
+                    grpc_queue = session_->grpc_queue()](bool cancel) {
+        auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
         if (cancel) {
-          delete context;
           return;
         }
 
-        auto stub = RenderingUnitService::NewStub(channel);
+        auto stub = RenderingUnitService::NewStub(connection->grpc_channel());
 
-        auto request = new GlVertexAttribPointerRequest();
-        auto response = new EmptyResponse();
-
-        request->set_id(id);
-        request->set_index(index);
-        request->set_buffer_id(buffer_id);
-        request->set_size(size);
-        request->set_type(type);
-        request->set_normalized(normalized);
-        request->set_stride(stride);
-        request->set_offset(offset);
-
-        stub->async()->GlVertexAttribPointer(context, request, response,
-            [context, request, response](grpc::Status status) {
-              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+        auto caller = new AsyncGrpcCaller<
+            &RenderingUnitService::Stub::PrepareAsyncGlVertexAttribPointer>(
+            std::move(stub), std::move(context),
+            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+              if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN(
                     "Failed to call remote "
                     "RenderingUnit::GlDisableVertexAttribArray");
+                connection->NotifyDisconnection();
               }
-              delete context;
-              delete request;
-              delete response;
             });
+
+        caller->request()->set_id(id);
+        caller->request()->set_index(index);
+        caller->request()->set_buffer_id(buffer_id);
+        caller->request()->set_size(size);
+        caller->request()->set_type(type);
+        caller->request()->set_normalized(normalized);
+        caller->request()->set_stride(stride);
+        caller->request()->set_offset(offset);
+
+        grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
       });
 
   session_->job_queue()->Push(std::move(job));
@@ -168,32 +169,32 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
 
 RenderingUnit::~RenderingUnit()
 {
-  auto context = new SerialRequestContext(session_.get());
+  auto context_raw = new SerialRequestContext(session_.get());
 
-  auto job = CreateJob(
-      [id = id_, channel = session_->grpc_channel(), context](bool cancel) {
-        if (cancel) {
-          delete context;
-          return;
-        }
+  auto job = CreateJob([id = id_, connection = session_->connection(),
+                           context_raw,
+                           grpc_queue = session_->grpc_queue()](bool cancel) {
+    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+    if (cancel) {
+      return;
+    }
 
-        auto stub = RenderingUnitService::NewStub(channel);
+    auto stub = RenderingUnitService::NewStub(connection->grpc_channel());
 
-        auto request = new DeleteResourceRequest();
-        auto response = new EmptyResponse();
-
-        request->set_id(id);
-
-        stub->async()->Delete(context, request, response,
-            [context, request, response](grpc::Status status) {
-              if (!status.ok() && status.error_code() != grpc::CANCELLED) {
+    auto caller =
+        new AsyncGrpcCaller<&RenderingUnitService::Stub::PrepareAsyncDelete>(
+            std::move(stub), std::move(context),
+            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+              if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote RenderingUnit::Delete");
+                connection->NotifyDisconnection();
               }
-              delete context;
-              delete request;
-              delete response;
             });
-      });
+
+    caller->request()->set_id(id);
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
 
   session_->job_queue()->Push(std::move(job));
 }
