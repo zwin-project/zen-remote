@@ -6,8 +6,9 @@ namespace zen::remote::server {
 
 class SessionConnection {
  public:
-  enum ConnectionControl : uint8_t {
-    kDisconnect = 0,
+  enum ControlMessage : uint8_t {
+    kError = 0,
+    kDisconnect,
   };
 
   DISABLE_MOVE_AND_COPY(SessionConnection);

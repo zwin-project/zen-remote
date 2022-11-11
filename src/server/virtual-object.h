@@ -21,8 +21,8 @@ class VirtualObject final : public IVirtualObject {
   uint64_t id() override;
 
  private:
-  std::shared_ptr<Session> session_;
   uint64_t id_;
+  std::weak_ptr<Session> session_;
 };
 
 }  // namespace zen::remote::server

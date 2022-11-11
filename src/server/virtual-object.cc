@@ -12,18 +12,21 @@
 namespace zen::remote::server {
 
 VirtualObject::VirtualObject(std::shared_ptr<Session> session)
-    : session_(std::move(session)), id_(session_->NewSerial(Session::kResource))
+    : id_(session->NewSerial(Session::kResource)), session_(std::move(session))
 {
 }
 
 void
 VirtualObject::Init()
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -46,17 +49,20 @@ VirtualObject::Init()
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 void
 VirtualObject::Commit()
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -79,16 +85,19 @@ VirtualObject::Commit()
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 VirtualObject::~VirtualObject()
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -111,7 +120,7 @@ VirtualObject::~VirtualObject()
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 uint64_t

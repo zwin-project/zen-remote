@@ -13,18 +13,21 @@
 namespace zen::remote::server {
 
 GlBuffer::GlBuffer(std::shared_ptr<Session> session)
-    : session_(std::move(session)), id_(session_->NewSerial(Session::kResource))
+    : id_(session->NewSerial(Session::kResource)), session_(std::move(session))
 {
 }
 
 void
 GlBuffer::Init()
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -46,17 +49,20 @@ GlBuffer::Init()
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 void
 GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
     size_t size, uint64_t usage)
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
-                           context_raw, grpc_queue = session_->grpc_queue(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
+                           context_raw, grpc_queue = session->grpc_queue(),
                            buffer = std::move(buffer), target, size,
                            usage](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
@@ -84,16 +90,19 @@ GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 GlBuffer::~GlBuffer()
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -116,7 +125,7 @@ GlBuffer::~GlBuffer()
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 uint64_t
