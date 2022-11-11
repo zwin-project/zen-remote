@@ -41,7 +41,7 @@ class GlBaseTechnique final : public IResource {
         int32_t count;
         int32_t first;
       } arrays;
-    } args;
+    };
   };
 
   struct {

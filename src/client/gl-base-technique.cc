@@ -35,19 +35,19 @@ void
 GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 {
   pending_.render_mode.render_method = RenderMethod::kArrays;
-  pending_.render_mode.args.arrays.mode = mode;
-  pending_.render_mode.args.arrays.count = count;
-  pending_.render_mode.args.arrays.first = first;
+  pending_.render_mode.arrays.mode = mode;
+  pending_.render_mode.arrays.count = count;
+  pending_.render_mode.arrays.first = first;
   pending_.damaged = true;
 }
 
 void
 GlBaseTechnique::Render()
 {
-  auto& args = rendering_.render_mode.args;
-  switch (rendering_.render_mode.render_method) {
+  auto& mode = rendering_.render_mode;
+  switch (mode.render_method) {
     case RenderMethod::kArrays:
-      glDrawArrays(args.arrays.mode, args.arrays.first, args.arrays.count);
+      glDrawArrays(mode.arrays.mode, mode.arrays.first, mode.arrays.count);
       break;
   }
 }
