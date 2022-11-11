@@ -79,6 +79,8 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
     caller->request()->set_mode(mode);
     caller->request()->set_first(first);
     caller->request()->set_count(count);
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
   session_->job_queue()->Push(std::move(job));
