@@ -38,11 +38,6 @@ RenderingUnit::Commit()
         if (cancel) {
           return;
         }
-        if (rendering_.vao == 0) {
-          glGenVertexArrays(1, &rendering_.vao);
-          rendering_.program_id = TmpRenderingHelper::CompilePrograms(
-              default_vertex_shader, default_color_fragment_shader);
-        }
 
         if (rendering_.vao == 0) {
           glGenVertexArrays(1, &rendering_.vao);
