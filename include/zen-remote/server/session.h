@@ -8,6 +8,11 @@
 
 namespace zen::remote::server {
 
+/**
+ * Session is passed to zen-remote objects as a shared_ptr, but the zen-remote
+ * objects never own the session; if the zen-remote objests have a reference to
+ * the session, it is held as a weak_ptr.
+ */
 struct ISession {
   virtual ~ISession() = default;
 

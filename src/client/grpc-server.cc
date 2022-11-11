@@ -51,13 +51,10 @@ GrpcServer::Start()
     bool ok = true;
     for (;;) {
       if (completion_queue_->Next(&tag, &ok) == false) break;
-      if (!ok) {
-        LOG_ERROR("Failed to poll gRPC queue");
-        break;
-      }
+      if (!ok) continue;
+
       static_cast<service::IAsyncSessionServiceCaller *>(tag)->Proceed();
     }
-    // FIXME: Some SerialAsyncCallers should not be deleted
   });
 }
 

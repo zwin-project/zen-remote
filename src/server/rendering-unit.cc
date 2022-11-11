@@ -12,18 +12,21 @@
 namespace zen::remote::server {
 
 RenderingUnit::RenderingUnit(std::shared_ptr<Session> session)
-    : session_(std::move(session)), id_(session_->NewSerial(Session::kResource))
+    : id_(session->NewSerial(Session::kResource)), session_(std::move(session))
 {
 }
 
 void
 RenderingUnit::Init(uint64_t virtual_object_id)
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
 
   auto job = CreateJob([id = id_, virtual_object_id,
-                           connection = session_->connection(), context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           connection = session->connection(), context_raw,
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -47,17 +50,20 @@ RenderingUnit::Init(uint64_t virtual_object_id)
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 void
 RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
 
   auto job = CreateJob(
-      [id = id_, index, connection = session_->connection(), context_raw,
-          grpc_queue = session_->grpc_queue()](bool cancel) {
+      [id = id_, index, connection = session->connection(), context_raw,
+          grpc_queue = session->grpc_queue()](bool cancel) {
         auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
         if (cancel) {
           return;
@@ -83,17 +89,20 @@ RenderingUnit::GlEnableVertexAttribArray(uint32_t index)
         grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
       });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 void
 RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, index, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, index, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -119,7 +128,7 @@ RenderingUnit::GlDisableVertexAttribArray(uint32_t index)
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 void
@@ -127,12 +136,15 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
     int32_t size, uint64_t type, bool normalized, int32_t stride,
     uint64_t offset)
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
 
   auto job =
       CreateJob([id = id_, index, buffer_id, size, type, normalized, stride,
-                    offset, connection = session_->connection(), context_raw,
-                    grpc_queue = session_->grpc_queue()](bool cancel) {
+                    offset, connection = session->connection(), context_raw,
+                    grpc_queue = session->grpc_queue()](bool cancel) {
         auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
         if (cancel) {
           return;
@@ -164,16 +176,19 @@ RenderingUnit::GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
         grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
       });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 RenderingUnit::~RenderingUnit()
 {
-  auto context_raw = new SerialRequestContext(session_.get());
+  auto session = session_.lock();
+  if (!session) return;
 
-  auto job = CreateJob([id = id_, connection = session_->connection(),
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw,
-                           grpc_queue = session_->grpc_queue()](bool cancel) {
+                           grpc_queue = session->grpc_queue()](bool cancel) {
     auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
     if (cancel) {
       return;
@@ -196,7 +211,7 @@ RenderingUnit::~RenderingUnit()
     grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session_->job_queue()->Push(std::move(job));
+  session->job_queue()->Push(std::move(job));
 }
 
 uint64_t
