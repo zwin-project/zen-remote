@@ -1,6 +1,5 @@
 #pragma once
 
-#include <zen-remote/server/buffer.h>
 #include <zen-remote/server/session.h>
 
 #include <memory>

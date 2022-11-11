@@ -4,7 +4,6 @@
 #include "gl-base-technique.grpc.pb.h"
 #include "server/async-grpc-caller.h"
 #include "server/async-grpc-queue.h"
-#include "server/buffer.h"
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/serial-request-context.h"
