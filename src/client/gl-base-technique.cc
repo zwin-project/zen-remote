@@ -18,12 +18,14 @@ GlBaseTechnique::Commit()
 {
   if (pending_.damaged == false) return;
   auto command =
-      CreateCommand([render_mode = pending_.render_mode, this](bool cancel) {
+      CreateCommand([args = pending_.draw_args, method = pending_.draw_method,
+                        this](bool cancel) {
         if (cancel) {
           return;
         }
 
-        rendering_.render_mode = render_mode;
+        rendering_.draw_args = args;
+        rendering_.draw_method = method;
       });
 
   update_rendering_queue_->Push(std::move(command));
@@ -34,21 +36,22 @@ GlBaseTechnique::Commit()
 void
 GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 {
-  pending_.render_mode.render_method = RenderMethod::kArrays;
-  pending_.render_mode.arrays.mode = mode;
-  pending_.render_mode.arrays.count = count;
-  pending_.render_mode.arrays.first = first;
+  pending_.draw_method = DrawMethod::kArrays;
+  pending_.draw_args.arrays.mode = mode;
+  pending_.draw_args.arrays.count = count;
+  pending_.draw_args.arrays.first = first;
   pending_.damaged = true;
 }
 
 void
 GlBaseTechnique::Render()
 {
-  auto& mode = rendering_.render_mode;
-  switch (mode.render_method) {
-    case RenderMethod::kArrays:
-      glDrawArrays(mode.arrays.mode, mode.arrays.first, mode.arrays.count);
+  switch (rendering_.draw_method) {
+    case DrawMethod::kArrays: {
+      auto args = rendering_.draw_args.arrays;
+      glDrawArrays(args.mode, args.first, args.count);
       break;
+    }
   }
 }
 
