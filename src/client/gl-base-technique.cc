@@ -2,6 +2,7 @@
 
 #include "client/atomic-command-queue.h"
 #include "core/logger.h"
+#include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
 
@@ -44,7 +45,7 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 }
 
 void
-GlBaseTechnique::Render()
+GlBaseTechnique::Render(Camera* /*camera*/)
 {
   switch (rendering_.draw_method) {
     case DrawMethod::kArrays: {

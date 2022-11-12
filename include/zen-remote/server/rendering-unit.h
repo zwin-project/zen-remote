@@ -8,11 +8,6 @@ namespace zen::remote::server {
 
 struct IRenderingUnit {
   virtual ~IRenderingUnit() = default;
-  virtual void GlEnableVertexAttribArray(uint32_t index) = 0;
-  virtual void GlDisableVertexAttribArray(uint32_t index) = 0;
-  virtual void GlVertexAttribPointer(uint32_t index, uint64_t buffer_id,
-      int32_t size, uint64_t type, bool normalized, int32_t stride,
-      uint64_t offset) = 0;
 
   virtual uint64_t id() = 0;
 };

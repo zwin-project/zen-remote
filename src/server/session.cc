@@ -23,7 +23,7 @@ Session::~Session()
    * grpc_queue after termination.
    */
   job_queue_.Terminate();
-  grpc_queue_->Terminate();
+  if (grpc_queue_) grpc_queue_->Terminate();
 
   if (connection_) connection_->Disable();
 
@@ -168,13 +168,15 @@ Session::StartPingThread()
 
     cq->Shutdown();
 
-    completion_thread.detach();
+    completion_thread.join();
   });
 }
 
 void
 Session::StopPingThread()
 {
+  if (!ping_thread_.joinable()) return;
+
   {
     std::lock_guard<std::mutex> lock(ping_mutex_);
     should_ping_ = false;

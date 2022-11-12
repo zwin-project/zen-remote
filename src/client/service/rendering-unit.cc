@@ -28,21 +28,6 @@ RenderingUnitServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
   AsyncSessionServiceCaller<&RenderingUnitService::AsyncService::RequestDelete,
       &RenderingUnitServiceImpl::Delete>::Listen(&async_, this,
       completion_queue, remote_);
-
-  AsyncSessionServiceCaller<
-      &RenderingUnitService::AsyncService::RequestGlEnableVertexAttribArray,
-      &RenderingUnitServiceImpl::GlEnableVertexAttribArray>::Listen(&async_,
-      this, completion_queue, remote_);
-
-  AsyncSessionServiceCaller<
-      &RenderingUnitService::AsyncService::RequestGlDisableVertexAttribArray,
-      &RenderingUnitServiceImpl::GlDisableVertexAttribArray>::Listen(&async_,
-      this, completion_queue, remote_);
-
-  AsyncSessionServiceCaller<
-      &RenderingUnitService::AsyncService::RequestGlVertexAttribPointer,
-      &RenderingUnitServiceImpl::GlVertexAttribPointer>::Listen(&async_, this,
-      completion_queue, remote_);
 }
 
 grpc::Status
@@ -70,53 +55,6 @@ RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
   auto pool = remote_->session_manager()->current()->pool();
 
   pool->rendering_units()->ScheduleRemove(request->id());
-  return grpc::Status::OK;
-}
-
-grpc::Status
-RenderingUnitServiceImpl::GlEnableVertexAttribArray(
-    grpc::ServerContext* /*context*/,
-    const GlEnableVertexAttribArrayRequest* request,
-    EmptyResponse* /*response*/)
-{
-  auto pool = remote_->session_manager()->current()->pool();
-
-  auto rendering_unit = pool->rendering_units()->Get(request->id());
-
-  rendering_unit->GlEnableVertexAttribArray(request->index());
-
-  return grpc::Status::OK;
-}
-
-grpc::Status
-RenderingUnitServiceImpl::GlDisableVertexAttribArray(
-    grpc::ServerContext* /*context*/,
-    const GlDisableVertexAttribArrayRequest* request,
-    EmptyResponse* /*response*/)
-{
-  auto pool = remote_->session_manager()->current()->pool();
-
-  auto rendering_unit = pool->rendering_units()->Get(request->id());
-
-  rendering_unit->GlDisableVertexAttribArray(request->index());
-
-  return grpc::Status::OK;
-}
-
-grpc::Status
-RenderingUnitServiceImpl::GlVertexAttribPointer(
-    grpc::ServerContext* /*context*/,
-    const GlVertexAttribPointerRequest* request, EmptyResponse* /*response*/)
-{
-  auto pool = remote_->session_manager()->current()->pool();
-
-  auto rendering_unit = pool->rendering_units()->Get(request->id());
-  auto gl_buffer = pool->gl_buffers()->Get(request->buffer_id());
-
-  rendering_unit->GlVertexAttribPointer(request->index(), gl_buffer,
-      request->size(), request->type(), request->normalized(),
-      request->stride(), request->offset());
-
   return grpc::Status::OK;
 }
 
