@@ -2,13 +2,13 @@
 
 #include "core/common.h"
 #include "server/job-queue.h"
+#include "server/session-connection.h"
 #include "zen-remote/loop.h"
 #include "zen-remote/server/session.h"
 
 namespace zen::remote::server {
 
 class AsyncGrpcQueue;
-class SessionConnection;
 
 /** Use this only in main thread */
 class Session final : public ISession {
@@ -34,15 +34,27 @@ class Session final : public ISession {
   inline uint64_t id();
 
  private:
+  void HandleControlEvent(SessionConnection::ControlMessage message);
+
+  void StartPingThread();
+  void StopPingThread();
+
   JobQueue job_queue_;
   std::shared_ptr<AsyncGrpcQueue> grpc_queue_;     // shareable across threads
   std::shared_ptr<SessionConnection> connection_;  // sharable across threads
-  uint64_t serials_[SerialType::kCount] = {0};
-  uint64_t id_ = 0;
   std::unique_ptr<ILoop> loop_;
-  FdSource* control_event_source_;  // null before connected
+
+  bool should_ping_;
+  std::thread ping_thread_;
+  std::mutex ping_mutex_;
+  std::condition_variable ping_cond_;
+
+  uint64_t id_ = 0;
   bool connected_ = false;
 
+  uint64_t serials_[SerialType::kCount] = {0};
+
+  FdSource* control_event_source_;  // null before connected
   int pipe_[2];
 };
 

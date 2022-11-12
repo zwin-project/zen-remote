@@ -28,6 +28,12 @@ class SessionManager {
   uint64_t ResetCurrent();
 
   /**
+   * Destroy current session and start discovery UDP broadcast
+   * Used in the update thread
+   */
+  void ClearCurrent();
+
+  /**
    * Used in the rendering thread
    *
    * @returns null if no current session exists.
