@@ -16,8 +16,6 @@ class Remote : public IRemote {
 
   void Start() override;
 
-  void Stop() override;
-
   /** Call only once before rendering for multiple cameras. */
   void UpdateScene() override;
 

@@ -1,23 +1,19 @@
 #pragma once
 
 #include "client/remote.h"
+#include "client/service/async-service-caller.h"
 #include "client/session.h"
 #include "core/common.h"
 #include "core/logger.h"
 
 namespace zen::remote::client::service {
 
-struct IAsyncSessionServiceCaller {
-  virtual ~IAsyncSessionServiceCaller() = default;
-  virtual void Proceed() = 0;
-};
-
 /**
  * Handler implementation will be called only when the current session exists
  * and the request is for the session
  */
 template <auto AsyncServiceRequest, auto Handler>
-class AsyncSessionServiceCaller final : public IAsyncSessionServiceCaller {
+class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
   enum State {
     kCreate,
     kProcess,
@@ -94,6 +90,8 @@ class AsyncSessionServiceCaller final : public IAsyncSessionServiceCaller {
       delete this;
     }
   }
+
+  void Cancel() override { delete this; }
 
  private:
   AsyncSessionServiceCaller(AsyncService *async_service,
