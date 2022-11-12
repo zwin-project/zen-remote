@@ -10,6 +10,7 @@ namespace zen::remote::client::service {
 struct IAsyncServiceCaller {
   virtual ~IAsyncServiceCaller() = default;
   virtual void Proceed() = 0;
+  virtual void Cancel() = 0;
 };
 
 template <auto AsyncServiceRequest, auto Handler>
@@ -59,6 +60,8 @@ class AsyncServiceCaller final : public IAsyncServiceCaller {
       delete this;
     }
   }
+
+  void Cancel() override { delete this; }
 
  private:
   AsyncServiceCaller(AsyncService *async_service, ServiceImpl *service_impl,

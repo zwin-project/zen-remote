@@ -13,8 +13,6 @@ struct IRemote {
 
   virtual void Start() = 0;
 
-  virtual void Stop() = 0;
-
   virtual void UpdateScene() = 0;  // deprecated
 
   virtual void Render(Camera *camera) = 0;  // deprecated

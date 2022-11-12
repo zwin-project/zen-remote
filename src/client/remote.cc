@@ -20,12 +20,6 @@ Remote::Start()
 }
 
 void
-Remote::Stop()
-{
-  // TODO:
-}
-
-void
 Remote::UpdateScene()
 {
   auto pool = session_manager_.GetCurrentResourcePool();

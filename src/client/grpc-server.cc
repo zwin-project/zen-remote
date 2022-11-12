@@ -51,9 +51,13 @@ GrpcServer::Start()
     bool ok = true;
     for (;;) {
       if (completion_queue_->Next(&tag, &ok) == false) break;
-      if (!ok) continue;
+      auto caller = static_cast<service::IAsyncServiceCaller *>(tag);
+      if (!ok) {
+        caller->Cancel();
+        continue;
+      }
 
-      static_cast<service::IAsyncSessionServiceCaller *>(tag)->Proceed();
+      caller->Proceed();
     }
   });
 }
