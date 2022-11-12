@@ -24,12 +24,10 @@ GlBuffer::Commit()
 {
   if (pending_.data_damaged == false) return;
 
-  void* data = malloc(pending_.size);
-  memcpy(data, pending_.data, pending_.size);
-
-  auto command =
-      CreateCommand([data, target = pending_.target, size = pending_.size,
-                        usage = pending_.usage, this](bool cancel) {
+  // ownership of pending_.data moves
+  auto command = CreateCommand(
+      [data = pending_.data, target = pending_.target, size = pending_.size,
+          usage = pending_.usage, this](bool cancel) {
         if (cancel) {
           free(data);
           return;
@@ -49,12 +47,15 @@ GlBuffer::Commit()
 
   update_rendering_queue_->Push(std::move(command));
 
+  pending_.data = NULL;
+  pending_.alloc = 0;
+  pending_.size = 0;
   pending_.data_damaged = false;
 }
 
 void
 GlBuffer::GlBufferData(
-    const void* data, uint64_t target, size_t size, uint64_t usage)
+    const void* data, uint32_t target, size_t size, uint32_t usage)
 {
   if (size > pending_.alloc) {
     pending_.data = realloc(pending_.data, size);

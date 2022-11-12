@@ -10,8 +10,8 @@ namespace zen::remote::server {
 struct IGlBuffer {
   virtual ~IGlBuffer() = default;
 
-  virtual void GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
-      size_t size, uint64_t usage) = 0;
+  virtual void GlBufferData(std::unique_ptr<IBuffer> buffer, uint32_t target,
+      size_t size, uint32_t usage) = 0;
 
   virtual uint64_t id() = 0;
 };
