@@ -53,8 +53,8 @@ GlBuffer::Init()
 }
 
 void
-GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint64_t target,
-    size_t size, uint64_t usage)
+GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint32_t target,
+    size_t size, uint32_t usage)
 {
   auto session = session_.lock();
   if (!session) return;
