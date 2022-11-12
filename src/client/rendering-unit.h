@@ -23,48 +23,20 @@ class RenderingUnit final : public IResource {
   /** Used in the update thread */
   void SetGlBaseTechnique(std::weak_ptr<GlBaseTechnique> gl_base_technique);
 
-  /** Used in the update thread */
-  void GlEnableVertexAttribArray(uint32_t index);
-
-  /** Used in the update thread */
-  void GlDisableVertexAttribArray(uint32_t index);
-
-  /** Used in the update thread */
-  void GlVertexAttribPointer(uint32_t index, std::weak_ptr<GlBuffer> gl_buffer,
-      int32_t size, uint64_t type, bool normalized, int32_t stride,
-      uint64_t offset);
-
   /** Used in the rendering thread */
   void Render(Camera *camera);
 
   uint64_t id() override;
 
  private:
-  struct VertexAttrib {
-    VertexAttrib(uint32_t index);
-
-    uint64_t type;
-    uint64_t offset;
-    uint32_t index;
-    int32_t size;
-    int32_t stride;
-    std::weak_ptr<GlBuffer> gl_buffer;
-    bool normalized;
-    bool enabled;
-    bool filled;
-  };
-
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
 
   struct {
-    std::unordered_map<uint32_t, VertexAttrib> vertex_attribs;
     std::weak_ptr<GlBaseTechnique> gl_base_technique;
   } pending_;
 
   struct {
-    GLuint vao = 0;
-    GLuint program_id;  // FIXME: use requested one
     std::weak_ptr<GlBaseTechnique> gl_base_technique;
   } rendering_;
 };

@@ -15,10 +15,6 @@ class RenderingUnit final : public IRenderingUnit {
   ~RenderingUnit();
 
   void Init(uint64_t virtual_object_id);
-  void GlEnableVertexAttribArray(uint32_t index) override;
-  void GlDisableVertexAttribArray(uint32_t index) override;
-  void GlVertexAttribPointer(uint32_t index, uint64_t buffer_id, int32_t size,
-      uint64_t type, bool normalized, int32_t stride, uint64_t offset) override;
   uint64_t id() override;
 
  private:

@@ -6,6 +6,7 @@
 namespace zen::remote::client {
 
 class AtomicCommandQueue;
+struct Camera;
 
 class GlBaseTechnique final : public IResource {
  public:
@@ -21,7 +22,7 @@ class GlBaseTechnique final : public IResource {
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
 
   /** Used in the rendering thread */
-  void Render();
+  void Render(Camera *camera);
 
   uint64_t id() override;
 
