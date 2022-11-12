@@ -51,13 +51,14 @@ GrpcServer::Start()
     bool ok = true;
     for (;;) {
       if (completion_queue_->Next(&tag, &ok) == false) break;
-      auto caller = static_cast<service::IAsyncServiceCaller *>(tag);
-      if (!ok) {
-        caller->Cancel();
-        continue;
-      }
 
-      caller->Proceed();
+      auto caller = static_cast<service::IAsyncServiceCaller *>(tag);
+
+      if (ok) {
+        caller->Proceed();
+      } else {
+        caller->Cancel();
+      }
     }
   });
 }
@@ -65,7 +66,7 @@ GrpcServer::Start()
 GrpcServer::~GrpcServer()
 {
   if (thread_.joinable() && server_) {
-    server_->Shutdown();
+    server_->Shutdown(std::chrono::system_clock::now());
     completion_queue_->Shutdown();
     thread_.join();
   }

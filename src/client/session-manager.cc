@@ -40,6 +40,21 @@ SessionManager::ResetCurrent()
   return id;
 }
 
+void
+SessionManager::ClearCurrent()
+{
+  {
+    std::lock_guard<std::mutex> lock(current_mutex_);
+    if (!current_) return;
+    current_.reset();
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(broadcast_.thread_mutex);
+    StartDiscoverBroadcast();
+  }
+}
+
 std::shared_ptr<ResourcePool>
 SessionManager::GetCurrentResourcePool()
 {
