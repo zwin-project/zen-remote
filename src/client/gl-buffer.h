@@ -39,7 +39,7 @@ class GlBuffer final : public IResource {
     uint64_t target;
     uint64_t usage;
 
-    bool data_damaged = true;
+    bool data_damaged = false;
   } pending_;
 
   struct {

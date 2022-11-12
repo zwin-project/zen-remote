@@ -57,15 +57,15 @@ class RenderingUnit final : public IResource {
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
 
-  std::weak_ptr<GlBaseTechnique> gl_base_technique_;
-
   struct {
     std::unordered_map<uint32_t, VertexAttrib> vertex_attribs;
+    std::weak_ptr<GlBaseTechnique> gl_base_technique;
   } pending_;
 
   struct {
     GLuint vao = 0;
     GLuint program_id;  // FIXME: use requested one
+    std::weak_ptr<GlBaseTechnique> gl_base_technique;
   } rendering_;
 };
 

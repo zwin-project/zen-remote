@@ -29,28 +29,29 @@ class GlBaseTechnique final : public IResource {
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
 
-  enum class RenderMethod {
+  enum class DrawMethod {
     kArrays,
   };
 
-  struct RenderMode {
-    RenderMethod render_method;
-    union {
-      struct {
-        uint32_t mode;
-        int32_t count;
-        int32_t first;
-      } arrays;
-    };
+  union DrawArgs {
+    struct {
+      uint32_t mode;
+      int32_t count;
+      int32_t first;
+    } arrays;
   };
 
   struct {
-    bool damaged = true;
-    RenderMode render_mode;
+    bool damaged = false;
+
+    DrawArgs draw_args;
+    DrawMethod draw_method;
   } pending_;
 
   struct {
-    RenderMode render_mode;
+    DrawArgs draw_args;
+    DrawMethod draw_method;
   } rendering_;
 };
+
 }  // namespace zen::remote::client
