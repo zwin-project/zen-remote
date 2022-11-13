@@ -56,6 +56,9 @@ void
 GlBaseTechnique::Render(Camera* /*camera*/)
 {
   switch (rendering_->draw_method) {
+    case DrawMethod::kNone:
+      break;
+
     case DrawMethod::kArrays: {
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);

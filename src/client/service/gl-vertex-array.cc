@@ -37,7 +37,7 @@ GlVertexArrayServiceImpl::New(grpc::ServerContext* /*context*/,
   auto pool = remote_->session_manager()->current()->pool();
 
   auto gl_vertex_array = std::make_unique<GlVertexArray>(
-      request->id(), pool->update_rendering_queue());
+      request->id(), remote_->update_rendering_queue());
 
   pool->gl_vertex_arrays()->Add(std::move(gl_vertex_array));
 

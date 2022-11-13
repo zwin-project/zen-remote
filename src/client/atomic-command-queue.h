@@ -36,7 +36,7 @@ class AtomicCommandQueue {
   };
 
   std::list<CommandInfo> queue_;
-  size_t commit_count_;
+  size_t commit_count_ = 0;
   std::mutex mtx_;  // lock queue_ and commit_count_;
 
   std::mutex exec_mtx_;

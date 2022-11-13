@@ -1,5 +1,6 @@
 #pragma once
 
+#include "client/atomic-command-queue.h"
 #include "client/session-manager.h"
 #include "core/common.h"
 #include "zen-remote/client/remote.h"
@@ -26,8 +27,11 @@ class Remote : public IRemote {
   void Render(Camera* camera) override;
 
   inline SessionManager* session_manager();
+  inline AtomicCommandQueue* update_rendering_queue();
 
  private:
+  AtomicCommandQueue update_rendering_queue_;
+
   std::unique_ptr<GrpcServer> grpc_server_;
   SessionManager session_manager_;
   std::shared_ptr<ILoop> loop_;
@@ -39,4 +43,9 @@ Remote::session_manager()
   return &session_manager_;
 }
 
+inline AtomicCommandQueue*
+Remote::update_rendering_queue()
+{
+  return &update_rendering_queue_;
+}
 }  // namespace zen::remote::client

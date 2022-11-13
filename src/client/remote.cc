@@ -22,10 +22,11 @@ Remote::Start()
 void
 Remote::UpdateScene()
 {
-  auto pool = session_manager_.GetCurrentResourcePool();
-  if (!pool) return;
+  auto execute_count = update_rendering_queue_.commit_count();
 
-  pool->UpdateRenderingState();
+  for (uint i = 0; i < execute_count; i++) {
+    if (update_rendering_queue_.ExecuteOnce() == false) break;
+  }
 }
 
 void

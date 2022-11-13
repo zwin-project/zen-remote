@@ -41,7 +41,7 @@ GlBaseTechniqueServiceImpl::New(grpc::ServerContext* /*context*/,
 {
   auto pool = remote_->session_manager()->current()->pool();
   auto gl_base_technique = std::make_shared<GlBaseTechnique>(
-      request->id(), pool->update_rendering_queue());
+      request->id(), remote_->update_rendering_queue());
   auto rendering_unit =
       pool->rendering_units()->Get(request->rendering_unit_id());
 

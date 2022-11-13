@@ -10,6 +10,7 @@ struct Camera;
 
 class GlBaseTechnique final : public IResource {
   enum class DrawMethod {
+    kNone,
     kArrays,
   };
 
@@ -23,7 +24,7 @@ class GlBaseTechnique final : public IResource {
 
   struct RenderingState {
     DrawArgs draw_args;
-    DrawMethod draw_method;
+    DrawMethod draw_method = DrawMethod::kNone;
   };
 
  public:
@@ -51,7 +52,7 @@ class GlBaseTechnique final : public IResource {
     bool damaged = false;
 
     DrawArgs draw_args;
-    DrawMethod draw_method;
+    DrawMethod draw_method = DrawMethod::kNone;
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;

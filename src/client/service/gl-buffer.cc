@@ -37,8 +37,8 @@ GlBufferServiceImpl::New(grpc::ServerContext* /*context*/,
 {
   auto pool = remote_->session_manager()->current()->pool();
 
-  auto gl_buffer =
-      std::make_unique<GlBuffer>(request->id(), pool->update_rendering_queue());
+  auto gl_buffer = std::make_unique<GlBuffer>(
+      request->id(), remote_->update_rendering_queue());
 
   pool->gl_buffers()->Add(std::move(gl_buffer));
 
