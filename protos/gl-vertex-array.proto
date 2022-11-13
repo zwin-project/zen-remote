@@ -9,4 +9,37 @@ service GlVertexArrayService
   rpc New(NewResourceRequest) returns (EmptyResponse);
 
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc GlEnableVertexAttribArray(GlEnableVertexAttribArrayRequest)
+      returns (EmptyResponse);
+
+  rpc GlDisableVertexAttribArray(GlDisableVertexAttribArrayRequest)
+      returns (EmptyResponse);
+
+  rpc GlVertexAttribPointer(GlVertexAttribPointerRequest)
+      returns (EmptyResponse);
+}
+
+message GlEnableVertexAttribArrayRequest
+{
+  uint64 id = 1;
+  uint32 index = 2;
+}
+
+message GlDisableVertexAttribArrayRequest
+{
+  uint64 id = 1;
+  uint32 index = 2;
+}
+
+message GlVertexAttribPointerRequest
+{
+  uint64 id = 1;
+  uint32 index = 2;
+  int32 size = 3;
+  uint32 type = 4;
+  bool normalized = 5;
+  uint32 stride = 6;
+  uint64 offset = 7;
+  uint64 gl_buffer_id = 8;
 }
