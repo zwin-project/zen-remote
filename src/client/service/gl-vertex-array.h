@@ -27,6 +27,18 @@ class GlVertexArrayServiceImpl final : public GlVertexArrayService::Service,
   grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
+  grpc::Status GlEnableVertexAttribArray(grpc::ServerContext* context,
+      const GlEnableVertexAttribArrayRequest* request,
+      EmptyResponse* response) override;
+
+  grpc::Status GlDisableVertexAttribArray(grpc::ServerContext* context,
+      const GlDisableVertexAttribArrayRequest* request,
+      EmptyResponse* response) override;
+
+  grpc::Status GlVertexAttribPointer(grpc::ServerContext* context,
+      const GlVertexAttribPointerRequest* request,
+      EmptyResponse* response) override;
+
  private:
   GlVertexArrayService::AsyncService async_;
   Remote* remote_;

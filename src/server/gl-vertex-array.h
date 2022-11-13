@@ -16,6 +16,14 @@ class GlVertexArray final : public IGlVertexArray {
 
   void Init();
 
+  void GlEnableVertexAttribArray(uint32_t index) override;
+
+  void GlDisableVertexAttribArray(uint32_t index) override;
+
+  void GlVertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+      bool normalized, int32_t stride, uint64_t offset,
+      uint64_t gl_buffer_id) override;
+
  private:
   uint64_t id_;
   std::weak_ptr<Session> session_;
