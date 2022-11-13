@@ -8,6 +8,12 @@ namespace zen::remote::client {
 class AtomicCommandQueue;
 
 class GlBuffer final : public IResource {
+  struct RenderingState {
+    GLuint buffer_id = 0;
+
+    uint32_t target;
+  };
+
  public:
   DISABLE_MOVE_AND_COPY(GlBuffer);
   GlBuffer() = delete;
@@ -42,23 +48,19 @@ class GlBuffer final : public IResource {
     bool data_damaged = false;
   } pending_;
 
-  struct {
-    GLuint buffer_id = 0;
-
-    uint32_t target;
-  } rendering_;
+  std::shared_ptr<RenderingState> rendering_;
 };
 
 inline GLuint
 GlBuffer::buffer_id()
 {
-  return rendering_.buffer_id;
+  return rendering_->buffer_id;
 }
 
 inline uint32_t
 GlBuffer::target()
 {
-  return rendering_.target;
+  return rendering_->target;
 }
 
 }  // namespace zen::remote::client

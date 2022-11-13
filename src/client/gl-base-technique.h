@@ -9,6 +9,23 @@ class AtomicCommandQueue;
 struct Camera;
 
 class GlBaseTechnique final : public IResource {
+  enum class DrawMethod {
+    kArrays,
+  };
+
+  union DrawArgs {
+    struct {
+      uint32_t mode;
+      int32_t count;
+      int32_t first;
+    } arrays;
+  };
+
+  struct RenderingState {
+    DrawArgs draw_args;
+    DrawMethod draw_method;
+  };
+
  public:
   DISABLE_MOVE_AND_COPY(GlBaseTechnique);
   GlBaseTechnique() = delete;
@@ -30,18 +47,6 @@ class GlBaseTechnique final : public IResource {
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
 
-  enum class DrawMethod {
-    kArrays,
-  };
-
-  union DrawArgs {
-    struct {
-      uint32_t mode;
-      int32_t count;
-      int32_t first;
-    } arrays;
-  };
-
   struct {
     bool damaged = false;
 
@@ -49,10 +54,7 @@ class GlBaseTechnique final : public IResource {
     DrawMethod draw_method;
   } pending_;
 
-  struct {
-    DrawArgs draw_args;
-    DrawMethod draw_method;
-  } rendering_;
+  std::shared_ptr<RenderingState> rendering_;
 };
 
 }  // namespace zen::remote::client

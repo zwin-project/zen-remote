@@ -10,10 +10,16 @@ class RenderingUnit;
 class AtomicCommandQueue;
 
 class VirtualObject final : public IResource {
+  struct RenderingState {
+    bool commited = false;
+    std::list<std::weak_ptr<RenderingUnit>> rendering_units_;
+  };
+
  public:
   DISABLE_MOVE_AND_COPY(VirtualObject);
   VirtualObject() = delete;
   VirtualObject(uint64_t id, AtomicCommandQueue *update_rendering_queue);
+  ~VirtualObject();
 
   /** Used in the update thread */
   void Commit();
@@ -37,16 +43,13 @@ class VirtualObject final : public IResource {
     std::list<std::weak_ptr<RenderingUnit>> rendering_units_;
   } pending_;
 
-  struct {
-    bool commited = false;
-    std::list<std::weak_ptr<RenderingUnit>> rendering_units_;
-  } rendering_;
+  std::shared_ptr<RenderingState> rendering_;  // nonnull
 };
 
 inline bool
 VirtualObject::commited()
 {
-  return rendering_.commited;
+  return rendering_->commited;
 }
 
 }  // namespace zen::remote::client

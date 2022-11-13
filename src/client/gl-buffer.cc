@@ -1,20 +1,27 @@
 #include "client/gl-buffer.h"
 
 #include "client/atomic-command-queue.h"
-#include "core/logger.h"
 
 namespace zen::remote::client {
 
 GlBuffer::GlBuffer(uint64_t id, AtomicCommandQueue* update_rendering_queue)
-    : id_(id), update_rendering_queue_(update_rendering_queue)
+    : id_(id),
+      update_rendering_queue_(update_rendering_queue),
+      rendering_(new RenderingState())
 {
 }
 
 GlBuffer::~GlBuffer()
 {
-  if (rendering_.buffer_id != 0) {
-    glDeleteBuffers(1, &rendering_.buffer_id);
-  }
+  auto command = CreateCommand([rendering = rendering_](bool /*cancel*/) {
+    if (rendering->buffer_id != 0) {
+      glDeleteBuffers(1, &rendering->buffer_id);
+    }
+  });
+
+  rendering_.reset();
+
+  update_rendering_queue_->Push(std::move(command));
 
   free(pending_.data);
 }
@@ -27,20 +34,21 @@ GlBuffer::Commit()
   // ownership of pending_.data moves
   auto command = CreateCommand(
       [data = pending_.data, target = pending_.target, size = pending_.size,
-          usage = pending_.usage, this](bool cancel) {
+          usage = pending_.usage, rendering = rendering_](bool cancel) {
         if (cancel) {
           free(data);
           return;
         }
 
-        if (rendering_.buffer_id == 0) {
-          glGenBuffers(1, &rendering_.buffer_id);
+        if (rendering->buffer_id == 0) {
+          glGenBuffers(1, &rendering->buffer_id);
         }
 
-        glBindBuffer(target, rendering_.buffer_id);
+        glBindBuffer(target, rendering->buffer_id);
         glBufferData(target, size, data, usage);
+        glBindBuffer(target, 0);
 
-        rendering_.target = target;
+        rendering->target = target;
 
         free(data);
       });
