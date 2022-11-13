@@ -166,6 +166,9 @@ Session::StartPingThread()
     finish_cond.wait_for(
         lock, std::chrono::microseconds(100), [&finished] { return finished; });
 
+    lock.unlock();
+
+    context.TryCancel();
     cq->Shutdown();
 
     completion_thread.join();
