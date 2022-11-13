@@ -37,7 +37,7 @@ RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,
   auto pool = remote_->session_manager()->current()->pool();
 
   auto rendering_unit = std::make_shared<RenderingUnit>(
-      request->id(), pool->update_rendering_queue());
+      request->id(), remote_->update_rendering_queue());
   auto virtual_object =
       pool->virtual_objects()->Get(request->virtual_object_id());
 

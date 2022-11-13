@@ -1,6 +1,5 @@
 #pragma once
 
-#include "client/atomic-command-queue.h"
 #include "client/gl-base-technique.h"
 #include "client/gl-buffer.h"
 #include "client/gl-vertex-array.h"
@@ -32,11 +31,11 @@ using GlBaseTechniqueContainer = ResourceContainer<GlBaseTechnique,
  * Resources are updated by the "update thread" and the updated states are
  * temporarily held in the "pending state" of the respective resource.
  * When a set of resources are commited, commands to update the "rendering
- * state" based on the "pending state" are pushed to `update_rendering_queue`.
- * The pushed commands are executed by the "rendering thread" just before the
- * resource pool is traversed to render scene. At this time, commands issued in
- * a single commit are executed atomically, thus maintaining the integrity of
- * the entire "rendering state".
+ * state" based on the "pending state" are pushed to
+ * `Remote::update_rendering_queue`. The pushed commands are executed by the
+ * "rendering thread" just before the resource pool is traversed to render
+ * scene. At this time, commands issued in a single commit are executed
+ * atomically, thus maintaining the integrity of the entire "rendering state".
  * These commands should not read the pending state, since the pending state may
  * be updated between when these commands are pushed and when they are executed.
  * Instead, use a lambda capture or something similar to preserve the state at
@@ -47,17 +46,11 @@ class ResourcePool {
   DISABLE_MOVE_AND_COPY(ResourcePool);
   ResourcePool() = default;
 
-  /** Used in the rendering thread */
-  void UpdateRenderingState();
-
   inline VirtualObjectContainer *virtual_objects();
   inline RenderingUnitContainer *rendering_units();
   inline GlBufferContainer *gl_buffers();
   inline GlVertexArrayContainer *gl_vertex_arrays();
   inline GlBaseTechniqueContainer *gl_base_techniques();
-
-  /** Commands to update rendering state of resources */
-  inline AtomicCommandQueue *update_rendering_queue();
 
  private:
   VirtualObjectContainer virtual_objects_;
@@ -65,8 +58,6 @@ class ResourcePool {
   GlBufferContainer gl_buffers_;
   GlVertexArrayContainer gl_vertex_arrays_;
   GlBaseTechniqueContainer gl_base_techniques_;
-
-  AtomicCommandQueue update_rendering_queue_;
 };
 
 inline VirtualObjectContainer *
@@ -97,12 +88,6 @@ inline GlBaseTechniqueContainer *
 ResourcePool::gl_base_techniques()
 {
   return &gl_base_techniques_;
-}
-
-inline AtomicCommandQueue *
-ResourcePool::update_rendering_queue()
-{
-  return &update_rendering_queue_;
 }
 
 }  // namespace zen::remote::client

@@ -41,7 +41,7 @@ VirtualObjectServiceImpl::New(grpc::ServerContext* /*context*/,
   auto pool = remote_->session_manager()->current()->pool();
 
   auto virtual_object = std::make_unique<VirtualObject>(
-      request->id(), pool->update_rendering_queue());
+      request->id(), remote_->update_rendering_queue());
 
   pool->virtual_objects()->Add(std::move(virtual_object));
 
