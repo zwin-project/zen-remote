@@ -3,6 +3,7 @@
 #include "client/atomic-command-queue.h"
 #include "client/gl-base-technique.h"
 #include "client/gl-buffer.h"
+#include "client/gl-vertex-array.h"
 #include "client/rendering-unit.h"
 #include "client/resource-container.h"
 #include "client/virtual-object.h"
@@ -18,6 +19,9 @@ using RenderingUnitContainer =
 
 using GlBufferContainer =
     ResourceContainer<GlBuffer, ResourceContainerType::kFindByIdIntensive>;
+
+using GlVertexArrayContainer =
+    ResourceContainer<GlVertexArray, ResourceContainerType::kFindByIdIntensive>;
 
 using GlBaseTechniqueContainer = ResourceContainer<GlBaseTechnique,
     ResourceContainerType::kFindByIdIntensive>;
@@ -49,6 +53,7 @@ class ResourcePool {
   inline VirtualObjectContainer *virtual_objects();
   inline RenderingUnitContainer *rendering_units();
   inline GlBufferContainer *gl_buffers();
+  inline GlVertexArrayContainer *gl_vertex_arrays();
   inline GlBaseTechniqueContainer *gl_base_techniques();
 
   /** Commands to update rendering state of resources */
@@ -58,6 +63,7 @@ class ResourcePool {
   VirtualObjectContainer virtual_objects_;
   RenderingUnitContainer rendering_units_;
   GlBufferContainer gl_buffers_;
+  GlVertexArrayContainer gl_vertex_arrays_;
   GlBaseTechniqueContainer gl_base_techniques_;
 
   AtomicCommandQueue update_rendering_queue_;
@@ -79,6 +85,12 @@ inline GlBufferContainer *
 ResourcePool::gl_buffers()
 {
   return &gl_buffers_;
+}
+
+inline GlVertexArrayContainer *
+ResourcePool::gl_vertex_arrays()
+{
+  return &gl_vertex_arrays_;
 }
 
 inline GlBaseTechniqueContainer *
