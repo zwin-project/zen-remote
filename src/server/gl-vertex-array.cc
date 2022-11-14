@@ -212,6 +212,12 @@ GlVertexArray::~GlVertexArray()
   session->job_queue()->Push(std::move(job));
 }
 
+uint64_t
+GlVertexArray::id()
+{
+  return id_;
+}
+
 std::unique_ptr<IGlVertexArray>
 CreateGlVertexArray(std::shared_ptr<ISession> session)
 {

@@ -28,6 +28,9 @@ class GlBaseTechniqueServiceImpl final : public GlBaseTechniqueService::Service,
   grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
+  grpc::Status BindVertexArray(grpc::ServerContext* context,
+      const BindVertexArrayRequest* request, EmptyResponse* response) override;
+
   grpc::Status GlDrawArrays(grpc::ServerContext* context,
       const GlDrawArraysRequest* request, EmptyResponse* response) override;
 

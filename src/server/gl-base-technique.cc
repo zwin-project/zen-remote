@@ -54,6 +54,43 @@ GlBaseTechnique::Init(uint64_t rendering_unit_id)
 }
 
 void
+GlBaseTechnique::BindVertexArray(uint64_t vertex_array_id)
+{
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
+                           context_raw, grpc_queue = session->grpc_queue(),
+                           vertex_array_id](bool cancel) {
+    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+    if (cancel) {
+      return;
+    }
+
+    auto stub = GlBaseTechniqueService::NewStub(connection->grpc_channel());
+
+    auto caller = new AsyncGrpcCaller<
+        &GlBaseTechniqueService::Stub::PrepareAsyncBindVertexArray>(
+        std::move(stub), std::move(context),
+        [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+          if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlBaseTechnique::BindVertexArray");
+            connection->NotifyDisconnection();
+          }
+        });
+
+    caller->request()->set_id(id);
+    caller->request()->set_vertex_array_id(vertex_array_id);
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
+
+  session->job_queue()->Push(std::move(job));
+}
+
+void
 GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 {
   auto session = session_.lock();

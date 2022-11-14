@@ -30,6 +30,11 @@ GlBaseTechniqueServiceImpl::Listen(
       completion_queue, remote_);
 
   AsyncSessionServiceCaller<
+      &GlBaseTechniqueService::AsyncService::RequestBindVertexArray,
+      &GlBaseTechniqueServiceImpl::BindVertexArray>::Listen(&async_, this,
+      completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
       &GlBaseTechniqueService::AsyncService::RequestGlDrawArrays,
       &GlBaseTechniqueServiceImpl::GlDrawArrays>::Listen(&async_, this,
       completion_queue, remote_);
@@ -58,6 +63,20 @@ GlBaseTechniqueServiceImpl::Delete(grpc::ServerContext* /*context*/,
 {
   auto pool = remote_->session_manager()->current()->pool();
   pool->gl_base_techniques()->ScheduleRemove(request->id());
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlBaseTechniqueServiceImpl::BindVertexArray(grpc::ServerContext* /*context*/,
+    const BindVertexArrayRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto base_technique = pool->gl_base_techniques()->Get(request->id());
+  auto vertex_array = pool->gl_vertex_arrays()->Get(request->vertex_array_id());
+
+  base_technique->Bind(vertex_array);
+
   return grpc::Status::OK;
 }
 

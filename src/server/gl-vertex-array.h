@@ -24,6 +24,8 @@ class GlVertexArray final : public IGlVertexArray {
       bool normalized, int32_t stride, uint64_t offset,
       uint64_t gl_buffer_id) override;
 
+  uint64_t id() override;
+
  private:
   uint64_t id_;
   std::weak_ptr<Session> session_;
