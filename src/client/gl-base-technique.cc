@@ -2,6 +2,7 @@
 
 #include "client/atomic-command-queue.h"
 #include "client/gl-vertex-array.h"
+#include "client/tmp-rendering-helper.h"
 #include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
@@ -79,11 +80,29 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 }
 
 void
-GlBaseTechnique::Render(Camera* /*camera*/)
+GlBaseTechnique::Render(Camera* camera)
 {
   switch (rendering_->draw_method) {
-    case DrawMethod::kNone:
+    case DrawMethod::kNone: {  // FIXME:
+      static auto program_id = TmpRenderingHelper::CompilePrograms(
+          default_vertex_shader, default_color_fragment_shader);
+      auto vertex_array = rendering_->vertex_array.lock();
+
+      if (!vertex_array) break;
+
+      glBindVertexArray(vertex_array->vertex_array_id());
+      glUseProgram(program_id);
+
+      auto mvp_location = glGetUniformLocation(program_id, "mvp");
+      glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
+
+      glDrawArrays(GL_LINES, 0, 8);
+
+      glUseProgram(0);
+      glBindVertexArray(0);
+
       break;
+    }
 
     case DrawMethod::kArrays: {
       auto args = rendering_->draw_args.arrays;

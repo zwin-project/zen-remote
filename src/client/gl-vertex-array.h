@@ -47,6 +47,9 @@ class GlVertexArray final : public IResource {
 
   uint64_t id() override;
 
+  /** Used in the rendering thread */
+  inline GLuint vertex_array_id();
+
  private:
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
@@ -58,5 +61,11 @@ class GlVertexArray final : public IResource {
 
   std::shared_ptr<RenderingState> rendering_;
 };
+
+inline GLuint
+GlVertexArray::vertex_array_id()
+{
+  return rendering_->vertex_array_id;
+}
 
 }  // namespace zen::remote::client
