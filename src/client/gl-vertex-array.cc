@@ -129,8 +129,6 @@ GlVertexArray::GlVertexAttribPointer(uint32_t index, int32_t size,
   (*result).second.filled = true;
   (*result).second.damaged = true;
 
-  LOG_INFO("index: %u, size: %d", index, size);
-
   pending_.damaged = true;
 }
 

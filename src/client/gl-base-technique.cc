@@ -1,6 +1,7 @@
 #include "client/gl-base-technique.h"
 
 #include "client/atomic-command-queue.h"
+#include "client/gl-vertex-array.h"
 #include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
@@ -25,21 +26,46 @@ GlBaseTechnique::~GlBaseTechnique()
 void
 GlBaseTechnique::Commit()
 {
-  if (pending_.damaged == false) return;
-  auto command =
-      CreateCommand([args = pending_.draw_args, method = pending_.draw_method,
-                        rendering = rendering_](bool cancel) {
-        if (cancel) {
-          return;
-        }
+  if (auto vertex_array = pending_.vertex_array.lock()) {
+    vertex_array->Commit();
+  }
 
-        rendering->draw_args = args;
-        rendering->draw_method = method;
-      });
+  if (pending_.draw_method_damaged) {
+    pending_.draw_method_damaged = false;
+    auto command =
+        CreateCommand([args = pending_.draw_args, method = pending_.draw_method,
+                          rendering = rendering_](bool cancel) {
+          if (cancel) {
+            return;
+          }
 
-  update_rendering_queue_->Push(std::move(command));
+          rendering->draw_args = args;
+          rendering->draw_method = method;
+        });
 
-  pending_.damaged = false;
+    update_rendering_queue_->Push(std::move(command));
+  }
+
+  if (pending_.vertex_array_damaged) {
+    pending_.vertex_array_damaged = true;
+    auto command = CreateCommand([vertex_array = pending_.vertex_array,
+                                     rendering = rendering_](bool cancel) {
+      if (cancel) {
+        return;
+      }
+
+      rendering->vertex_array = vertex_array;
+    });
+
+    update_rendering_queue_->Push(std::move(command));
+  }
+}
+
+void
+GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
+{
+  pending_.vertex_array = vertex_array;
+  pending_.vertex_array_damaged = true;
 }
 
 void
@@ -49,7 +75,7 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
   pending_.draw_args.arrays.mode = mode;
   pending_.draw_args.arrays.count = count;
   pending_.draw_args.arrays.first = first;
-  pending_.damaged = true;
+  pending_.draw_method_damaged = true;
 }
 
 void

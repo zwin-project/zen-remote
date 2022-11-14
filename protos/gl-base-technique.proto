@@ -10,6 +10,8 @@ service GlBaseTechniqueService
 
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
 
+  rpc BindVertexArray(BindVertexArrayRequest) returns (EmptyResponse);
+
   rpc GlDrawArrays(GlDrawArraysRequest) returns (EmptyResponse);
 }
 
@@ -17,6 +19,12 @@ message NewGlBaseTechniqueRequest
 {
   uint64 id = 1;
   uint64 rendering_unit_id = 2;
+}
+
+message BindVertexArrayRequest
+{
+  uint64 id = 1;
+  uint64 vertex_array_id = 2;
 }
 
 message GlDrawArraysRequest
