@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service GlShaderService
+{
+  rpc New(NewGlShaderRequest) returns (EmptyResponse);
+
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+}
+
+message NewGlShaderRequest
+{
+  uint64 id = 1;
+  uint32 type = 2;
+  string source = 3;
+}

@@ -3,6 +3,7 @@
 #include "client/service/async-session-service-caller.h"
 #include "client/service/gl-base-technique.h"
 #include "client/service/gl-buffer.h"
+#include "client/service/gl-shader.h"
 #include "client/service/gl-vertex-array.h"
 #include "client/service/rendering-unit.h"
 #include "client/service/session.h"
@@ -31,6 +32,7 @@ GrpcServer::Start()
     services.emplace_back(new service::VirtualObjectServiceImpl(remote_));
     services.emplace_back(new service::RenderingUnitServiceImpl(remote_));
     services.emplace_back(new service::GlBufferServiceImpl(remote_));
+    services.emplace_back(new service::GlShaderServiceImpl(remote_));
     services.emplace_back(new service::GlBaseTechniqueServiceImpl(remote_));
     services.emplace_back(new service::SessionServiceImpl(remote_));
     services.emplace_back(new service::GlVertexArrayServiceImpl(remote_));

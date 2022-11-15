@@ -5,7 +5,7 @@ project(
   LANGUAGES C CXX
   HOMEPAGE_URL https://github.com/zigen-project/zen-remote
   DESCRIPTION "Library for ZEN to communicate with devices over a network"
-  VERSION 0.1.0.15
+  VERSION 0.1.0.16
 )
 
 set(CMAKE_CXX_STANDARD 17)
