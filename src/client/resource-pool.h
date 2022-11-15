@@ -2,6 +2,7 @@
 
 #include "client/gl-base-technique.h"
 #include "client/gl-buffer.h"
+#include "client/gl-program.h"
 #include "client/gl-shader.h"
 #include "client/gl-vertex-array.h"
 #include "client/rendering-unit.h"
@@ -22,6 +23,9 @@ using GlBufferContainer =
 
 using GlShaderContainer =
     ResourceContainer<GlShader, ResourceContainerType::kFindByIdIntensive>;
+
+using GlProgramContainer =
+    ResourceContainer<GlProgram, ResourceContainerType::kFindByIdIntensive>;
 
 using GlVertexArrayContainer =
     ResourceContainer<GlVertexArray, ResourceContainerType::kFindByIdIntensive>;
@@ -54,6 +58,7 @@ class ResourcePool {
   inline RenderingUnitContainer *rendering_units();
   inline GlBufferContainer *gl_buffers();
   inline GlShaderContainer *gl_shaders();
+  inline GlProgramContainer *gl_programs();
   inline GlVertexArrayContainer *gl_vertex_arrays();
   inline GlBaseTechniqueContainer *gl_base_techniques();
 
@@ -62,6 +67,7 @@ class ResourcePool {
   RenderingUnitContainer rendering_units_;
   GlBufferContainer gl_buffers_;
   GlShaderContainer gl_shaders_;
+  GlProgramContainer gl_programs_;
   GlVertexArrayContainer gl_vertex_arrays_;
   GlBaseTechniqueContainer gl_base_techniques_;
 };
@@ -88,6 +94,12 @@ inline GlShaderContainer *
 ResourcePool::gl_shaders()
 {
   return &gl_shaders_;
+}
+
+inline GlProgramContainer *
+ResourcePool::gl_programs()
+{
+  return &gl_programs_;
 }
 
 inline GlVertexArrayContainer *

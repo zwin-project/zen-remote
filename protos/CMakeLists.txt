@@ -24,6 +24,7 @@ set(protos
   "common"
   "gl-base-technique"
   "gl-buffer"
+  "gl-program"
   "gl-shader"
   "gl-vertex-array"
   "rendering-unit"
