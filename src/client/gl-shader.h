@@ -19,6 +19,7 @@ class GlShader final : public IResource {
       AtomicCommandQueue *update_rendering_queue);
   ~GlShader();
 
+  /** Used in the update thread */
   void Commit();
 
   uint64_t id() override;

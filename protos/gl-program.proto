@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service GlProgramService
+{
+  rpc New(NewResourceRequest) returns (EmptyResponse);
+
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+}
