@@ -47,7 +47,7 @@ configure_file(zen-remote-client.pc.in zen-remote-client.pc @ONLY)
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/zen-remote-client.pc
-  DESTINATION lib/pkgconfig
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
 install(
