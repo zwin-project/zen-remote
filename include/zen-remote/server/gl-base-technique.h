@@ -9,6 +9,8 @@ namespace zen::remote::server {
 struct IGlBaseTechnique {
   virtual ~IGlBaseTechnique() = default;
 
+  virtual void BindProgram(uint64_t program_id) = 0;
+
   virtual void BindVertexArray(uint64_t vertex_array_id) = 0;
 
   virtual void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count) = 0;

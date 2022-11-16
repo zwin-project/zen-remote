@@ -30,6 +30,11 @@ GlBaseTechniqueServiceImpl::Listen(
       completion_queue, remote_);
 
   AsyncSessionServiceCaller<
+      &GlBaseTechniqueService::AsyncService::RequestBindProgram,
+      &GlBaseTechniqueServiceImpl::BindProgram>::Listen(&async_, this,
+      completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
       &GlBaseTechniqueService::AsyncService::RequestBindVertexArray,
       &GlBaseTechniqueServiceImpl::BindVertexArray>::Listen(&async_, this,
       completion_queue, remote_);
@@ -63,6 +68,20 @@ GlBaseTechniqueServiceImpl::Delete(grpc::ServerContext* /*context*/,
 {
   auto pool = remote_->session_manager()->current()->pool();
   pool->gl_base_techniques()->ScheduleRemove(request->id());
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlBaseTechniqueServiceImpl::BindProgram(grpc::ServerContext* /*context*/,
+    const BindProgramRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto base_technique = pool->gl_base_techniques()->Get(request->id());
+  auto program = pool->gl_programs()->Get(request->program_id());
+
+  base_technique->Bind(program);
+
   return grpc::Status::OK;
 }
 
