@@ -6,6 +6,7 @@
 namespace zen::remote::client {
 
 class AtomicCommandQueue;
+class GlShader;
 
 class GlProgram final : public IResource {
   struct RenderingState {
@@ -21,6 +22,12 @@ class GlProgram final : public IResource {
   /** Used in the update thread */
   void Commit();
 
+  /** Used in the update thread */
+  void GlAttachShader(std::weak_ptr<GlShader> gl_shader);
+
+  /** Used in the update thread */
+  void GlLinkProgram();
+
   uint64_t id() override;
 
  private:
@@ -28,8 +35,8 @@ class GlProgram final : public IResource {
   AtomicCommandQueue* update_rendering_queue_;
 
   struct {
-    // FIXME: specify which attribute is damaged / default false
-    bool damaged = true;
+    std::vector<std::weak_ptr<GlShader>> gl_shaders;  // Empty after linking
+    bool should_link = false;
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;

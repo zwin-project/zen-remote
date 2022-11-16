@@ -9,4 +9,19 @@ service GlProgramService
   rpc New(NewResourceRequest) returns (EmptyResponse);
 
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc GlAttachShader(GlAttachShaderRequest) returns (EmptyResponse);
+
+  rpc GlLinkProgram(GlLinkProgramRequest) returns (EmptyResponse);
+}
+
+message GlAttachShaderRequest
+{
+  uint64 id = 1;
+  uint64 shader_id = 2;
+}
+
+message GlLinkProgramRequest
+{
+  uint64 id = 1;
 }

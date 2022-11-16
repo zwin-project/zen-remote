@@ -25,6 +25,16 @@ GlProgramServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
   AsyncSessionServiceCaller<&GlProgramService::AsyncService::RequestDelete,
       &GlProgramServiceImpl::Delete>::Listen(&async_, this, completion_queue,
       remote_);
+
+  AsyncSessionServiceCaller<
+      &GlProgramService::AsyncService::RequestGlAttachShader,
+      &GlProgramServiceImpl::GlAttachShader>::Listen(&async_, this,
+      completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
+      &GlProgramService::AsyncService::RequestGlLinkProgram,
+      &GlProgramServiceImpl::GlLinkProgram>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -48,6 +58,33 @@ GlProgramServiceImpl::Delete(grpc::ServerContext* /*context*/,
   auto pool = remote_->session_manager()->current()->pool();
 
   pool->gl_programs()->ScheduleRemove(request->id());
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlProgramServiceImpl::GlAttachShader(grpc::ServerContext* /*context*/,
+    const GlAttachShaderRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto program = pool->gl_programs()->Get(request->id());
+  auto shader = pool->gl_shaders()->Get(request->shader_id());
+
+  program->GlAttachShader(shader);
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlProgramServiceImpl::GlLinkProgram(::grpc::ServerContext* /*context*/,
+    const GlLinkProgramRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto program = pool->gl_programs()->Get(request->id());
+
+  program->GlLinkProgram();
 
   return grpc::Status::OK;
 }

@@ -16,6 +16,10 @@ class GlProgram final : public IGlProgram {
 
   void Init();
 
+  void GlAttachShader(uint64_t shader_id) override;
+
+  void GlLinkProgram() override;
+
   uint64_t id() override;
 
  private:

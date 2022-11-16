@@ -24,6 +24,9 @@ class GlShader final : public IResource {
 
   uint64_t id() override;
 
+  /** Used in the rendering thread */
+  inline GLuint shader_id();
+
  private:
   const uint64_t id_;
 
@@ -36,5 +39,11 @@ class GlShader final : public IResource {
   bool committed_ = false;
   std::shared_ptr<RenderingState> rendering_;
 };
+
+inline GLuint
+GlShader::shader_id()
+{
+  return rendering_->shader_id;
+}
 
 }  // namespace zen::remote::client

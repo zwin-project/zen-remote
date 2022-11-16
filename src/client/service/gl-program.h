@@ -27,6 +27,12 @@ class GlProgramServiceImpl final : public GlProgramService::Service,
   grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
+  grpc::Status GlAttachShader(grpc::ServerContext* context,
+      const GlAttachShaderRequest* request, EmptyResponse* response) override;
+
+  grpc::Status GlLinkProgram(::grpc::ServerContext* context,
+      const GlLinkProgramRequest* request, EmptyResponse* response) override;
+
  private:
   GlProgramService::AsyncService async_;
   Remote* remote_;
