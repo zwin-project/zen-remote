@@ -16,6 +16,8 @@ class GlBaseTechnique final : public IGlBaseTechnique {
 
   void Init(uint64_t rendering_unit_id);
 
+  void BindProgram(uint64_t program_id) override;
+
   void BindVertexArray(uint64_t vertex_array_id) override;
 
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count) override;

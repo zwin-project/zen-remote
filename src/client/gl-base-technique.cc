@@ -1,6 +1,7 @@
 #include "client/gl-base-technique.h"
 
 #include "client/atomic-command-queue.h"
+#include "client/gl-program.h"
 #include "client/gl-vertex-array.h"
 #include "client/tmp-rendering-helper.h"
 #include "zen-remote/client/camera.h"
@@ -27,6 +28,10 @@ GlBaseTechnique::~GlBaseTechnique()
 void
 GlBaseTechnique::Commit()
 {
+  if (auto program = pending_.program.lock()) {
+    program->Commit();
+  }
+
   if (auto vertex_array = pending_.vertex_array.lock()) {
     vertex_array->Commit();
   }
@@ -47,8 +52,22 @@ GlBaseTechnique::Commit()
     update_rendering_queue_->Push(std::move(command));
   }
 
+  if (pending_.program_damaged) {
+    pending_.program_damaged = false;
+    auto command = CreateCommand(
+        [program = pending_.program, rendering = rendering_](bool cancel) {
+          if (cancel) {
+            return;
+          }
+
+          rendering->program = program;
+        });
+
+    update_rendering_queue_->Push(std::move(command));
+  }
+
   if (pending_.vertex_array_damaged) {
-    pending_.vertex_array_damaged = true;
+    pending_.vertex_array_damaged = false;
     auto command = CreateCommand([vertex_array = pending_.vertex_array,
                                      rendering = rendering_](bool cancel) {
       if (cancel) {
@@ -60,6 +79,13 @@ GlBaseTechnique::Commit()
 
     update_rendering_queue_->Push(std::move(command));
   }
+}
+
+void
+GlBaseTechnique::Bind(std::weak_ptr<GlProgram> program)
+{
+  pending_.program = program;
+  pending_.program_damaged = true;
 }
 
 void

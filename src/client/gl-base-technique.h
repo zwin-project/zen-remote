@@ -6,6 +6,7 @@
 namespace zen::remote::client {
 
 class GlVertexArray;
+class GlProgram;
 class AtomicCommandQueue;
 struct Camera;
 
@@ -27,6 +28,7 @@ class GlBaseTechnique final : public IResource {
     DrawArgs draw_args;
     DrawMethod draw_method = DrawMethod::kNone;
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
+    std::weak_ptr<GlProgram> program;           // nullable
   };
 
  public:
@@ -37,6 +39,9 @@ class GlBaseTechnique final : public IResource {
 
   /** Used in the update thread */
   void Commit();
+
+  /** Used in the update thread */
+  void Bind(std::weak_ptr<GlProgram> program);
 
   /** Used in the update thread */
   void Bind(std::weak_ptr<GlVertexArray> vertex_array);
@@ -60,6 +65,9 @@ class GlBaseTechnique final : public IResource {
 
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     bool vertex_array_damaged = false;
+
+    std::weak_ptr<GlProgram> program;  // nullable
+    bool program_damaged = false;
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;
