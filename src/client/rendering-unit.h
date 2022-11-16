@@ -1,6 +1,5 @@
 #pragma once
 
-#include "client/gl-base-technique.h"
 #include "client/resource.h"
 #include "core/common.h"
 
@@ -8,6 +7,7 @@ namespace zen::remote::client {
 
 class GlBuffer;
 class AtomicCommandQueue;
+class GlBaseTechnique;
 struct Camera;
 
 class RenderingUnit final : public IResource {
