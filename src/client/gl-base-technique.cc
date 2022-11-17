@@ -3,7 +3,6 @@
 #include "client/atomic-command-queue.h"
 #include "client/gl-program.h"
 #include "client/gl-vertex-array.h"
-#include "client/tmp-rendering-helper.h"
 #include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
@@ -109,30 +108,28 @@ void
 GlBaseTechnique::Render(Camera* camera)
 {
   switch (rendering_->draw_method) {
-    case DrawMethod::kNone: {  // FIXME:
-      static auto program_id = TmpRenderingHelper::CompilePrograms(
-          default_vertex_shader, default_color_fragment_shader);
-      auto vertex_array = rendering_->vertex_array.lock();
+    case DrawMethod::kNone:
+      break;
 
-      if (!vertex_array) break;
+    case DrawMethod::kArrays: {
+      auto vertex_array = rendering_->vertex_array.lock();
+      auto program = rendering_->program.lock();
+
+      if (!vertex_array || vertex_array->vertex_array_id() == 0 || !program ||
+          program->program_id() == 0)
+        break;
 
       glBindVertexArray(vertex_array->vertex_array_id());
-      glUseProgram(program_id);
+      glUseProgram(program->program_id());
 
-      auto mvp_location = glGetUniformLocation(program_id, "mvp");
+      auto mvp_location = glGetUniformLocation(program->program_id(), "mvp");
       glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
 
-      glDrawArrays(GL_LINES, 0, 8);
+      auto args = rendering_->draw_args.arrays;
+      glDrawArrays(args.mode, args.first, args.count);
 
       glUseProgram(0);
       glBindVertexArray(0);
-
-      break;
-    }
-
-    case DrawMethod::kArrays: {
-      auto args = rendering_->draw_args.arrays;
-      glDrawArrays(args.mode, args.first, args.count);
       break;
     }
   }
