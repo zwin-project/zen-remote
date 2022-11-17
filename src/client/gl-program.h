@@ -30,6 +30,9 @@ class GlProgram final : public IResource {
 
   uint64_t id() override;
 
+  /** Used in the rendering thread */
+  inline GLuint program_id();
+
  private:
   const uint64_t id_;
   AtomicCommandQueue* update_rendering_queue_;
@@ -41,5 +44,11 @@ class GlProgram final : public IResource {
 
   std::shared_ptr<RenderingState> rendering_;
 };
+
+inline GLuint
+GlProgram::program_id()
+{
+  return rendering_->program_id;
+}
 
 }  // namespace zen::remote::client

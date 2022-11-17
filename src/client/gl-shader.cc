@@ -45,6 +45,7 @@ GlShader::Commit()
     auto shader_id = glCreateShader(type);
     const char *source_cstr = source.c_str();
     glShaderSource(shader_id, 1, &source_cstr, NULL);
+    glCompileShader(shader_id);
 
     GLint compiled = GL_FALSE;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled);

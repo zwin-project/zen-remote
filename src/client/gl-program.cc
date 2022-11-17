@@ -35,6 +35,12 @@ GlProgram::Commit()
 
   pending_.gl_shaders.swap(gl_shaders);
 
+  for (auto& shader_ptr : gl_shaders) {
+    if (auto shader = shader_ptr.lock()) {
+      shader->Commit();
+    }
+  }
+
   auto command =
       CreateCommand([rendering = rendering_, gl_shaders](bool cancel) {
         if (cancel) {

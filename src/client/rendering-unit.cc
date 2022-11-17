@@ -3,7 +3,6 @@
 #include "client/atomic-command-queue.h"
 #include "client/gl-base-technique.h"
 #include "client/gl-buffer.h"
-#include "client/tmp-rendering-helper.h"
 #include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
