@@ -1,5 +1,7 @@
 #include "server/gl-texture.h"
 
+#include <GLES3/gl32.h>
+
 #include "core/logger.h"
 #include "gl-texture.grpc.pb.h"
 #include "server/async-grpc-caller.h"
