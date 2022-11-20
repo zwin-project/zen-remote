@@ -26,6 +26,7 @@ set(protos
   "gl-buffer"
   "gl-program"
   "gl-shader"
+  "gl-texture"
   "gl-vertex-array"
   "rendering-unit"
   "session"
