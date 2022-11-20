@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service GlTextureService
+{
+  rpc New(NewResourceRequest) returns (EmptyResponse);
+
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc Image2D(Image2DRequest) returns (EmptyResponse);
+}
+
+message Image2DRequest
+{
+  uint64 id = 1;
+  uint32 target = 2;
+  int32 level = 3;
+  int32 internal_format = 4;
+  uint32 width = 5;
+  uint32 height = 6;
+  int32 border = 7;
+  uint32 format = 8;
+  uint32 type = 9;
+  bytes data = 10;
+}
