@@ -48,18 +48,18 @@ GlTexture::Commit()
             return;
           }
 
-          auto args = rendering->args.image_2d;
-          glBindTexture(GL_TEXTURE_2D, rendering->texture_id);
           switch (rendering->target) {
             case TextureTarget::kNone:
               break;
             case TextureTarget::kImage2D:
+              auto args = rendering->args.image_2d;
+              glBindTexture(args.target, rendering->texture_id);
               glTexImage2D(args.target, args.level, args.internal_format,
                   args.width, args.height, args.border, args.format, args.type,
                   data);
+              glBindTexture(args.target, 0);
               break;
           }
-          glBindTexture(GL_TEXTURE_2D, 0);
           free(data);
         });
     update_rendering_queue_->Push(std::move(command));
