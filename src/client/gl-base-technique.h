@@ -63,13 +63,9 @@ class GlBaseTechnique final : public IResource {
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
 
   /** Used in the update thread */
-  void GlUniformVector(uint64_t location, std::string name,
-      UniformVariableType type, uint32_t size, uint32_t count,
+  void GlUniform(uint32_t location, std::string name, UniformVariableType type,
+      uint32_t col, uint32_t row, uint32_t count, bool transpose,
       std::string value);
-
-  /** Used in the update thread */
-  void GlUniformMatrix(uint64_t location, std::string name, uint32_t col,
-      uint32_t row, uint32_t count, bool transpose, std::string value);
 
   /** Used in the rendering thread */
   void ApplyUniformVariables(GLuint program_id, Camera *camera);

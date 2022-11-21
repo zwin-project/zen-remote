@@ -38,8 +38,8 @@ class GlBaseTechnique final : public IGlBaseTechnique {
   uint64_t id() override;
 
  private:
-  void GlUniformVector(uint32_t location, std::string name,
-      UniformVariableType type, uint32_t size, uint32_t count, void* value);
+  void GlUniform(uint32_t location, std::string name, UniformVariableType type,
+      uint32_t col, uint32_t row, uint32_t count, bool transpose, void* value);
 
   uint64_t id_;
   std::weak_ptr<Session> session_;

@@ -150,28 +150,16 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 }
 
 void
-GlBaseTechnique::GlUniformVector(uint64_t location, std::string name,
-    UniformVariableType type, uint32_t size, uint32_t count, std::string value)
+GlBaseTechnique::GlUniform(uint32_t location, std::string name,
+    UniformVariableType type, uint32_t col, uint32_t row, uint32_t count,
+    bool transpose, std::string value)
 {
+  if (!(0 < col && col <= 4 && 0 < row && row <= 4)) return;
+
   auto& uniform_variable = pending_.uniform_variables.emplace_back();
   uniform_variable.location = location;
   uniform_variable.name = name;
   uniform_variable.type = type;
-  uniform_variable.col = 1;
-  uniform_variable.row = size;
-  uniform_variable.count = count;
-  uniform_variable.value = std::move(value);
-}
-
-void
-GlBaseTechnique::GlUniformMatrix(uint64_t location, std::string name,
-    uint32_t col, uint32_t row, uint32_t count, bool transpose,
-    std::string value)
-{
-  auto& uniform_variable = pending_.uniform_variables.emplace_back();
-  uniform_variable.location = location;
-  uniform_variable.name = name;
-  uniform_variable.type = UNIFORM_VARIABLE_TYPE_FLOAT;
   uniform_variable.col = col;
   uniform_variable.row = row;
   uniform_variable.count = count;
@@ -193,36 +181,30 @@ GlBaseTechnique::ApplyUniformVariables(GLuint program_id, Camera* camera)
   };
 
   for (auto& [location, uniform] : rendering_->uniform_variables) {
-    uint32_t count = uniform.count;
-    uint32_t col = uniform.col;
-    uint32_t row = uniform.row;
-    bool transpose = uniform.transpose;
-    if (uniform.type == UNIFORM_VARIABLE_TYPE_INT) {
-      auto data = (GLint*)uniform.value.data();
-      if (col == 1) {
-        if (row == 1) glUniform1iv(location, count, data);
-        if (row == 2) glUniform2iv(location, count, data);
-        if (row == 3) glUniform3iv(location, count, data);
-        if (row == 4) glUniform4iv(location, count, data);
+    if (uniform.col == 1) {
+      if (uniform.type == UNIFORM_VARIABLE_TYPE_INT) {
+        auto data = (GLint*)uniform.value.data();
+        if (uniform.row == 1) glUniform1iv(location, uniform.count, data);
+        if (uniform.row == 2) glUniform2iv(location, uniform.count, data);
+        if (uniform.row == 3) glUniform3iv(location, uniform.count, data);
+        if (uniform.row == 4) glUniform4iv(location, uniform.count, data);
+      } else if (uniform.type == UNIFORM_VARIABLE_TYPE_UINT) {
+        auto data = (GLuint*)uniform.value.data();
+        if (uniform.row == 1) glUniform1uiv(location, uniform.count, data);
+        if (uniform.row == 2) glUniform2uiv(location, uniform.count, data);
+        if (uniform.row == 3) glUniform3uiv(location, uniform.count, data);
+        if (uniform.row == 4) glUniform4uiv(location, uniform.count, data);
+      } else if (uniform.type == UNIFORM_VARIABLE_TYPE_FLOAT) {
+        auto data = (GLfloat*)uniform.value.data();
+        if (uniform.row == 1) glUniform1fv(location, uniform.count, data);
+        if (uniform.row == 2) glUniform2fv(location, uniform.count, data);
+        if (uniform.row == 3) glUniform3fv(location, uniform.count, data);
+        if (uniform.row == 4) glUniform4fv(location, uniform.count, data);
       }
-    } else if (uniform.type == UNIFORM_VARIABLE_TYPE_UINT) {
-      auto data = (GLuint*)uniform.value.data();
-      if (col == 1) {
-        if (row == 1) glUniform1uiv(location, count, data);
-        if (row == 2) glUniform2uiv(location, count, data);
-        if (row == 3) glUniform3uiv(location, count, data);
-        if (row == 4) glUniform4uiv(location, count, data);
-      }
-    } else if (uniform.type == UNIFORM_VARIABLE_TYPE_FLOAT) {
+    } else {
       auto data = (GLfloat*)uniform.value.data();
-      if (col == 1) {
-        if (row == 1) glUniform1fv(location, count, data);
-        if (row == 2) glUniform2fv(location, count, data);
-        if (row == 3) glUniform3fv(location, count, data);
-        if (row == 4) glUniform4fv(location, count, data);
-      } else {
-        uniform_matrix[col - 1][row - 1](location, count, transpose, data);
-      }
+      uniform_matrix[uniform.col - 1][uniform.row - 1](
+          uniform.location, uniform.count, uniform.transpose, data);
     }
   }
 }
