@@ -7,8 +7,12 @@ namespace zen::remote::server {
 SessionConnection::SessionConnection(int control_fd, std::string host_port)
     : control_fd_(control_fd)
 {
-  grpc_channel_ =
-      grpc::CreateChannel(host_port, grpc::InsecureChannelCredentials());
+  grpc::ChannelArguments args;
+
+  args.SetString(GRPC_ARG_OPTIMIZATION_TARGET, "latency");
+
+  grpc_channel_ = grpc::CreateCustomChannel(
+      host_port, grpc::InsecureChannelCredentials(), args);
 }
 
 void

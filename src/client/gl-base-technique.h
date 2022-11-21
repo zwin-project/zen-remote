@@ -2,6 +2,7 @@
 
 #include "client/resource.h"
 #include "core/common.h"
+#include "core/types.h"
 
 namespace zen::remote::client {
 
@@ -24,11 +25,23 @@ class GlBaseTechnique final : public IResource {
     } arrays;
   };
 
+  struct UniformVariable {
+    uint32_t location;
+    std::string name;
+    UniformVariableType type;
+    uint32_t col;
+    uint32_t row;
+    uint32_t count;
+    bool transpose;
+    std::string value;
+  };
+
   struct RenderingState {
     DrawArgs draw_args;
     DrawMethod draw_method = DrawMethod::kNone;
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     std::weak_ptr<GlProgram> program;           // nullable
+    std::unordered_map<uint32_t, UniformVariable> uniform_variables;
   };
 
  public:
@@ -49,6 +62,18 @@ class GlBaseTechnique final : public IResource {
   /** Used in the update thread */
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
 
+  /** Used in the update thread */
+  void GlUniformVector(uint64_t location, std::string name,
+      UniformVariableType type, uint32_t size, uint32_t count,
+      std::string value);
+
+  /** Used in the update thread */
+  void GlUniformMatrix(uint64_t location, std::string name, uint32_t col,
+      uint32_t row, uint32_t count, bool transpose, std::string value);
+
+  /** Used in the rendering thread */
+  void ApplyUniformVariables(GLuint program_id, Camera *camera);
+
   /** Used in the rendering thread */
   void Render(Camera *camera);
 
@@ -66,8 +91,10 @@ class GlBaseTechnique final : public IResource {
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     bool vertex_array_damaged = false;
 
-    std::weak_ptr<GlProgram> program;  // nullable
+    std::weak_ptr<GlProgram> program;  // the value is preserved after commit
     bool program_damaged = false;
+
+    std::list<UniformVariable> uniform_variables;
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;

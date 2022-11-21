@@ -34,6 +34,12 @@ class GlBaseTechniqueServiceImpl final : public GlBaseTechniqueService::Service,
   grpc::Status BindVertexArray(grpc::ServerContext* context,
       const BindVertexArrayRequest* request, EmptyResponse* response) override;
 
+  grpc::Status GlUniformVector(grpc::ServerContext* context,
+      const GlUniformVectorRequest* request, EmptyResponse* response) override;
+
+  grpc::Status GlUniformMatrix(grpc::ServerContext* context,
+      const GlUniformMatrixRequest* request, EmptyResponse* response) override;
+
   grpc::Status GlDrawArrays(grpc::ServerContext* context,
       const GlDrawArraysRequest* request, EmptyResponse* response) override;
 

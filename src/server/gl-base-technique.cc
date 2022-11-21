@@ -128,6 +128,128 @@ GlBaseTechnique::BindVertexArray(uint64_t vertex_array_id)
 }
 
 void
+GlBaseTechnique::GlUniformVector(uint32_t location, std::string name,
+    uint32_t size, uint32_t count, int32_t* value)
+{
+  GlUniformVector(
+      location, std::move(name), UNIFORM_VARIABLE_TYPE_INT, size, count, value);
+}
+
+void
+GlBaseTechnique::GlUniformVector(uint32_t location, std::string name,
+    uint32_t size, uint32_t count, uint32_t* value)
+{
+  GlUniformVector(location, std::move(name), UNIFORM_VARIABLE_TYPE_UINT, size,
+      count, value);
+}
+
+void
+GlBaseTechnique::GlUniformVector(uint32_t location, std::string name,
+    uint32_t size, uint32_t count, float* value)
+{
+  GlUniformVector(location, std::move(name), UNIFORM_VARIABLE_TYPE_FLOAT, size,
+      count, value);
+}
+
+void
+GlBaseTechnique::GlUniformVector(uint32_t location, std::string name,
+    UniformVariableType type, uint32_t size, uint32_t count, void* value)
+{
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
+
+  size_t value_size = 4 * size * count;
+  std::string value_copy(value_size, ' ');
+  std::memcpy(value_copy.data(), value, value_size);
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
+                           context_raw, grpc_queue = session->grpc_queue(),
+                           location, name = std::move(name), type, size, count,
+                           value = std::move(value_copy)](bool cancel) {
+    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+    if (cancel) {
+      return;
+    }
+
+    auto stub = GlBaseTechniqueService::NewStub(connection->grpc_channel());
+
+    auto caller = new AsyncGrpcCaller<
+        &GlBaseTechniqueService::Stub::PrepareAsyncGlUniformVector>(
+        std::move(stub), std::move(context),
+        [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+          if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlBaseTechnique::GlUniformVector");
+            connection->NotifyDisconnection();
+          }
+        });
+
+    caller->request()->set_id(id);
+    caller->request()->set_location(location);
+    caller->request()->set_name(std::move(name));
+    caller->request()->set_type(type);
+    caller->request()->set_size(size);
+    caller->request()->set_count(count);
+    caller->request()->set_value(std::move(value));
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
+
+  session->job_queue()->Push(std::move(job));
+}
+
+void
+GlBaseTechnique::GlUniformMatrix(uint32_t location, std::string name,
+    uint32_t col, uint32_t row, uint32_t count, bool transpose, float* value)
+{
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
+
+  size_t value_size = 4 * col * row * count;
+  std::string value_copy(value_size, ' ');
+  std::memcpy(value_copy.data(), value, value_size);
+
+  auto job = CreateJob([id = id_, connection = session->connection(),
+                           context_raw, grpc_queue = session->grpc_queue(),
+                           location, name = std::move(name), col, row, count,
+                           transpose,
+                           value = std::move(value_copy)](bool cancel) {
+    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+    if (cancel) {
+      return;
+    }
+
+    auto stub = GlBaseTechniqueService::NewStub(connection->grpc_channel());
+
+    auto caller = new AsyncGrpcCaller<
+        &GlBaseTechniqueService::Stub::PrepareAsyncGlUniformMatrix>(
+        std::move(stub), std::move(context),
+        [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+          if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlBaseTechnique::GlUniformMatrix");
+            connection->NotifyDisconnection();
+          }
+        });
+
+    caller->request()->set_id(id);
+    caller->request()->set_location(location);
+    caller->request()->set_name(std::move(name));
+    caller->request()->set_col(col);
+    caller->request()->set_row(row);
+    caller->request()->set_transpose(transpose);
+    caller->request()->set_count(count);
+    caller->request()->set_value(std::move(value));
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
+
+  session->job_queue()->Push(std::move(job));
+}
+
+void
 GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 {
   auto session = session_.lock();

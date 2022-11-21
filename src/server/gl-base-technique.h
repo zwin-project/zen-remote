@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/common.h"
+#include "core/types.h"
 #include "zen-remote/server/gl-base-technique.h"
 
 namespace zen::remote::server {
@@ -20,11 +21,26 @@ class GlBaseTechnique final : public IGlBaseTechnique {
 
   void BindVertexArray(uint64_t vertex_array_id) override;
 
+  void GlUniformVector(uint32_t location, std::string name, uint32_t size,
+      uint32_t count, int32_t* value) override;
+
+  void GlUniformVector(uint32_t location, std::string name, uint32_t size,
+      uint32_t count, uint32_t* value) override;
+
+  void GlUniformVector(uint32_t location, std::string name, uint32_t size,
+      uint32_t count, float* value) override;
+
+  void GlUniformMatrix(uint32_t location, std::string name, uint32_t col,
+      uint32_t row, uint32_t count, bool transpose, float* value) override;
+
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count) override;
 
   uint64_t id() override;
 
  private:
+  void GlUniformVector(uint32_t location, std::string name,
+      UniformVariableType type, uint32_t size, uint32_t count, void* value);
+
   uint64_t id_;
   std::weak_ptr<Session> session_;
 };
