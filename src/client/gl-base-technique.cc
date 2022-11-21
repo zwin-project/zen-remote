@@ -155,9 +155,10 @@ GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
 }
 
 void
-GlBaseTechnique::Bind(std::weak_ptr<GlTexture> texture)
+GlBaseTechnique::Bind(std::weak_ptr<GlTexture> texture, uint32_t target)
 {
   pending_.texture = texture;
+  pending_.texture_target = target;
   pending_.texture_damaged = true;
 }
 
@@ -257,26 +258,14 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 
       ApplyUniformVariables(program->program_id(), camera, model);
 
-      GLenum texture_target = 0;
       if (texture) {
-        switch (texture->target()) {
-          case TextureTarget::kNone:
-            break;
-          case TextureTarget::kImage2D:
-            texture_target = GL_TEXTURE_2D;
-            break;
-        }
-      }
-      if (texture_target) {
-        glBindTexture(texture_target, texture->texture_id());
+        glBindTexture(rendering_->texture_target, texture->texture_id());
       }
 
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);
 
-      if (texture_target) {
-        glBindTexture(texture_target, 0);
-      }
+      glBindTexture(rendering_->texture_target, 0);
       glUseProgram(0);
       glBindVertexArray(0);
       break;
