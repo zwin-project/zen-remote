@@ -28,16 +28,16 @@ GlTexture::~GlTexture()
 void
 GlTexture::Commit()
 {
-  if (rendering_->texture_id == 0) {
-    auto command = CreateCommand([rendering = rendering_](bool cancel) {
-      if (cancel) {
-        return;
-      }
+  auto command = CreateCommand([rendering = rendering_](bool cancel) {
+    if (cancel) {
+      return;
+    }
 
+    if (rendering->texture_id == 0) {
       glGenTextures(1, &rendering->texture_id);
-    });
-    update_rendering_queue_->Push(std::move(command));
-  }
+    }
+  });
+  update_rendering_queue_->Push(std::move(command));
 
   if (pending_.damaged) {
     pending_.damaged = false;
