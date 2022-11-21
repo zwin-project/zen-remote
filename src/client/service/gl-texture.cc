@@ -26,9 +26,10 @@ GlTextureServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
       &GlTextureServiceImpl::Delete>::Listen(&async_, this, completion_queue,
       remote_);
 
-  AsyncSessionServiceCaller<&GlTextureService::AsyncService::RequestGlTexImage2D,
-      &GlTextureServiceImpl::GlTexImage2D>::Listen(&async_, this, completion_queue,
-      remote_);
+  AsyncSessionServiceCaller<
+      &GlTextureService::AsyncService::RequestGlTexImage2D,
+      &GlTextureServiceImpl::GlTexImage2D>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -66,7 +67,7 @@ GlTextureServiceImpl::GlTexImage2D(grpc::ServerContext* /*context*/,
   texture->GlTexImage2D(request->target(), request->level(),
       request->internal_format(), request->width(), request->height(),
       request->border(), request->format(), request->type(),
-      request->data().size(), request->data().c_str());
+      request->data().size(), request->data().data());
 
   return grpc::Status::OK;
 }
