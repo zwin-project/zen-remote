@@ -29,7 +29,6 @@ class GlTexture final : public IResource {
 
   struct RenderingState {
     GLuint texture_id = 0;
-    std::weak_ptr<GlBuffer> gl_buffer;
     TextureTarget target;
     ImageArgs args;
   };
