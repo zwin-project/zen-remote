@@ -27,8 +27,8 @@ class GlTextureServiceImpl final : public GlTextureService::Service,
   grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
-  grpc::Status Image2D(grpc::ServerContext* context,
-      const Image2DRequest* request, EmptyResponse* response) override;
+  grpc::Status GlTexImage2D(grpc::ServerContext* context,
+      const GlTexImage2DRequest* request, EmptyResponse* response) override;
 
  private:
   GlTextureService::AsyncService async_;
