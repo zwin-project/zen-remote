@@ -44,6 +44,7 @@ GlTexture::Commit()
     auto command = CreateCommand(
         [data = pending_.data, rendering = rendering_](bool cancel) {
           if (cancel) {
+            free(data);
             return;
           }
 
@@ -63,6 +64,7 @@ GlTexture::Commit()
         });
     update_rendering_queue_->Push(std::move(command));
 
+    free(pending_.data);
     pending_.data = NULL;
     pending_.alloc = 0;
     pending_.size = 0;
