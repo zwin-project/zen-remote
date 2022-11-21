@@ -54,7 +54,7 @@ GlTexture::Init()
 }
 
 void
-GlTexture::Image2D(uint32_t target, int32_t level, int32_t internal_format,
+GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
     uint32_t width, uint32_t height, int32_t border, uint32_t format,
     uint32_t type, std::unique_ptr<IBuffer> buffer)
 {
@@ -76,11 +76,11 @@ GlTexture::Image2D(uint32_t target, int32_t level, int32_t internal_format,
     auto stub = GlTextureService::NewStub(connection->grpc_channel());
 
     auto caller =
-        new AsyncGrpcCaller<&GlTextureService::Stub::PrepareAsyncImage2D>(
+        new AsyncGrpcCaller<&GlTextureService::Stub::PrepareAsyncGlTexImage2D>(
             std::move(stub), std::move(context),
             [connection](EmptyResponse* /*response*/, grpc::Status* status) {
               if (!status->ok() && status->error_code() != grpc::CANCELLED) {
-                LOG_WARN("Failed to call remote GlTexture::Image2D");
+                LOG_WARN("Failed to call remote GlTexture::GlTexImage2D");
                 connection->NotifyDisconnection();
               }
             });

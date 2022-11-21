@@ -10,10 +10,10 @@ service GlTextureService
 
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
 
-  rpc Image2D(Image2DRequest) returns (EmptyResponse);
+  rpc GlTexImage2D(GlTexImage2DRequest) returns (EmptyResponse);
 }
 
-message Image2DRequest
+message GlTexImage2DRequest
 {
   uint64 id = 1;
   uint32 target = 2;

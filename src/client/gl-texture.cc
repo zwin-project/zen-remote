@@ -70,7 +70,7 @@ GlTexture::Commit()
 }
 
 void
-GlTexture::Image2D(uint32_t target, int32_t level, int32_t internal_format,
+GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
     uint32_t width, uint32_t height, int32_t border, uint32_t format,
     uint32_t type, std::size_t size, const void *data)
 {

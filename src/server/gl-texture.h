@@ -16,7 +16,7 @@ class GlTexture final : public IGlTexture {
 
   void Init();
 
-  void Image2D(uint32_t target, int32_t level, int32_t internal_format,
+  void GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
       uint32_t width, uint32_t height, int32_t border, uint32_t format,
       uint32_t type, std::unique_ptr<IBuffer> buffer) override;
 

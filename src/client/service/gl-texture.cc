@@ -53,13 +53,13 @@ GlTextureServiceImpl::Delete(grpc::ServerContext* /*context*/,
 }
 
 grpc::Status
-GlTextureServiceImpl::Image2D(grpc::ServerContext* /*context*/,
-    const Image2DRequest* request, EmptyResponse* /*response*/)
+GlTextureServiceImpl::GlTexImage2D(grpc::ServerContext* /*context*/,
+    const GlTexImage2DRequest* request, EmptyResponse* /*response*/)
 {
   auto pool = remote_->session_manager()->current()->pool();
   auto texture = pool->gl_textures()->Get(request->id());
 
-  texture->Image2D(request->target(), request->level(),
+  texture->GlTexImage2D(request->target(), request->level(),
       request->internal_format(), request->width(), request->height(),
       request->border(), request->format(), request->type(),
       request->data().size(), request->data().c_str());
