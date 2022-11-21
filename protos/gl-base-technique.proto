@@ -14,6 +14,8 @@ service GlBaseTechniqueService
 
   rpc BindVertexArray(BindVertexArrayRequest) returns (EmptyResponse);
 
+  rpc BindTexture(BindTextureRequest) returns (EmptyResponse);
+
   rpc GlUniform(GlUniformRequest) returns (EmptyResponse);
 
   rpc GlDrawArrays(GlDrawArraysRequest) returns (EmptyResponse);
@@ -35,6 +37,13 @@ message BindVertexArrayRequest
 {
   uint64 id = 1;
   uint64 vertex_array_id = 2;
+}
+
+message BindTextureRequest
+{
+  uint64 id = 1;
+  uint32 location = 2;
+  uint64 texture_id = 3;
 }
 
 /**

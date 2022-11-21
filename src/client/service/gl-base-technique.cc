@@ -45,6 +45,11 @@ GlBaseTechniqueServiceImpl::Listen(
       completion_queue, remote_);
 
   AsyncSessionServiceCaller<
+      &GlBaseTechniqueService::AsyncService::RequestBindTexture,
+      &GlBaseTechniqueServiceImpl::BindTexture>::Listen(&async_, this,
+      completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
       &GlBaseTechniqueService::AsyncService::RequestGlDrawArrays,
       &GlBaseTechniqueServiceImpl::GlDrawArrays>::Listen(&async_, this,
       completion_queue, remote_);
@@ -115,6 +120,20 @@ GlBaseTechniqueServiceImpl::GlUniform(grpc::ServerContext* /*context*/,
   base_technique->GlUniform(request->location(), request->name(),
       (UniformVariableType)request->type(), request->col(), request->row(),
       request->count(), request->transpose(), request->value());
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlBaseTechniqueServiceImpl::BindTexture(grpc::ServerContext* /*context*/,
+    const BindTextureRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto base_technique = pool->gl_base_techniques()->Get(request->id());
+  auto texture = pool->gl_textures()->Get(request->texture_id());
+
+  base_technique->Bind(texture);
 
   return grpc::Status::OK;
 }
