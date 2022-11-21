@@ -25,6 +25,10 @@ GlTextureServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
   AsyncSessionServiceCaller<&GlTextureService::AsyncService::RequestDelete,
       &GlTextureServiceImpl::Delete>::Listen(&async_, this, completion_queue,
       remote_);
+
+  AsyncSessionServiceCaller<&GlTextureService::AsyncService::RequestGlTexImage2D,
+      &GlTextureServiceImpl::GlTexImage2D>::Listen(&async_, this, completion_queue,
+      remote_);
 }
 
 grpc::Status
