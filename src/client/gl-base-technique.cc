@@ -2,6 +2,7 @@
 
 #include "client/atomic-command-queue.h"
 #include "client/gl-program.h"
+#include "client/gl-texture.h"
 #include "client/gl-vertex-array.h"
 #include "zen-remote/client/camera.h"
 
@@ -60,6 +61,20 @@ GlBaseTechnique::Commit()
           }
 
           rendering->program = program;
+        });
+
+    update_rendering_queue_->Push(std::move(command));
+  }
+
+  if (pending_.texture_damaged) {
+    pending_.texture_damaged = false;
+    auto command = CreateCommand(
+        [texture = pending_.texture, rendering = rendering_](bool cancel) {
+          if (cancel) {
+            return;
+          }
+
+          rendering->texture = texture;
         });
 
     update_rendering_queue_->Push(std::move(command));
@@ -137,6 +152,13 @@ GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
 {
   pending_.vertex_array = vertex_array;
   pending_.vertex_array_damaged = true;
+}
+
+void
+GlBaseTechnique::Bind(std::weak_ptr<GlTexture> texture)
+{
+  pending_.texture = texture;
+  pending_.texture_damaged = true;
 }
 
 void
@@ -224,6 +246,7 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
     case DrawMethod::kArrays: {
       auto vertex_array = rendering_->vertex_array.lock();
       auto program = rendering_->program.lock();
+      auto texture = rendering_->texture.lock();
 
       if (!vertex_array || vertex_array->vertex_array_id() == 0 || !program ||
           program->program_id() == 0)
@@ -234,9 +257,26 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 
       ApplyUniformVariables(program->program_id(), camera, model);
 
+      GLenum texture_target = 0;
+      if (texture) {
+        switch (texture->target()) {
+          case TextureTarget::kNone:
+            break;
+          case TextureTarget::kImage2D:
+            texture_target = GL_TEXTURE_2D;
+            break;
+        }
+      }
+      if (texture_target) {
+        glBindTexture(texture_target, texture->texture_id());
+      }
+
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);
 
+      if (texture_target) {
+        glBindTexture(texture_target, 0);
+      }
       glUseProgram(0);
       glBindVertexArray(0);
       break;

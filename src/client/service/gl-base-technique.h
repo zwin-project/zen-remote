@@ -34,6 +34,9 @@ class GlBaseTechniqueServiceImpl final : public GlBaseTechniqueService::Service,
   grpc::Status BindVertexArray(grpc::ServerContext* context,
       const BindVertexArrayRequest* request, EmptyResponse* response) override;
 
+  grpc::Status BindTexture(grpc::ServerContext* context,
+      const BindTextureRequest* request, EmptyResponse* response) override;
+
   grpc::Status GlUniform(grpc::ServerContext* context,
       const GlUniformRequest* request, EmptyResponse* response) override;
 

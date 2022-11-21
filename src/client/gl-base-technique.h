@@ -8,6 +8,7 @@ namespace zen::remote::client {
 
 class GlVertexArray;
 class GlProgram;
+class GlTexture;
 class AtomicCommandQueue;
 struct Camera;
 
@@ -41,6 +42,7 @@ class GlBaseTechnique final : public IResource {
     DrawMethod draw_method = DrawMethod::kNone;
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     std::weak_ptr<GlProgram> program;           // nullable
+    std::weak_ptr<GlTexture> texture;           // nullable
     std::unordered_map<uint32_t, UniformVariable> uniform_variables;
   };
 
@@ -58,6 +60,9 @@ class GlBaseTechnique final : public IResource {
 
   /** Used in the update thread */
   void Bind(std::weak_ptr<GlVertexArray> vertex_array);
+
+  /** Used in the update thread */
+  void Bind(std::weak_ptr<GlTexture> texture);
 
   /** Used in the update thread */
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
@@ -90,6 +95,9 @@ class GlBaseTechnique final : public IResource {
 
     std::weak_ptr<GlProgram> program;  // the value is preserved after commit
     bool program_damaged = false;
+
+    std::weak_ptr<GlTexture> texture;  // nullable
+    bool texture_damaged = false;
 
     std::list<UniformVariable> uniform_variables;
   } pending_;
