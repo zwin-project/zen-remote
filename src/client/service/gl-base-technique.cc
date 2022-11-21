@@ -40,13 +40,8 @@ GlBaseTechniqueServiceImpl::Listen(
       completion_queue, remote_);
 
   AsyncSessionServiceCaller<
-      &GlBaseTechniqueService::AsyncService::RequestGlUniformVector,
-      &GlBaseTechniqueServiceImpl::GlUniformVector>::Listen(&async_, this,
-      completion_queue, remote_);
-
-  AsyncSessionServiceCaller<
-      &GlBaseTechniqueService::AsyncService::RequestGlUniformMatrix,
-      &GlBaseTechniqueServiceImpl::GlUniformMatrix>::Listen(&async_, this,
+      &GlBaseTechniqueService::AsyncService::RequestGlUniform,
+      &GlBaseTechniqueServiceImpl::GlUniform>::Listen(&async_, this,
       completion_queue, remote_);
 
   AsyncSessionServiceCaller<
@@ -110,31 +105,16 @@ GlBaseTechniqueServiceImpl::BindVertexArray(grpc::ServerContext* /*context*/,
 }
 
 grpc::Status
-GlBaseTechniqueServiceImpl::GlUniformVector(grpc::ServerContext* /*context*/,
-    const GlUniformVectorRequest* request, EmptyResponse* /*response*/)
+GlBaseTechniqueServiceImpl::GlUniform(grpc::ServerContext* /*context*/,
+    const GlUniformRequest* request, EmptyResponse* /*response*/)
 {
   auto pool = remote_->session_manager()->current()->pool();
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
 
-  base_technique->GlUniformVector(request->location(), request->name(),
-      (UniformVariableType)request->type(), request->size(), request->count(),
-      request->value());
-
-  return grpc::Status::OK;
-}
-
-grpc::Status
-GlBaseTechniqueServiceImpl::GlUniformMatrix(grpc::ServerContext* /*context*/,
-    const GlUniformMatrixRequest* request, EmptyResponse* /*response*/)
-{
-  auto pool = remote_->session_manager()->current()->pool();
-
-  auto base_technique = pool->gl_base_techniques()->Get(request->id());
-
-  base_technique->GlUniformMatrix(request->location(), request->name(),
-      request->col(), request->row(), request->count(), request->transpose(),
-      request->value());
+  base_technique->GlUniform(request->location(), request->name(),
+      (UniformVariableType)request->type(), request->col(), request->row(),
+      request->count(), request->transpose(), request->value());
 
   return grpc::Status::OK;
 }

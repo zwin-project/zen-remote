@@ -14,9 +14,7 @@ service GlBaseTechniqueService
 
   rpc BindVertexArray(BindVertexArrayRequest) returns (EmptyResponse);
 
-  rpc GlUniformVector(GlUniformVectorRequest) returns (EmptyResponse);
-
-  rpc GlUniformMatrix(GlUniformMatrixRequest) returns (EmptyResponse);
+  rpc GlUniform(GlUniformRequest) returns (EmptyResponse);
 
   rpc GlDrawArrays(GlDrawArraysRequest) returns (EmptyResponse);
 }
@@ -39,27 +37,25 @@ message BindVertexArrayRequest
   uint64 vertex_array_id = 2;
 }
 
-message GlUniformVectorRequest
+/**
+ * These values are subject to several constraints conditions.
+ * 1. 0 < col <= 4 && 0 < row <= 4
+ * 2. If col == 1, the value is considered a vector, and transpose is ignored.
+ * 3. If col > 1, the value is considered a float matrix, and type is ignored.
+ * 4. If name is not an empty string, the name is used to find the uniform
+ *    variable to be modified, and location is ignored.
+ */
+message GlUniformRequest
 {
   uint64 id = 1;
   int32 location = 2;
   string name = 3;
   uint32 type = 4;  // enum UniformVariableType
-  uint32 size = 5;
-  uint32 count = 6;
-  bytes value = 7;
-}
-
-message GlUniformMatrixRequest
-{
-  uint64 id = 1;
-  int32 location = 2;
-  string name = 3;
-  uint32 col = 4;
-  uint32 row = 5;
-  uint32 count = 6;
-  bool transpose = 7;
-  bytes value = 8;
+  uint32 col = 5;
+  uint32 row = 6;
+  uint32 count = 7;
+  bool transpose = 8;
+  bytes value = 9;
 }
 
 message GlDrawArraysRequest
