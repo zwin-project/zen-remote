@@ -40,6 +40,7 @@ class GlBaseTechnique final : public IResource {
   struct RenderingState {
     DrawArgs draw_args;
     DrawMethod draw_method = DrawMethod::kNone;
+    uint32_t texture_target;
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     std::weak_ptr<GlProgram> program;           // nullable
     std::weak_ptr<GlTexture> texture;           // nullable
@@ -62,7 +63,7 @@ class GlBaseTechnique final : public IResource {
   void Bind(std::weak_ptr<GlVertexArray> vertex_array);
 
   /** Used in the update thread */
-  void Bind(std::weak_ptr<GlTexture> texture);
+  void Bind(std::weak_ptr<GlTexture> texture, uint32_t target);
 
   /** Used in the update thread */
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
@@ -96,6 +97,7 @@ class GlBaseTechnique final : public IResource {
     std::weak_ptr<GlProgram> program;  // the value is preserved after commit
     bool program_damaged = false;
 
+    uint32_t texture_target;
     std::weak_ptr<GlTexture> texture;  // nullable
     bool texture_damaged = false;
 
