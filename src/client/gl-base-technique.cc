@@ -78,6 +78,51 @@ GlBaseTechnique::Commit()
 
     update_rendering_queue_->Push(std::move(command));
   }
+
+  if (!pending_.program.expired()) {
+    std::list<UniformVariable> uniform_variables;
+    pending_.uniform_variables.swap(uniform_variables);
+    auto command =
+        CreateCommand([uniform_variables = std::move(uniform_variables),
+                          rendering = rendering_](bool cancel) {
+          if (cancel) {
+            return;
+          }
+
+          auto program = rendering->program.lock();
+          if (!program || program->program_id() == 0) {
+            return;
+          }
+
+          for (auto& uniform_variable : uniform_variables) {
+            int32_t location = uniform_variable.location;
+
+            if (!uniform_variable.name.empty()) {
+              location = glGetUniformLocation(
+                  program->program_id(), uniform_variable.name.c_str());
+            }
+
+            if (location < 0) continue;
+
+            auto [iterator, newly_inserted] =
+                rendering->uniform_variables.insert(
+                    std::pair<uint32_t, UniformVariable>{location, {}});
+
+            if (newly_inserted) {
+              (*iterator).second.location = location;
+            }
+
+            (*iterator).second.type = uniform_variable.type;
+            (*iterator).second.col = uniform_variable.col;
+            (*iterator).second.row = uniform_variable.row;
+            (*iterator).second.count = uniform_variable.count;
+            (*iterator).second.transpose = uniform_variable.transpose;
+            (*iterator).second.value = std::move(uniform_variable.value);
+          }
+        });
+
+    update_rendering_queue_->Push(std::move(command));
+  }
 }
 
 void
@@ -105,6 +150,84 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 }
 
 void
+GlBaseTechnique::GlUniformVector(uint64_t location, std::string name,
+    UniformVariableType type, uint32_t size, uint32_t count, std::string value)
+{
+  auto& uniform_variable = pending_.uniform_variables.emplace_back();
+  uniform_variable.location = location;
+  uniform_variable.name = name;
+  uniform_variable.type = type;
+  uniform_variable.col = 1;
+  uniform_variable.row = size;
+  uniform_variable.count = count;
+  uniform_variable.value = std::move(value);
+}
+
+void
+GlBaseTechnique::GlUniformMatrix(uint64_t location, std::string name,
+    uint32_t col, uint32_t row, uint32_t count, bool transpose,
+    std::string value)
+{
+  auto& uniform_variable = pending_.uniform_variables.emplace_back();
+  uniform_variable.location = location;
+  uniform_variable.name = name;
+  uniform_variable.type = UNIFORM_VARIABLE_TYPE_FLOAT;
+  uniform_variable.col = col;
+  uniform_variable.row = row;
+  uniform_variable.count = count;
+  uniform_variable.transpose = transpose;
+  uniform_variable.value = std::move(value);
+}
+
+void
+GlBaseTechnique::ApplyUniformVariables(GLuint program_id, Camera* camera)
+{
+  auto mvp_location = glGetUniformLocation(program_id, "mvp");
+  glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
+
+  static void (*uniform_matrix[3][3])(GLint location, GLsizei count,
+      GLboolean transpose, const GLfloat* value) = {
+      {glUniformMatrix2fv, glUniformMatrix2x3fv, glUniformMatrix2x4fv},
+      {glUniformMatrix3x2fv, glUniformMatrix3fv, glUniformMatrix3x4fv},
+      {glUniformMatrix4x2fv, glUniformMatrix4x3fv, glUniformMatrix4fv},
+  };
+
+  for (auto& [location, uniform] : rendering_->uniform_variables) {
+    uint32_t count = uniform.count;
+    uint32_t col = uniform.col;
+    uint32_t row = uniform.row;
+    bool transpose = uniform.transpose;
+    if (uniform.type == UNIFORM_VARIABLE_TYPE_INT) {
+      auto data = (GLint*)uniform.value.data();
+      if (col == 1) {
+        if (row == 1) glUniform1iv(location, count, data);
+        if (row == 2) glUniform2iv(location, count, data);
+        if (row == 3) glUniform3iv(location, count, data);
+        if (row == 4) glUniform4iv(location, count, data);
+      }
+    } else if (uniform.type == UNIFORM_VARIABLE_TYPE_UINT) {
+      auto data = (GLuint*)uniform.value.data();
+      if (col == 1) {
+        if (row == 1) glUniform1uiv(location, count, data);
+        if (row == 2) glUniform2uiv(location, count, data);
+        if (row == 3) glUniform3uiv(location, count, data);
+        if (row == 4) glUniform4uiv(location, count, data);
+      }
+    } else if (uniform.type == UNIFORM_VARIABLE_TYPE_FLOAT) {
+      auto data = (GLfloat*)uniform.value.data();
+      if (col == 1) {
+        if (row == 1) glUniform1fv(location, count, data);
+        if (row == 2) glUniform2fv(location, count, data);
+        if (row == 3) glUniform3fv(location, count, data);
+        if (row == 4) glUniform4fv(location, count, data);
+      } else {
+        uniform_matrix[col - 1][row - 1](location, count, transpose, data);
+      }
+    }
+  }
+}
+
+void
 GlBaseTechnique::Render(Camera* camera)
 {
   switch (rendering_->draw_method) {
@@ -122,8 +245,7 @@ GlBaseTechnique::Render(Camera* camera)
       glBindVertexArray(vertex_array->vertex_array_id());
       glUseProgram(program->program_id());
 
-      auto mvp_location = glGetUniformLocation(program->program_id(), "mvp");
-      glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
+      ApplyUniformVariables(program->program_id(), camera);
 
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);

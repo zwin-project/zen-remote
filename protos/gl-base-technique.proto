@@ -14,6 +14,10 @@ service GlBaseTechniqueService
 
   rpc BindVertexArray(BindVertexArrayRequest) returns (EmptyResponse);
 
+  rpc GlUniformVector(GlUniformVectorRequest) returns (EmptyResponse);
+
+  rpc GlUniformMatrix(GlUniformMatrixRequest) returns (EmptyResponse);
+
   rpc GlDrawArrays(GlDrawArraysRequest) returns (EmptyResponse);
 }
 
@@ -33,6 +37,29 @@ message BindVertexArrayRequest
 {
   uint64 id = 1;
   uint64 vertex_array_id = 2;
+}
+
+message GlUniformVectorRequest
+{
+  uint64 id = 1;
+  int32 location = 2;
+  string name = 3;
+  uint32 type = 4;  // enum UniformVariableType
+  uint32 size = 5;
+  uint32 count = 6;
+  bytes value = 7;
+}
+
+message GlUniformMatrixRequest
+{
+  uint64 id = 1;
+  int32 location = 2;
+  string name = 3;
+  uint32 col = 4;
+  uint32 row = 5;
+  uint32 count = 6;
+  bool transpose = 7;
+  bytes value = 8;
 }
 
 message GlDrawArraysRequest

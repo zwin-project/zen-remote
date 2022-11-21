@@ -40,6 +40,16 @@ GlBaseTechniqueServiceImpl::Listen(
       completion_queue, remote_);
 
   AsyncSessionServiceCaller<
+      &GlBaseTechniqueService::AsyncService::RequestGlUniformVector,
+      &GlBaseTechniqueServiceImpl::GlUniformVector>::Listen(&async_, this,
+      completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
+      &GlBaseTechniqueService::AsyncService::RequestGlUniformMatrix,
+      &GlBaseTechniqueServiceImpl::GlUniformMatrix>::Listen(&async_, this,
+      completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
       &GlBaseTechniqueService::AsyncService::RequestGlDrawArrays,
       &GlBaseTechniqueServiceImpl::GlDrawArrays>::Listen(&async_, this,
       completion_queue, remote_);
@@ -95,6 +105,36 @@ GlBaseTechniqueServiceImpl::BindVertexArray(grpc::ServerContext* /*context*/,
   auto vertex_array = pool->gl_vertex_arrays()->Get(request->vertex_array_id());
 
   base_technique->Bind(vertex_array);
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlBaseTechniqueServiceImpl::GlUniformVector(grpc::ServerContext* /*context*/,
+    const GlUniformVectorRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto base_technique = pool->gl_base_techniques()->Get(request->id());
+
+  base_technique->GlUniformVector(request->location(), request->name(),
+      (UniformVariableType)request->type(), request->size(), request->count(),
+      request->value());
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlBaseTechniqueServiceImpl::GlUniformMatrix(grpc::ServerContext* /*context*/,
+    const GlUniformMatrixRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto base_technique = pool->gl_base_techniques()->Get(request->id());
+
+  base_technique->GlUniformMatrix(request->location(), request->name(),
+      request->col(), request->row(), request->count(), request->transpose(),
+      request->value());
 
   return grpc::Status::OK;
 }
