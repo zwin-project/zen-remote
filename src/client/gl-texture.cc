@@ -53,7 +53,7 @@ GlTexture::Commit()
           switch (rendering->target) {
             case TextureTarget::kNone:
               break;
-            case TextureTarget::kImage2D:
+            case TextureTarget::kImage2D: {
               auto args = rendering->args.image_2d;
               glBindTexture(args.target, rendering->texture_id);
               glTexImage2D(args.target, args.level, args.internal_format,
@@ -61,6 +61,7 @@ GlTexture::Commit()
                   data);
               glBindTexture(args.target, 0);
               break;
+            }
           }
           free(data);
         });
