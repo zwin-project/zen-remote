@@ -52,9 +52,6 @@ class GlTexture final : public IResource {
   /** Used in the rendering thread */
   inline GLuint texture_id();
 
-  /** Used in the rendering thread */
-  inline TextureTarget target();
-
  private:
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
@@ -73,12 +70,6 @@ class GlTexture final : public IResource {
 
   std::shared_ptr<RenderingState> rendering_;
 };
-
-inline TextureTarget
-GlTexture::target()
-{
-  return rendering_->target;
-}
 
 inline GLuint
 GlTexture::texture_id()
