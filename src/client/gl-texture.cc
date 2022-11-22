@@ -23,6 +23,8 @@ GlTexture::~GlTexture()
   rendering_.reset();
 
   update_rendering_queue_->Push(std::move(command));
+
+  free(pending_.data);
 }
 
 void
@@ -64,7 +66,6 @@ GlTexture::Commit()
         });
     update_rendering_queue_->Push(std::move(command));
 
-    free(pending_.data);
     pending_.data = NULL;
     pending_.alloc = 0;
     pending_.size = 0;
