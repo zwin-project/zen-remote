@@ -40,10 +40,9 @@ class GlBaseTechnique final : public IResource {
   struct RenderingState {
     DrawArgs draw_args;
     DrawMethod draw_method = DrawMethod::kNone;
-    uint32_t texture_target;
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     std::weak_ptr<GlProgram> program;           // nullable
-    std::weak_ptr<GlTexture> texture;           // nullable
+    std::list<std::pair<uint32_t, std::weak_ptr<GlTexture>>> gl_textures;
     std::unordered_map<uint32_t, UniformVariable> uniform_variables;
   };
 
@@ -78,6 +77,15 @@ class GlBaseTechnique final : public IResource {
       GLuint program_id, Camera *camera, const glm::mat4 &model);
 
   /** Used in the rendering thread */
+  void ApplyUniformVariables(GLuint program_id, Camera *camera);
+
+  /** Used in the rendering thread */
+  void ApplyGlTexture();
+
+  /** Used in the rendering thread */
+  void UnapplyGlTexture();
+
+  /** Used in the rendering thread */
   void Render(Camera *camera, const glm::mat4 &model);
 
   uint64_t id() override;
@@ -97,10 +105,7 @@ class GlBaseTechnique final : public IResource {
     std::weak_ptr<GlProgram> program;  // the value is preserved after commit
     bool program_damaged = false;
 
-    uint32_t texture_target;
-    std::weak_ptr<GlTexture> texture;  // nullable
-    bool texture_damaged = false;
-
+    std::list<std::pair<uint32_t, std::weak_ptr<GlTexture>>> gl_textures;
     std::list<UniformVariable> uniform_variables;
   } pending_;
 

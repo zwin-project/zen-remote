@@ -66,20 +66,6 @@ GlBaseTechnique::Commit()
     update_rendering_queue_->Push(std::move(command));
   }
 
-  if (pending_.texture_damaged) {
-    pending_.texture_damaged = false;
-    auto command = CreateCommand(
-        [texture = pending_.texture, rendering = rendering_](bool cancel) {
-          if (cancel) {
-            return;
-          }
-
-          rendering->texture = texture;
-        });
-
-    update_rendering_queue_->Push(std::move(command));
-  }
-
   if (pending_.vertex_array_damaged) {
     pending_.vertex_array_damaged = false;
     auto command = CreateCommand([vertex_array = pending_.vertex_array,
@@ -89,6 +75,23 @@ GlBaseTechnique::Commit()
       }
 
       rendering->vertex_array = vertex_array;
+    });
+
+    update_rendering_queue_->Push(std::move(command));
+  }
+
+  if (!pending_.gl_textures.empty()) {
+    std::list<std::pair<uint32_t, std::weak_ptr<GlTexture>>> gl_textures;
+    pending_.gl_textures.swap(gl_textures);
+    auto command = CreateCommand([gl_textures = std::move(gl_textures),
+                                     rendering = rendering_](bool cancel) {
+      if (cancel) {
+        return;
+      }
+
+      for (auto& texture : gl_textures) {
+        rendering->gl_textures.push_back(texture);
+      }
     });
 
     update_rendering_queue_->Push(std::move(command));
@@ -157,9 +160,7 @@ GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
 void
 GlBaseTechnique::Bind(std::weak_ptr<GlTexture> texture, uint32_t target)
 {
-  pending_.texture = texture;
-  pending_.texture_target = target;
-  pending_.texture_damaged = true;
+  pending_.gl_textures.emplace_back(std::make_pair(target, texture));
 }
 
 void
@@ -238,6 +239,24 @@ GlBaseTechnique::ApplyUniformVariables(
 }
 
 void
+GlBaseTechnique::ApplyGlTexture()
+{
+  for (auto& texture : rendering_->gl_textures) {
+    if (auto gl_texture = texture.second.lock()) {
+      glBindTexture(texture.first, gl_texture->texture_id());
+    }
+  }
+}
+
+void
+GlBaseTechnique::UnapplyGlTexture()
+{
+  for (auto& texture : rendering_->gl_textures) {
+    glBindTexture(texture.first, 0);
+  }
+}
+
+void
 GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 {
   switch (rendering_->draw_method) {
@@ -247,7 +266,6 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
     case DrawMethod::kArrays: {
       auto vertex_array = rendering_->vertex_array.lock();
       auto program = rendering_->program.lock();
-      auto texture = rendering_->texture.lock();
 
       if (!vertex_array || vertex_array->vertex_array_id() == 0 || !program ||
           program->program_id() == 0)
@@ -258,14 +276,12 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 
       ApplyUniformVariables(program->program_id(), camera, model);
 
-      if (texture) {
-        glBindTexture(rendering_->texture_target, texture->texture_id());
-      }
+      ApplyGlTexture();
 
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);
 
-      glBindTexture(rendering_->texture_target, 0);
+      UnapplyGlTexture();
       glUseProgram(0);
       glBindVertexArray(0);
       break;
