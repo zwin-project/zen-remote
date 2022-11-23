@@ -43,6 +43,21 @@ VirtualObject::Commit()
 }
 
 void
+VirtualObject::Move(glm::vec3 position, glm::quat quaternion)
+{
+  auto command = CreateCommand(
+      [rendering = rendering_, position, quaternion](bool cancel) {
+        if (cancel) return;
+        rendering->position = position;
+        rendering->quaternion = quaternion;
+      });
+
+  update_rendering_queue_->Push(std::move(command));
+
+  update_rendering_queue_->Commit();
+}
+
+void
 VirtualObject::AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit)
 {
   pending_.rendering_units_.push_back(rendering_unit);
@@ -51,8 +66,14 @@ VirtualObject::AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit)
 void
 VirtualObject::Render(Camera *camera)
 {
+  glm::mat4 rotate = glm::toMat4(rendering_->quaternion);
+  glm::mat4 translate = glm::translate(glm::mat4(1.0f), rendering_->position);
+  glm::mat4 model = translate * rotate;
+
   ForEachWeakPtr<RenderingUnit>(rendering_->rendering_units_,
-      [camera](std::shared_ptr<RenderingUnit> unit) { unit->Render(camera); });
+      [camera, &model](std::shared_ptr<RenderingUnit> unit) {
+        unit->Render(camera, model);
+      });
 }
 
 uint64_t

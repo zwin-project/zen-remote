@@ -11,9 +11,18 @@ service VirtualObjectService
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
 
   rpc Commit(VirtualObjectCommitRequest) returns (EmptyResponse);
+
+  rpc Move(VirtualObjectMoveRequest) returns (EmptyResponse);
 }
 
 message VirtualObjectCommitRequest
 {
   uint64 id = 1;
+}
+
+message VirtualObjectMoveRequest
+{
+  uint64 id = 1;
+  bytes position = 2;    // vec3
+  bytes quaternion = 3;  // {x y z w}
 }

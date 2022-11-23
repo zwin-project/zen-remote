@@ -26,6 +26,7 @@ target_link_libraries(
   zen-remote-client
   PRIVATE
     zen_remote_grpc_proto
+    glm::glm
     ${zen_remote_graphcs_lib}
 )
 
@@ -37,6 +38,12 @@ target_compile_options(
     ${zen_remote_graphics_api_option}
     -Wall -Winvalid-pch -Wextra -Wpedantic -Werror
     -Wno-gnu-zero-variadic-macro-arguments
+)
+
+target_compile_definitions(
+  zen-remote-client
+  PRIVATE
+    ZEN_REMOTE_CLIENT  
 )
 
 add_library(zen_remote::client ALIAS zen-remote-client)

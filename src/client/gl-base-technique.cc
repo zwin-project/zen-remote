@@ -168,10 +168,15 @@ GlBaseTechnique::GlUniform(uint32_t location, std::string name,
 }
 
 void
-GlBaseTechnique::ApplyUniformVariables(GLuint program_id, Camera* camera)
+GlBaseTechnique::ApplyUniformVariables(
+    GLuint program_id, Camera* camera, const glm::mat4& model)
 {
+  glm::mat4 vp;
+  std::memcpy(&vp, &camera->vp, sizeof(glm::mat4));
+  glm::mat4 mvp = vp * model;
+
   auto mvp_location = glGetUniformLocation(program_id, "mvp");
-  glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (float*)&camera->vp);
+  glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
 
   static void (*uniform_matrix[3][3])(GLint location, GLsizei count,
       GLboolean transpose, const GLfloat* value) = {
@@ -210,7 +215,7 @@ GlBaseTechnique::ApplyUniformVariables(GLuint program_id, Camera* camera)
 }
 
 void
-GlBaseTechnique::Render(Camera* camera)
+GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 {
   switch (rendering_->draw_method) {
     case DrawMethod::kNone:
@@ -227,7 +232,7 @@ GlBaseTechnique::Render(Camera* camera)
       glBindVertexArray(vertex_array->vertex_array_id());
       glUseProgram(program->program_id());
 
-      ApplyUniformVariables(program->program_id(), camera);
+      ApplyUniformVariables(program->program_id(), camera, model);
 
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);

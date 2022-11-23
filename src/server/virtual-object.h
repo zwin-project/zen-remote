@@ -18,6 +18,8 @@ class VirtualObject final : public IVirtualObject {
 
   void Commit() override;
 
+  void Move(float position[3], float quaternion[4]) override;
+
   uint64_t id() override;
 
  private:

@@ -18,6 +18,14 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef ZEN_REMOTE_CLIENT
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#endif
+
 #ifdef ZEN_REMOTE_USE_GRAPHICS_API_GLES_V32
 #include <GLES3/gl3.h>
 #include <GLES3/gl32.h>
