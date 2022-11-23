@@ -44,11 +44,15 @@ GlTexture::Commit()
   if (pending_.damaged) {
     pending_.damaged = false;
     auto command = CreateCommand(
-        [data = pending_.data, rendering = rendering_](bool cancel) {
+        [args = pending_.args, target = pending_.target, data = pending_.data,
+            rendering = rendering_](bool cancel) {
           if (cancel) {
             free(data);
             return;
           }
+
+          rendering->args = args;
+          rendering->target = target;
 
           switch (rendering->target) {
             case TextureTarget::kNone:
