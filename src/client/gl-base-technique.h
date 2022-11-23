@@ -68,10 +68,11 @@ class GlBaseTechnique final : public IResource {
       std::string value);
 
   /** Used in the rendering thread */
-  void ApplyUniformVariables(GLuint program_id, Camera *camera);
+  void ApplyUniformVariables(
+      GLuint program_id, Camera *camera, const glm::mat4 &model);
 
   /** Used in the rendering thread */
-  void Render(Camera *camera);
+  void Render(Camera *camera, const glm::mat4 &model);
 
   uint64_t id() override;
 

@@ -32,6 +32,10 @@ VirtualObjectServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
   AsyncSessionServiceCaller<&VirtualObjectService::AsyncService::RequestCommit,
       &VirtualObjectServiceImpl::Commit>::Listen(&async_, this,
       completion_queue, remote_);
+
+  AsyncSessionServiceCaller<&VirtualObjectService::AsyncService::RequestMove,
+      &VirtualObjectServiceImpl::Move>::Listen(&async_, this, completion_queue,
+      remote_);
 }
 
 grpc::Status
@@ -68,6 +72,25 @@ VirtualObjectServiceImpl::Commit(grpc::ServerContext* /*context*/,
   auto virtual_object = pool->virtual_objects()->Get(request->id());
 
   virtual_object->Commit();
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+VirtualObjectServiceImpl::Move(grpc::ServerContext* /*context*/,
+    const VirtualObjectMoveRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto virtual_object = pool->virtual_objects()->Get(request->id());
+
+  glm::vec3 position;
+  glm::quat quaternion;
+
+  std::memcpy(&position, request->position().data(), sizeof(glm::vec3));
+  std::memcpy(&quaternion, request->quaternion().data(), sizeof(glm::quat));
+
+  virtual_object->Move(position, quaternion);
 
   return grpc::Status::OK;
 }

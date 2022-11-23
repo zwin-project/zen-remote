@@ -28,6 +28,12 @@ target_compile_options(
     -Wno-gnu-zero-variadic-macro-arguments
 )
 
+target_compile_definitions(
+  zen-remote-server
+  PRIVATE
+    ZEN_REMOTE_SERVER
+)
+
 add_library(zen_remote::server ALIAS zen-remote-server)
 
 install(TARGETS zen-remote-server)

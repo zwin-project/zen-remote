@@ -11,6 +11,8 @@ struct IVirtualObject {
 
   virtual void Commit() = 0;
 
+  virtual void Move(float position[3], float quaternion[4]) = 0;
+
   virtual uint64_t id() = 0;
 };
 

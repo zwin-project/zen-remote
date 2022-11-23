@@ -31,6 +31,10 @@ class VirtualObjectServiceImpl final : public VirtualObjectService::Service,
       const VirtualObjectCommitRequest* request,
       EmptyResponse* response) override;
 
+  grpc::Status Move(grpc::ServerContext* context,
+      const VirtualObjectMoveRequest* request,
+      EmptyResponse* response) override;
+
  private:
   VirtualObjectService::AsyncService async_;
   Remote* remote_;

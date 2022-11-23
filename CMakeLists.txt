@@ -5,7 +5,7 @@ project(
   LANGUAGES C CXX
   HOMEPAGE_URL https://github.com/zigen-project/zen-remote
   DESCRIPTION "Library for ZEN to communicate with devices over a network"
-  VERSION 0.1.0.19
+  VERSION 0.1.0.20
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -43,5 +43,6 @@ set(zen_remote_boost_headers ${CMAKE_CURRENT_SOURCE_DIR}/3rd-party/boost-headers
 
 include(GNUInstallDirs)
 
+add_subdirectory(3rd-party/glm)
 add_subdirectory(protos)
 add_subdirectory(src)

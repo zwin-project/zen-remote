@@ -51,10 +51,10 @@ RenderingUnit::SetGlBaseTechnique(
 }
 
 void
-RenderingUnit::Render(Camera* camera)
+RenderingUnit::Render(Camera* camera, const glm::mat4& model)
 {
   if (auto gl_base_technique = rendering_->gl_base_technique.lock()) {
-    gl_base_technique->Render(camera);
+    gl_base_technique->Render(camera, model);
   }
 }
 
