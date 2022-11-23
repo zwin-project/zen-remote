@@ -8,12 +8,12 @@ namespace zen::remote::client {
 
 class AtomicCommandQueue;
 
-enum class TextureTarget {
-  kNone,
-  kImage2D,
-};
-
 class GlTexture final : public IResource {
+  enum class ImageType {
+    kNone,
+    k2D,
+  };
+
   union ImageArgs {
     struct {
       uint32_t target;
@@ -29,8 +29,6 @@ class GlTexture final : public IResource {
 
   struct RenderingState {
     GLuint texture_id = 0;
-    TextureTarget target;
-    ImageArgs args;
   };
 
  public:
@@ -61,7 +59,7 @@ class GlTexture final : public IResource {
     size_t size = 0;
     size_t alloc = 0;
 
-    TextureTarget target = TextureTarget::kNone;
+    ImageType target = ImageType::kNone;
     ImageArgs args;
 
     /* args, target, data are expected to be changed at the same time */
