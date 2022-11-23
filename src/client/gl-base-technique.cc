@@ -160,7 +160,7 @@ GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
 void
 GlBaseTechnique::Bind(std::weak_ptr<GlTexture> texture, uint32_t target)
 {
-  pending_.gl_textures.emplace_back(std::make_pair(target, texture));
+  pending_.gl_textures.push_back(std::make_pair(target, texture));
 }
 
 void
