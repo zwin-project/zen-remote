@@ -44,21 +44,18 @@ GlTexture::Commit()
   if (pending_.damaged) {
     pending_.damaged = false;
     auto command = CreateCommand(
-        [args = pending_.args, target = pending_.target, data = pending_.data,
-            rendering = rendering_](bool cancel) {
+        [image_args = pending_.args, target = pending_.target,
+            data = pending_.data, rendering = rendering_](bool cancel) {
           if (cancel) {
             free(data);
             return;
           }
 
-          rendering->args = args;
-          rendering->target = target;
-
-          switch (rendering->target) {
-            case TextureTarget::kNone:
+          switch (target) {
+            case ImageType::kNone:
               break;
-            case TextureTarget::kImage2D: {
-              auto args = rendering->args.image_2d;
+            case ImageType::k2D: {
+              auto args = image_args.image_2d;
               glBindTexture(args.target, rendering->texture_id);
               glTexImage2D(args.target, args.level, args.internal_format,
                   args.width, args.height, args.border, args.format, args.type,
@@ -90,7 +87,7 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
   memcpy(pending_.data, data, size);
   pending_.size = size;
 
-  pending_.target = TextureTarget::kImage2D;
+  pending_.target = ImageType::k2D;
   pending_.args.image_2d.target = target;
   pending_.args.image_2d.level = level;
   pending_.args.image_2d.internal_format = internal_format;
