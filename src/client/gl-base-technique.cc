@@ -249,7 +249,7 @@ GlBaseTechnique::ApplyGlTexture()
 }
 
 void
-GlBaseTechnique::UnapplyGlTexture()
+GlBaseTechnique::UnapplyGlTextures()
 {
   for (auto& texture : rendering_->gl_textures) {
     glBindTexture(texture.first, 0);
@@ -281,7 +281,7 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);
 
-      UnapplyGlTexture();
+      UnapplyGlTextures();
       glUseProgram(0);
       glBindVertexArray(0);
       break;

@@ -83,7 +83,7 @@ class GlBaseTechnique final : public IResource {
   void ApplyGlTexture();
 
   /** Used in the rendering thread */
-  void UnapplyGlTexture();
+  void UnapplyGlTextures();
 
   /** Used in the rendering thread */
   void Render(Camera *camera, const glm::mat4 &model);
