@@ -39,12 +39,17 @@ message BindVertexArrayRequest
   uint64 vertex_array_id = 2;
 }
 
+/**
+ * If name is not an empty string, the sampler uniform variable of that name is
+ * associated with GL_TEXTURE0 + binding
+ */
 message BindTextureRequest
 {
   uint64 id = 1;
-  uint32 location = 2;
-  uint64 texture_id = 3;
-  uint32 target = 4;
+  uint32 binding = 2;
+  string name = 3;
+  uint64 texture_id = 4;
+  uint32 target = 5;
 }
 
 /**

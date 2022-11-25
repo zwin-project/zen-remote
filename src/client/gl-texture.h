@@ -54,12 +54,13 @@ class GlTexture final : public IResource {
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
 
+  // FIXME: Having a list of commands: TexImage2D, TexSubImage2D, etc.
   struct {
     void *data = NULL;
     size_t size = 0;
     size_t alloc = 0;
 
-    ImageType target = ImageType::kNone;
+    ImageType type = ImageType::kNone;
     ImageArgs args;
 
     /* args, target, data are expected to be changed at the same time */

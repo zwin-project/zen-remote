@@ -36,6 +36,12 @@ GlBaseTechnique::Commit()
     vertex_array->Commit();
   }
 
+  for (auto& [_, texture_binding] : pending_.texture_bindings) {
+    if (auto texture = texture_binding.texture.lock()) {
+      texture->Commit();
+    }
+  }
+
   if (pending_.draw_method_damaged) {
     pending_.draw_method_damaged = false;
     auto command =
@@ -80,24 +86,22 @@ GlBaseTechnique::Commit()
     update_rendering_queue_->Push(std::move(command));
   }
 
-  if (!pending_.gl_textures.empty()) {
-    std::list<std::pair<uint32_t, std::weak_ptr<GlTexture>>> gl_textures;
-    pending_.gl_textures.swap(gl_textures);
-    auto command = CreateCommand([gl_textures = std::move(gl_textures),
-                                     rendering = rendering_](bool cancel) {
-      if (cancel) {
-        return;
-      }
+  if (pending_.texture_damaged) {
+    pending_.texture_damaged = false;
+    auto command =
+        CreateCommand([texture_bindings = pending_.texture_bindings,
+                          rendering = rendering_](bool cancel) mutable {
+          if (cancel) {
+            return;
+          }
 
-      for (auto& texture : gl_textures) {
-        rendering->gl_textures.push_back(texture);
-      }
-    });
+          rendering->texture_bindings.swap(texture_bindings);
+        });
 
     update_rendering_queue_->Push(std::move(command));
   }
 
-  if (!pending_.program.expired()) {
+  if (!pending_.program.expired() && pending_.uniform_variables.size() > 0) {
     std::list<UniformVariable> uniform_variables;
     pending_.uniform_variables.swap(uniform_variables);
     auto command =
@@ -158,9 +162,17 @@ GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
 }
 
 void
-GlBaseTechnique::Bind(std::weak_ptr<GlTexture> texture, uint32_t target)
+GlBaseTechnique::Bind(uint32_t binding, std::string name,
+    std::weak_ptr<GlTexture> texture, uint32_t target)
 {
-  pending_.gl_textures.push_back(std::make_pair(target, texture));
+  auto [it, _] = pending_.texture_bindings.insert(
+      std::pair<uint32_t, TextureBinding>(binding, {}));
+
+  (*it).second.name = std::move(name);
+  (*it).second.target = target;
+  (*it).second.texture = texture;
+
+  pending_.texture_damaged = true;
 }
 
 void
@@ -239,20 +251,26 @@ GlBaseTechnique::ApplyUniformVariables(
 }
 
 void
-GlBaseTechnique::ApplyGlTexture()
+GlBaseTechnique::SetupTextures(GLuint program_id)
 {
-  for (auto& texture : rendering_->gl_textures) {
-    if (auto gl_texture = texture.second.lock()) {
-      glBindTexture(texture.first, gl_texture->texture_id());
-    }
-  }
-}
+  for (auto it = rendering_->texture_bindings.begin();
+       it != rendering_->texture_bindings.end();) {
+    auto& texture_binding = (*it).second;
+    uint32_t binding = (*it).first;
 
-void
-GlBaseTechnique::UnapplyGlTextures()
-{
-  for (auto& texture : rendering_->gl_textures) {
-    glBindTexture(texture.first, 0);
+    if (auto gl_texture = texture_binding.texture.lock()) {
+      if (!texture_binding.name.empty()) {
+        GLint location =
+            glGetUniformLocation(program_id, texture_binding.name.c_str());
+        glUniform1i(location, binding);
+      }
+
+      glActiveTexture(GL_TEXTURE0 + binding);
+      glBindTexture(texture_binding.target, gl_texture->texture_id());
+      it++;
+    } else {
+      it = rendering_->texture_bindings.erase(it);
+    }
   }
 }
 
@@ -276,12 +294,13 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 
       ApplyUniformVariables(program->program_id(), camera, model);
 
-      ApplyGlTexture();
+      SetupTextures(program->program_id());
 
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);
 
-      UnapplyGlTextures();
+      glActiveTexture(GL_TEXTURE0);
+
       glUseProgram(0);
       glBindVertexArray(0);
       break;
