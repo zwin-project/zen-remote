@@ -43,15 +43,17 @@ GlTexture::Commit()
 
   if (pending_.damaged) {
     pending_.damaged = false;
+
+    // ownership of pending_.data moves
     auto command = CreateCommand(
-        [image_args = pending_.args, target = pending_.target,
-            data = pending_.data, rendering = rendering_](bool cancel) {
+        [image_args = pending_.args, type = pending_.type, data = pending_.data,
+            rendering = rendering_](bool cancel) {
           if (cancel) {
             free(data);
             return;
           }
 
-          switch (target) {
+          switch (type) {
             case ImageType::kNone:
               break;
             case ImageType::k2D: {
@@ -87,7 +89,7 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
   memcpy(pending_.data, data, size);
   pending_.size = size;
 
-  pending_.target = ImageType::k2D;
+  pending_.type = ImageType::k2D;
   pending_.args.image_2d.target = target;
   pending_.args.image_2d.level = level;
   pending_.args.image_2d.internal_format = internal_format;

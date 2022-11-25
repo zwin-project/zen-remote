@@ -85,7 +85,7 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
               }
             });
 
-    size_t size;
+    size_t size = 0;
     switch (type) {
       case GL_UNSIGNED_BYTE:
         size = sizeof(GLubyte);
