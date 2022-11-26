@@ -38,6 +38,9 @@ class GlBaseTechnique final : public IGlBaseTechnique {
 
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count) override;
 
+  void GlDrawElements(uint32_t mode, uint32_t count, uint32_t type,
+      uint64_t offset, uint64_t element_array_buffer_id) override;
+
   uint64_t id() override;
 
  private:

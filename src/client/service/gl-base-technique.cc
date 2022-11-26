@@ -53,6 +53,11 @@ GlBaseTechniqueServiceImpl::Listen(
       &GlBaseTechniqueService::AsyncService::RequestGlDrawArrays,
       &GlBaseTechniqueServiceImpl::GlDrawArrays>::Listen(&async_, this,
       completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
+      &GlBaseTechniqueService::AsyncService::RequestGlDrawElements,
+      &GlBaseTechniqueServiceImpl::GlDrawElements>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -148,6 +153,22 @@ GlBaseTechniqueServiceImpl::GlDrawArrays(grpc::ServerContext* /*context*/,
 
   base_technique->GlDrawArrays(
       request->mode(), request->first(), request->count());
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlBaseTechniqueServiceImpl::GlDrawElements(grpc::ServerContext* /*context*/,
+    const GlDrawElementsRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto base_technique = pool->gl_base_techniques()->Get(request->id());
+
+  auto buffer = pool->gl_buffers()->Get(request->element_array_buffer_id());
+
+  base_technique->GlDrawElements(request->mode(), request->count(),
+      request->type(), request->offset(), buffer);
 
   return grpc::Status::OK;
 }

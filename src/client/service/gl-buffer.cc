@@ -63,7 +63,7 @@ GlBufferServiceImpl::GlBufferData(grpc::ServerContext* /*context*/,
 
   auto gl_buffer = pool->gl_buffers()->Get(request->id());
 
-  gl_buffer->GlBufferData(request->data().c_str(), request->target(),
+  gl_buffer->GlBufferData(request->data().data(), request->target(),
       request->data().length(), request->usage());
 
   return grpc::Status::OK;

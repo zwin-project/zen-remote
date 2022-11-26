@@ -6,6 +6,7 @@
 
 namespace zen::remote::client {
 
+class GlBuffer;
 class GlVertexArray;
 class GlProgram;
 class GlTexture;
@@ -16,6 +17,7 @@ class GlBaseTechnique final : public IResource {
   enum class DrawMethod {
     kNone,
     kArrays,
+    kElements,
   };
 
   union DrawArgs {
@@ -24,6 +26,13 @@ class GlBaseTechnique final : public IResource {
       int32_t count;
       int32_t first;
     } arrays;
+
+    struct {
+      uint32_t mode;
+      uint32_t count;
+      uint32_t type;
+      uint64_t offset;
+    } elements;
   };
 
   struct UniformVariable {
@@ -46,6 +55,7 @@ class GlBaseTechnique final : public IResource {
   struct RenderingState {
     DrawArgs draw_args;
     DrawMethod draw_method = DrawMethod::kNone;
+    std::weak_ptr<GlBuffer> element_array_buffer;
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
     std::weak_ptr<GlProgram> program;           // nullable
     std::unordered_map<uint32_t, TextureBinding> texture_bindings;
@@ -75,6 +85,10 @@ class GlBaseTechnique final : public IResource {
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
 
   /** Used in the update thread */
+  void GlDrawElements(uint32_t mode, uint32_t count, uint32_t type,
+      uint64_t offset, std::weak_ptr<GlBuffer> element_array_buffer);
+
+  /** Used in the update thread */
   void GlUniform(uint32_t location, std::string name, UniformVariableType type,
       uint32_t col, uint32_t row, uint32_t count, bool transpose,
       std::string value);
@@ -98,6 +112,7 @@ class GlBaseTechnique final : public IResource {
   struct {
     DrawArgs draw_args;
     DrawMethod draw_method = DrawMethod::kNone;
+    std::weak_ptr<GlBuffer> element_array_buffer;
     bool draw_method_damaged = false;
 
     std::weak_ptr<GlVertexArray> vertex_array;  // nullable
