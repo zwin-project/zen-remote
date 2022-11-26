@@ -43,6 +43,9 @@ class GlBaseTechniqueServiceImpl final : public GlBaseTechniqueService::Service,
   grpc::Status GlDrawArrays(grpc::ServerContext* context,
       const GlDrawArraysRequest* request, EmptyResponse* response) override;
 
+  grpc::Status GlDrawElements(grpc::ServerContext* context,
+      const GlDrawElementsRequest* request, EmptyResponse* response) override;
+
  private:
   GlBaseTechniqueService::AsyncService async_;
   Remote* remote_;

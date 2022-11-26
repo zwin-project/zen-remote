@@ -19,6 +19,8 @@ service GlBaseTechniqueService
   rpc GlUniform(GlUniformRequest) returns (EmptyResponse);
 
   rpc GlDrawArrays(GlDrawArraysRequest) returns (EmptyResponse);
+
+  rpc GlDrawElements(GlDrawElementsRequest) returns (EmptyResponse);
 }
 
 message NewGlBaseTechniqueRequest
@@ -79,4 +81,14 @@ message GlDrawArraysRequest
   uint32 mode = 2;
   int32 first = 3;
   uint32 count = 4;
+}
+
+message GlDrawElementsRequest
+{
+  uint64 id = 1;
+  uint32 mode = 2;
+  uint32 count = 3;
+  uint32 type = 4;
+  uint64 offset = 5;
+  uint64 element_array_buffer_id = 6;  // gl_buffer id
 }

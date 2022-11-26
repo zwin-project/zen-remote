@@ -4,6 +4,7 @@
 #include "client/gl-program.h"
 #include "client/gl-texture.h"
 #include "client/gl-vertex-array.h"
+#include "core/logger.h"
 #include "zen-remote/client/camera.h"
 
 namespace zen::remote::client {
@@ -42,10 +43,17 @@ GlBaseTechnique::Commit()
     }
   }
 
+  if (pending_.draw_method == DrawMethod::kElements) {
+    if (auto element_array_buffer = pending_.element_array_buffer.lock()) {
+      element_array_buffer->Commit();
+    }
+  }
+
   if (pending_.draw_method_damaged) {
     pending_.draw_method_damaged = false;
     auto command =
         CreateCommand([args = pending_.draw_args, method = pending_.draw_method,
+                          element_array_buffer = pending_.element_array_buffer,
                           rendering = rendering_](bool cancel) {
           if (cancel) {
             return;
@@ -53,6 +61,7 @@ GlBaseTechnique::Commit()
 
           rendering->draw_args = args;
           rendering->draw_method = method;
+          rendering->element_array_buffer = element_array_buffer;
         });
 
     update_rendering_queue_->Push(std::move(command));
@@ -186,6 +195,19 @@ GlBaseTechnique::GlDrawArrays(uint32_t mode, int32_t first, uint32_t count)
 }
 
 void
+GlBaseTechnique::GlDrawElements(uint32_t mode, uint32_t count, uint32_t type,
+    uint64_t offset, std::weak_ptr<GlBuffer> element_array_buffer)
+{
+  pending_.draw_method = DrawMethod::kElements;
+  pending_.draw_args.elements.mode = mode;
+  pending_.draw_args.elements.count = count;
+  pending_.draw_args.elements.type = type;
+  pending_.draw_args.elements.offset = offset;
+  pending_.element_array_buffer = element_array_buffer;
+  pending_.draw_method_damaged = true;
+}
+
+void
 GlBaseTechnique::GlUniform(uint32_t location, std::string name,
     UniformVariableType type, uint32_t col, uint32_t row, uint32_t count,
     bool transpose, std::string value)
@@ -277,36 +299,46 @@ GlBaseTechnique::SetupTextures(GLuint program_id)
 void
 GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
 {
-  switch (rendering_->draw_method) {
-    case DrawMethod::kNone:
-      break;
+  if (rendering_->draw_method == DrawMethod::kNone) return;
 
-    case DrawMethod::kArrays: {
-      auto vertex_array = rendering_->vertex_array.lock();
-      auto program = rendering_->program.lock();
+  auto vertex_array = rendering_->vertex_array.lock();
+  auto program = rendering_->program.lock();
+  auto element_array_buffer = rendering_->element_array_buffer.lock();
 
-      if (!vertex_array || vertex_array->vertex_array_id() == 0 || !program ||
-          program->program_id() == 0)
-        break;
-
-      glUseProgram(program->program_id());
-
-      ApplyUniformVariables(program->program_id(), camera, model);
-
-      SetupTextures(program->program_id());
-
-      glBindVertexArray(vertex_array->vertex_array_id());
-
-      auto args = rendering_->draw_args.arrays;
-      glDrawArrays(args.mode, args.first, args.count);
-
-      glActiveTexture(GL_TEXTURE0);
-
-      glUseProgram(0);
-      glBindVertexArray(0);
-      break;
-    }
+  if (!vertex_array || vertex_array->vertex_array_id() == 0 || !program ||
+      program->program_id() == 0) {
+    return;
   }
+
+  if (rendering_->draw_method == DrawMethod::kElements &&
+      !element_array_buffer) {
+    return;
+  }
+
+  glUseProgram(program->program_id());
+
+  ApplyUniformVariables(program->program_id(), camera, model);
+
+  SetupTextures(program->program_id());
+
+  glBindVertexArray(vertex_array->vertex_array_id());
+
+  if (rendering_->draw_method == DrawMethod::kArrays) {
+    auto args = rendering_->draw_args.arrays;
+    glDrawArrays(args.mode, args.first, args.count);
+  } else if (rendering_->draw_method == DrawMethod::kElements) {
+    auto args = rendering_->draw_args.elements;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer->buffer_id());
+    LOG_INFO(
+        "glBindBuffer GL_ELEMENT_ARRAY %d", element_array_buffer->buffer_id());
+    glDrawElements(args.mode, args.count, args.type, (void*)args.offset);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  }
+
+  glActiveTexture(GL_TEXTURE0);
+
+  glUseProgram(0);
+  glBindVertexArray(0);
 }
 
 uint64_t
