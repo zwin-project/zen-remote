@@ -289,12 +289,13 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
           program->program_id() == 0)
         break;
 
-      glBindVertexArray(vertex_array->vertex_array_id());
       glUseProgram(program->program_id());
 
       ApplyUniformVariables(program->program_id(), camera, model);
 
       SetupTextures(program->program_id());
+
+      glBindVertexArray(vertex_array->vertex_array_id());
 
       auto args = rendering_->draw_args.arrays;
       glDrawArrays(args.mode, args.first, args.count);

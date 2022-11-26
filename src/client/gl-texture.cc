@@ -62,6 +62,11 @@ GlTexture::Commit()
               glTexImage2D(args.target, args.level, args.internal_format,
                   args.width, args.height, args.border, args.format, args.type,
                   data);
+
+              // FIXME: Client should be able to specify the parameters below
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
               glBindTexture(args.target, 0);
               break;
             }
