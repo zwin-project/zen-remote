@@ -35,6 +35,8 @@ Remote::Render(Camera* camera)
   auto pool = session_manager_.GetCurrentResourcePool();
   if (!pool) return;
 
+  glEnable(GL_DEPTH_TEST);
+
   pool->virtual_objects()->ForEach(
       [camera](const std::shared_ptr<VirtualObject>& virtual_object) {
         if (virtual_object->commited()) virtual_object->Render(camera);
