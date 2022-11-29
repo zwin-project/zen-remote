@@ -266,7 +266,7 @@ GlBaseTechnique::ApplyUniformVariables(
       }
     } else {
       auto data = (GLfloat*)uniform.value.data();
-      uniform_matrix[uniform.col - 1][uniform.row - 1](
+      uniform_matrix[uniform.col - 2][uniform.row - 2](
           uniform.location, uniform.count, uniform.transpose, data);
     }
   }
