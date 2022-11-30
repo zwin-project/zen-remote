@@ -15,60 +15,75 @@ SessionManager::~SessionManager()
   StopDiscoverBroadcast();
 }
 
-bool
-SessionManager::Start()
+void
+SessionManager::EnableSession()
 {
+  std::lock_guard<std::mutex> lock(current_mutex_);
   std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
-  StartDiscoverBroadcast();
-  return true;
+
+  current_enabled_ = true;
+
+  if (!current_is_valid_) StartDiscoverBroadcast();
+}
+
+void
+SessionManager::DisableSession()
+{
+  std::lock_guard<std::mutex> lock(current_mutex_);
+  std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
+
+  current_enabled_ = false;
+  current_is_valid_ = false;
+
+  StopDiscoverBroadcast();
 }
 
 uint64_t
 SessionManager::ResetCurrent()
 {
   uint64_t id;
-  {
-    std::lock_guard<std::mutex> lock(current_mutex_);
+  std::lock_guard<std::mutex> lock(current_mutex_);
+  std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
+
+  if (!current_enabled_) {
+    current_.reset();
+    id = 0;
+  } else {
     current_ = std::make_unique<Session>();
+    current_is_valid_ = true;
     id = current_->id();
   }
 
-  {
-    std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
-    StopDiscoverBroadcast();
-  }
+  StopDiscoverBroadcast();
+
   return id;
 }
 
 void
 SessionManager::ClearCurrent()
 {
-  {
-    std::lock_guard<std::mutex> lock(current_mutex_);
-    if (!current_) return;
-    current_.reset();
-  }
+  std::lock_guard<std::mutex> lock(current_mutex_);
+  std::lock_guard<std::mutex> thread_lock(broadcast_.thread_mutex);
 
-  {
-    std::lock_guard<std::mutex> lock(broadcast_.thread_mutex);
-    StartDiscoverBroadcast();
-  }
+  if (!current_) return;
+
+  current_.reset();
+
+  if (current_enabled_) StartDiscoverBroadcast();
 }
 
 std::shared_ptr<ResourcePool>
 SessionManager::GetCurrentResourcePool()
 {
   std::lock_guard<std::mutex> lock(current_mutex_);
-  if (current_) return current_->pool();
+  if (current_is_valid_ && current_) return current_->pool();
   return std::shared_ptr<ResourcePool>();
 }
 
 void
 SessionManager::StartDiscoverBroadcast()
 {
-  if (broadcast_.thread.joinable()) {
-    StopDiscoverBroadcast();
-  }
+  if (broadcast_.thread.joinable()) return;
 
   broadcast_.running = true;
 

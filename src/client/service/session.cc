@@ -33,7 +33,10 @@ SessionServiceImpl::New(grpc::ServerContext* /*context*/,
 
   response->set_id(id);
 
-  return grpc::Status::OK;
+  if (id == 0)
+    return grpc::Status(grpc::ABORTED, "Failed to create a session");
+  else
+    return grpc::Status::OK;
 }
 
 }  // namespace zen::remote::client::service

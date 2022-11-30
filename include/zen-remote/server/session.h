@@ -16,6 +16,9 @@ namespace zen::remote::server {
 struct ISession {
   virtual ~ISession() = default;
 
+  /**
+   * @return false when failed. Do not reuse the instance
+   */
   virtual bool Connect(std::shared_ptr<IPeer> peer) = 0;
 
   Signal<void()> on_disconnect;

@@ -329,8 +329,6 @@ GlBaseTechnique::Render(Camera* camera, const glm::mat4& model)
   } else if (rendering_->draw_method == DrawMethod::kElements) {
     auto args = rendering_->draw_args.elements;
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer->buffer_id());
-    LOG_INFO(
-        "glBindBuffer GL_ELEMENT_ARRAY %d", element_array_buffer->buffer_id());
     glDrawElements(args.mode, args.count, args.type, (void*)args.offset);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   }
