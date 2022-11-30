@@ -11,7 +11,11 @@ namespace zen::remote::client {
 struct IRemote {
   virtual ~IRemote() = default;
 
-  virtual void Start() = 0;
+  virtual void StartGrpcServer() = 0;
+
+  virtual void EnableSession() = 0;
+
+  virtual void DisableSession() = 0;
 
   virtual void UpdateScene() = 0;  // deprecated
 

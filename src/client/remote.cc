@@ -11,12 +11,22 @@ namespace zen::remote::client {
 Remote::Remote(std::unique_ptr<ILoop> loop) : loop_(std::move(loop)) {}
 
 void
-Remote::Start()
+Remote::StartGrpcServer()
 {
-  session_manager_.Start();
-
   grpc_server_ = std::make_unique<GrpcServer>("0.0.0.0", kGrpcPort, this);
   grpc_server_->Start();
+}
+
+void
+Remote::EnableSession()
+{
+  session_manager_.EnableSession();
+}
+
+void
+Remote::DisableSession()
+{
+  session_manager_.DisableSession();
 }
 
 void

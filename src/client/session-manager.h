@@ -13,8 +13,11 @@ class SessionManager {
   SessionManager() = default;
   ~SessionManager();
 
-  /** Used in the rendering thread */
-  bool Start();
+  /** Used by any thread */
+  void EnableSession();
+
+  /** Used by any thread */
+  void DisableSession();
 
   /** Used in the update thread */
   inline std::unique_ptr<Session>& current();
@@ -23,7 +26,7 @@ class SessionManager {
    * Destroy current session and set new session.
    * Used in the update thread
    *
-   * @returns id of the new session
+   * @returns id of the new session. 0 when failed
    */
   uint64_t ResetCurrent();
 
@@ -44,21 +47,33 @@ class SessionManager {
   void StartDiscoverBroadcast();
   void StopDiscoverBroadcast();
 
-  struct {
-    std::thread thread;
-    std::mutex thread_mutex;  // lock thread itself
-    bool running;
-    std::mutex mutex;  // Be careful of deadlock with thread_mutex
-    std::condition_variable cond;
-  } broadcast_;
+  // Always lock in this order:
+  // current_mutex_ -> thread_mutex_ -> broadcast_.mutex
 
   std::unique_ptr<Session> current_;  // nullable
+  bool current_enabled_ = false;
+  bool current_is_valid_ = false;
+  // lock `current_` (pointer only), `current_enabled_` and `current_id_valid_`
   std::mutex current_mutex_;
+
+  struct {
+    std::thread thread;
+    // lock `thread` (joinable or not only)
+    std::mutex thread_mutex;
+
+    bool running;
+    std::mutex mutex;  // lock `running`
+    std::condition_variable cond;
+  } broadcast_;
 };
 
 std::unique_ptr<Session>&
 SessionManager::current()
 {
+  std::lock_guard<std::mutex> lock(current_mutex_);
+
+  if (!current_is_valid_) current_.reset();
+
   return current_;
 }
 

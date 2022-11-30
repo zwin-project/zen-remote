@@ -15,7 +15,11 @@ class Remote : public IRemote {
   Remote() = delete;
   Remote(std::unique_ptr<ILoop> loop);
 
-  void Start() override;
+  void StartGrpcServer() override;
+
+  void EnableSession() override;
+
+  void DisableSession() override;
 
   /** Call only once before rendering for multiple cameras. */
   void UpdateScene() override;
