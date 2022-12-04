@@ -289,6 +289,11 @@ GlBaseTechnique::SetupTextures(GLuint program_id)
 
       glActiveTexture(GL_TEXTURE0 + binding);
       glBindTexture(texture_binding.target, gl_texture->texture_id());
+
+      // FIXME: Client should be able to specify the parameters below
+      glTexParameteri(texture_binding.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(texture_binding.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
       it++;
     } else {
       it = rendering_->texture_bindings.erase(it);
