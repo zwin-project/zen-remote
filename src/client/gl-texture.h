@@ -9,12 +9,12 @@ namespace zen::remote::client {
 class AtomicCommandQueue;
 
 class GlTexture final : public IResource {
-  enum class ImageType {
-    kNone,
-    k2D,
+  enum DataCommandType {
+    kImage2D = 0,
+    kSubImage2D,
   };
 
-  union ImageArgs {
+  union DataCommandArg {
     struct {
       uint32_t target;
       int32_t level;
@@ -25,6 +25,28 @@ class GlTexture final : public IResource {
       uint32_t format;
       uint32_t type;
     } image_2d;
+
+    struct {
+      uint32_t target;
+      int32_t level;
+      int32_t xoffset;
+      int32_t yoffset;
+      uint32_t width;
+      uint32_t height;
+      uint32_t format;
+      uint32_t type;
+    } sub_image_2d;
+  };
+
+  struct DataCommand {
+    DataCommand(const DataCommand &) = delete;
+    DataCommand &operator=(const DataCommand &) = delete;
+    DataCommand(enum DataCommandType type, union DataCommandArg arg,
+        const std::string &data);
+
+    enum DataCommandType type;
+    union DataCommandArg arg;
+    const std::string data;
   };
 
   struct RenderingState {
@@ -43,7 +65,12 @@ class GlTexture final : public IResource {
   /** Used in the update thread */
   void GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
       uint32_t width, uint32_t height, int32_t border, uint32_t format,
-      uint32_t type, size_t size, const void *data);
+      uint32_t type, const std::string &data);
+
+  /** Used in the update thread */
+  void GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
+      int32_t yoffset, uint32_t width, uint32_t height, uint32_t format,
+      uint32_t type, const std::string &data);
 
   uint64_t id() override;
 
@@ -54,17 +81,8 @@ class GlTexture final : public IResource {
   const uint64_t id_;
   AtomicCommandQueue *update_rendering_queue_;
 
-  // FIXME: Having a list of commands: TexImage2D, TexSubImage2D, etc.
   struct {
-    void *data = NULL;
-    size_t size = 0;
-    size_t alloc = 0;
-
-    ImageType type = ImageType::kNone;
-    ImageArgs args;
-
-    /* args, target, data are expected to be changed at the same time */
-    bool damaged = false;
+    std::list<DataCommand> data_commands;  // push to back, apply from front
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;

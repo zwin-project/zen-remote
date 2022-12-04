@@ -11,6 +11,8 @@ service GlTextureService
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
 
   rpc GlTexImage2D(GlTexImage2DRequest) returns (EmptyResponse);
+
+  rpc GlTexSubImage2D(GlTexSubImage2DRequest) returns (EmptyResponse);
 }
 
 message GlTexImage2DRequest
@@ -22,6 +24,20 @@ message GlTexImage2DRequest
   uint32 width = 5;
   uint32 height = 6;
   int32 border = 7;
+  uint32 format = 8;
+  uint32 type = 9;
+  bytes data = 10;
+}
+
+message GlTexSubImage2DRequest
+{
+  uint64 id = 1;
+  uint32 target = 2;
+  int32 level = 3;
+  int32 xoffset = 4;
+  int32 yoffset = 5;
+  uint32 width = 6;
+  uint32 height = 7;
   uint32 format = 8;
   uint32 type = 9;
   bytes data = 10;

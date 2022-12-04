@@ -30,6 +30,11 @@ GlTextureServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
       &GlTextureService::AsyncService::RequestGlTexImage2D,
       &GlTextureServiceImpl::GlTexImage2D>::Listen(&async_, this,
       completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
+      &GlTextureService::AsyncService::RequestGlTexSubImage2D,
+      &GlTextureServiceImpl::GlTexSubImage2D>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -66,8 +71,21 @@ GlTextureServiceImpl::GlTexImage2D(grpc::ServerContext* /*context*/,
 
   texture->GlTexImage2D(request->target(), request->level(),
       request->internal_format(), request->width(), request->height(),
-      request->border(), request->format(), request->type(),
-      request->data().size(), request->data().data());
+      request->border(), request->format(), request->type(), request->data());
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlTextureServiceImpl::GlTexSubImage2D(grpc::ServerContext* /*context*/,
+    const GlTexSubImage2DRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+  auto texture = pool->gl_textures()->Get(request->id());
+
+  texture->GlTexSubImage2D(request->target(), request->level(),
+      request->xoffset(), request->yoffset(), request->width(),
+      request->height(), request->format(), request->type(), request->data());
 
   return grpc::Status::OK;
 }
