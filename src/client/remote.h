@@ -36,8 +36,8 @@ class Remote : public IRemote {
  private:
   AtomicCommandQueue update_rendering_queue_;
 
-  std::unique_ptr<GrpcServer> grpc_server_;
   SessionManager session_manager_;
+  std::unique_ptr<GrpcServer> grpc_server_;
   std::shared_ptr<ILoop> loop_;
 };
 
