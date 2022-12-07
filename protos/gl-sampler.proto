@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service GlSamplerService
+{
+  rpc New(NewResourceRequest) returns (EmptyResponse);
+
+  rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc GlSamplerParameterf(GlSamplerParameterfRequest) returns (EmptyResponse);
+
+  rpc GlSamplerParameteri(GlSamplerParameteriRequest) returns (EmptyResponse);
+
+  rpc GlSamplerParameterfv(GlSamplerParametervRequest) returns (EmptyResponse);
+
+  rpc GlSamplerParameteriv(GlSamplerParametervRequest) returns (EmptyResponse);
+
+  rpc GlSamplerParameterIiv(GlSamplerParametervRequest) returns (EmptyResponse);
+
+  rpc GlSamplerParameterIuiv(GlSamplerParametervRequest)
+      returns (EmptyResponse);
+}
+
+message GlSamplerParameterfRequest
+{
+  uint64 id = 1;
+  uint32 pname = 2;
+  float param = 3;
+}
+
+message GlSamplerParameteriRequest
+{
+  uint64 id = 1;
+  uint32 pname = 2;
+  int32 param = 3;
+}
+
+message GlSamplerParametervRequest
+{
+  uint64 id = 1;
+  uint32 pname = 2;
+  bytes params = 3;
+}

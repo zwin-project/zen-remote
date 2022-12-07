@@ -137,9 +137,10 @@ GlBaseTechniqueServiceImpl::BindTexture(grpc::ServerContext* /*context*/,
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
   auto texture = pool->gl_textures()->Get(request->texture_id());
+  auto sampler = pool->gl_samplers()->Get(request->sampler_id());
 
   base_technique->Bind(
-      request->binding(), request->name(), texture, request->target());
+      request->binding(), request->name(), texture, request->target(), sampler);
 
   return grpc::Status::OK;
 }

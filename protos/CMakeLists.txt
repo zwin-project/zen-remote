@@ -25,6 +25,7 @@ set(protos
   "gl-base-technique"
   "gl-buffer"
   "gl-program"
+  "gl-sampler"
   "gl-shader"
   "gl-texture"
   "gl-vertex-array"

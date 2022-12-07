@@ -34,7 +34,13 @@ GlTexture::~GlTexture()
 void
 GlTexture::Commit()
 {
-  auto command = CreateCommand([rendering = rendering_](bool cancel) {
+  if (pending_.data_commands.empty()) return;
+
+  std::list<DataCommand> data_commands;
+  pending_.data_commands.swap(data_commands);
+
+  auto command = CreateCommand([data_commands = std::move(data_commands),
+                                   rendering = rendering_](bool cancel) {
     if (cancel) {
       return;
     }
@@ -42,46 +48,32 @@ GlTexture::Commit()
     if (rendering->texture_id == 0) {
       glGenTextures(1, &rendering->texture_id);
     }
-  });
-  update_rendering_queue_->Push(std::move(command));
 
-  if (!pending_.data_commands.empty()) {
-    std::list<DataCommand> data_commands;
-    pending_.data_commands.swap(data_commands);
-
-    // ownership of pending_.data moves
-    auto command = CreateCommand([data_commands = std::move(data_commands),
-                                     rendering = rendering_](bool cancel) {
-      if (cancel) {
-        return;
-      }
-
-      for (auto &command : data_commands) {
-        switch (command.type) {
-          case GlTexture::kImage2D: {
-            auto args = command.arg.image_2d;
-            glBindTexture(args.target, rendering->texture_id);
-            glTexImage2D(args.target, args.level, args.internal_format,
-                args.width, args.height, args.border, args.format, args.type,
-                command.data.data());
-            glBindTexture(args.target, 0);
-            break;
-          }
-          case GlTexture::kSubImage2D: {
-            auto args = command.arg.sub_image_2d;
-            glBindTexture(args.target, rendering->texture_id);
-            glTexSubImage2D(args.target, args.level, args.xoffset, args.yoffset,
-                args.width, args.height, args.format, args.type,
-                command.data.data());
-            glBindTexture(args.target, 0);
-            break;
-          }
+    for (auto &command : data_commands) {
+      switch (command.type) {
+        case GlTexture::kImage2D: {
+          auto args = command.arg.image_2d;
+          glBindTexture(args.target, rendering->texture_id);
+          glTexImage2D(args.target, args.level, args.internal_format,
+              args.width, args.height, args.border, args.format, args.type,
+              command.data.data());
+          glBindTexture(args.target, 0);
+          break;
+        }
+        case GlTexture::kSubImage2D: {
+          auto args = command.arg.sub_image_2d;
+          glBindTexture(args.target, rendering->texture_id);
+          glTexSubImage2D(args.target, args.level, args.xoffset, args.yoffset,
+              args.width, args.height, args.format, args.type,
+              command.data.data());
+          glBindTexture(args.target, 0);
+          break;
         }
       }
-    });
+    }
+  });
 
-    update_rendering_queue_->Push(std::move(command));
-  }
+  update_rendering_queue_->Push(std::move(command));
 }
 
 void
