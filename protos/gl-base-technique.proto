@@ -52,6 +52,7 @@ message BindTextureRequest
   string name = 3;
   uint64 texture_id = 4;
   uint32 target = 5;
+  uint64 sampler_id = 6;  // gl_sampler
 }
 
 /**

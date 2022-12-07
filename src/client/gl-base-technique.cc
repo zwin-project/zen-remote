@@ -2,6 +2,7 @@
 
 #include "client/atomic-command-queue.h"
 #include "client/gl-program.h"
+#include "client/gl-sampler.h"
 #include "client/gl-texture.h"
 #include "client/gl-vertex-array.h"
 #include "core/logger.h"
@@ -40,6 +41,10 @@ GlBaseTechnique::Commit()
   for (auto& [_, texture_binding] : pending_.texture_bindings) {
     if (auto texture = texture_binding.texture.lock()) {
       texture->Commit();
+    }
+
+    if (auto sampler = texture_binding.sampler.lock()) {
+      sampler->Commit();
     }
   }
 
@@ -172,7 +177,8 @@ GlBaseTechnique::Bind(std::weak_ptr<GlVertexArray> vertex_array)
 
 void
 GlBaseTechnique::Bind(uint32_t binding, std::string name,
-    std::weak_ptr<GlTexture> texture, uint32_t target)
+    std::weak_ptr<GlTexture> texture, uint32_t target,
+    std::weak_ptr<GlSampler> sampler)
 {
   auto [it, _] = pending_.texture_bindings.insert(
       std::pair<uint32_t, TextureBinding>(binding, {}));
@@ -180,6 +186,7 @@ GlBaseTechnique::Bind(uint32_t binding, std::string name,
   (*it).second.name = std::move(name);
   (*it).second.target = target;
   (*it).second.texture = texture;
+  (*it).second.sampler = sampler;
 
   pending_.texture_damaged = true;
 }
@@ -280,7 +287,10 @@ GlBaseTechnique::SetupTextures(GLuint program_id)
     auto& texture_binding = (*it).second;
     uint32_t binding = (*it).first;
 
-    if (auto gl_texture = texture_binding.texture.lock()) {
+    auto gl_texture = texture_binding.texture.lock();
+    auto gl_sampler = texture_binding.sampler.lock();
+
+    if (gl_texture && gl_sampler) {
       if (!texture_binding.name.empty()) {
         GLint location =
             glGetUniformLocation(program_id, texture_binding.name.c_str());
@@ -289,10 +299,7 @@ GlBaseTechnique::SetupTextures(GLuint program_id)
 
       glActiveTexture(GL_TEXTURE0 + binding);
       glBindTexture(texture_binding.target, gl_texture->texture_id());
-
-      // FIXME: Client should be able to specify the parameters below
-      glTexParameteri(texture_binding.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(texture_binding.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glBindSampler(binding, gl_sampler->sampler_id());
 
       it++;
     } else {

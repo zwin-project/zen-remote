@@ -22,7 +22,7 @@ class GlBaseTechnique final : public IGlBaseTechnique {
   void BindVertexArray(uint64_t vertex_array_id) override;
 
   void BindTexture(uint32_t binding, std::string name, uint64_t texture_id,
-      uint32_t target) override;
+      uint32_t target, uint64_t sampler_id) override;
 
   void GlUniformVector(uint32_t location, std::string name, uint32_t size,
       uint32_t count, int32_t* value) override;

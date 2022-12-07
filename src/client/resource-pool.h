@@ -3,6 +3,7 @@
 #include "client/gl-base-technique.h"
 #include "client/gl-buffer.h"
 #include "client/gl-program.h"
+#include "client/gl-sampler.h"
 #include "client/gl-shader.h"
 #include "client/gl-texture.h"
 #include "client/gl-vertex-array.h"
@@ -30,6 +31,9 @@ using GlProgramContainer =
 
 using GlTextureContainer =
     ResourceContainer<GlTexture, ResourceContainerType::kFindByIdIntensive>;
+
+using GlSamplerContainer =
+    ResourceContainer<GlSampler, ResourceContainerType::kFindByIdIntensive>;
 
 using GlVertexArrayContainer =
     ResourceContainer<GlVertexArray, ResourceContainerType::kFindByIdIntensive>;
@@ -64,6 +68,7 @@ class ResourcePool {
   inline GlShaderContainer *gl_shaders();
   inline GlProgramContainer *gl_programs();
   inline GlTextureContainer *gl_textures();
+  inline GlSamplerContainer *gl_samplers();
   inline GlVertexArrayContainer *gl_vertex_arrays();
   inline GlBaseTechniqueContainer *gl_base_techniques();
 
@@ -74,6 +79,7 @@ class ResourcePool {
   GlShaderContainer gl_shaders_;
   GlProgramContainer gl_programs_;
   GlTextureContainer gl_textures_;
+  GlSamplerContainer gl_samplers_;
   GlVertexArrayContainer gl_vertex_arrays_;
   GlBaseTechniqueContainer gl_base_techniques_;
 };
@@ -112,6 +118,12 @@ inline GlTextureContainer *
 ResourcePool::gl_textures()
 {
   return &gl_textures_;
+}
+
+inline GlSamplerContainer *
+ResourcePool::gl_samplers()
+{
+  return &gl_samplers_;
 }
 
 inline GlVertexArrayContainer *

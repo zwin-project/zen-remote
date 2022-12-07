@@ -4,6 +4,7 @@
 #include "client/service/gl-base-technique.h"
 #include "client/service/gl-buffer.h"
 #include "client/service/gl-program.h"
+#include "client/service/gl-sampler.h"
 #include "client/service/gl-shader.h"
 #include "client/service/gl-texture.h"
 #include "client/service/gl-vertex-array.h"
@@ -36,6 +37,7 @@ GrpcServer::Start()
     services.emplace_back(new service::GlBufferServiceImpl(remote_));
     services.emplace_back(new service::GlShaderServiceImpl(remote_));
     services.emplace_back(new service::GlProgramServiceImpl(remote_));
+    services.emplace_back(new service::GlSamplerServiceImpl(remote_));
     services.emplace_back(new service::GlTextureServiceImpl(remote_));
     services.emplace_back(new service::GlBaseTechniqueServiceImpl(remote_));
     services.emplace_back(new service::SessionServiceImpl(remote_));

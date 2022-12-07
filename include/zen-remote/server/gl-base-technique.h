@@ -17,7 +17,7 @@ struct IGlBaseTechnique {
   virtual void BindVertexArray(uint64_t vertex_array_id) = 0;
 
   virtual void BindTexture(uint32_t binding, std::string name,
-      uint64_t texture_id, uint32_t target) = 0;
+      uint64_t texture_id, uint32_t target, uint64_t sampler_id) = 0;
 
   /**
    * @param value must be larger than or equeal to (32 * size * count) bits

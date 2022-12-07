@@ -10,6 +10,7 @@ class GlBuffer;
 class GlVertexArray;
 class GlProgram;
 class GlTexture;
+class GlSampler;
 class AtomicCommandQueue;
 struct Camera;
 
@@ -49,6 +50,7 @@ class GlBaseTechnique final : public IResource {
   struct TextureBinding {
     std::string name;
     std::weak_ptr<GlTexture> texture;
+    std::weak_ptr<GlSampler> sampler;
     uint32_t target;
   };
 
@@ -79,7 +81,8 @@ class GlBaseTechnique final : public IResource {
 
   /** Used in the update thread */
   void Bind(uint32_t binding, std::string name,
-      std::weak_ptr<GlTexture> texture, uint32_t target);
+      std::weak_ptr<GlTexture> texture, uint32_t target,
+      std::weak_ptr<GlSampler> sampler);
 
   /** Used in the update thread */
   void GlDrawArrays(uint32_t mode, int32_t first, uint32_t count);
