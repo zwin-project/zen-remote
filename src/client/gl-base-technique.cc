@@ -240,7 +240,7 @@ GlBaseTechnique::ApplyUniformVariables(
   std::memcpy(&vp, &camera->vp, sizeof(glm::mat4));
   glm::mat4 mvp = vp * model;
 
-  auto mvp_location = glGetUniformLocation(program_id, "mvp");
+  auto mvp_location = glGetUniformLocation(program_id, "zMVP");
   glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
 
   static void (*uniform_matrix[3][3])(GLint location, GLsizei count,
