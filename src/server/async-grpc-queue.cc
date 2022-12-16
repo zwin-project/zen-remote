@@ -17,6 +17,8 @@ AsyncGrpcQueue::Push(std::unique_ptr<AsyncGrpcCallerBase> caller)
   auto caller_raw = caller.release();
 
   caller_raw->Start(cq_.get());
+
+  pending_count_++;
 }
 
 void
@@ -24,7 +26,7 @@ AsyncGrpcQueue::Start()
 {
   if (thread_.joinable()) return;
 
-  thread_ = std::thread([cq = cq_] {
+  thread_ = std::thread([cq = cq_, this] {
     void *tag;
     bool ok = false;
 
@@ -34,6 +36,8 @@ AsyncGrpcQueue::Start()
       caller->Finish();
 
       delete caller;
+
+      pending_count_--;
     }
   });
 }
