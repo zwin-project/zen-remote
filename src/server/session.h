@@ -26,6 +26,8 @@ class Session final : public ISession {
   // TODO: make this async
   bool Connect(std::shared_ptr<IPeer> peer) override;
 
+  int32_t GetPendingGrpcQueueCount() override;
+
   uint64_t NewSerial(SerialType type);
 
   inline JobQueue* job_queue();

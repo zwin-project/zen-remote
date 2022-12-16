@@ -21,6 +21,8 @@ struct ISession {
    */
   virtual bool Connect(std::shared_ptr<IPeer> peer) = 0;
 
+  virtual int32_t GetPendingGrpcQueueCount() = 0;
+
   Signal<void()> on_disconnect;
 };
 

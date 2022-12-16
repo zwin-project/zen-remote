@@ -89,6 +89,12 @@ Session::Connect(std::shared_ptr<IPeer> peer)
   return true;
 }
 
+int32_t
+Session::GetPendingGrpcQueueCount()
+{
+  return grpc_queue_->pending_count();
+}
+
 /**
  * Excuse: This is a stopgap implementation to prioritize other parts of the
  * development. It can use keepalive of gRPC or be more concise implementation.

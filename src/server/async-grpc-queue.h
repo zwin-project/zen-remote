@@ -18,9 +18,18 @@ class AsyncGrpcQueue {
 
   void Terminate();
 
+  inline uint32_t pending_count();
+
  private:
   std::thread thread_;
   std::shared_ptr<grpc::CompletionQueue> cq_;
+  std::atomic_int32_t pending_count_ = 0;
 };
+
+inline uint32_t
+AsyncGrpcQueue::pending_count()
+{
+  return pending_count_.load();
+}
 
 }  // namespace zen::remote::server
