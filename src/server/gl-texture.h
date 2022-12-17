@@ -24,6 +24,8 @@ class GlTexture final : public IGlTexture {
       int32_t yoffset, uint32_t width, uint32_t height, uint32_t format,
       uint32_t type, std::unique_ptr<IBuffer> buffer) override;
 
+  void GlGenerateMipmap(uint32_t target) override;
+
   uint64_t id() override;
 
  private:

@@ -13,6 +13,8 @@ service GlTextureService
   rpc GlTexImage2D(GlTexImage2DRequest) returns (EmptyResponse);
 
   rpc GlTexSubImage2D(GlTexSubImage2DRequest) returns (EmptyResponse);
+
+  rpc GlGenerateMipmap(GlGenerateMipmapRequest) returns (EmptyResponse);
 }
 
 message GlTexImage2DRequest
@@ -41,4 +43,10 @@ message GlTexSubImage2DRequest
   uint32 format = 8;
   uint32 type = 9;
   bytes data = 10;
+}
+
+message GlGenerateMipmapRequest
+{
+  uint64 id = 1;
+  uint32 target = 2;
 }

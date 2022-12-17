@@ -72,6 +72,9 @@ class GlTexture final : public IResource {
       int32_t yoffset, uint32_t width, uint32_t height, uint32_t format,
       uint32_t type, const std::string &data);
 
+  /** Used in the update thread */
+  void GlGenerateMipmap(uint32_t target);
+
   uint64_t id() override;
 
   /** Used in the rendering thread */
@@ -83,6 +86,7 @@ class GlTexture final : public IResource {
 
   struct {
     std::list<DataCommand> data_commands;  // push to back, apply from front
+    GLenum generate_mipmap_target = 0;
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;

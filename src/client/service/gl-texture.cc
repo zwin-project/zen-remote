@@ -35,6 +35,11 @@ GlTextureServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
       &GlTextureService::AsyncService::RequestGlTexSubImage2D,
       &GlTextureServiceImpl::GlTexSubImage2D>::Listen(&async_, this,
       completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
+      &GlTextureService::AsyncService::RequestGlGenerateMipmap,
+      &GlTextureServiceImpl::GlGenerateMipmap>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -86,6 +91,19 @@ GlTextureServiceImpl::GlTexSubImage2D(grpc::ServerContext* /*context*/,
   texture->GlTexSubImage2D(request->target(), request->level(),
       request->xoffset(), request->yoffset(), request->width(),
       request->height(), request->format(), request->type(), request->data());
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+GlTextureServiceImpl::GlGenerateMipmap(grpc::ServerContext* /*context*/,
+    const GlGenerateMipmapRequest* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->session_manager()->current()->pool();
+
+  auto texture = pool->gl_textures()->Get(request->id());
+
+  texture->GlGenerateMipmap(request->target());
 
   return grpc::Status::OK;
 }
