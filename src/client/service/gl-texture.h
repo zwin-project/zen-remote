@@ -33,6 +33,9 @@ class GlTextureServiceImpl final : public GlTextureService::Service,
   grpc::Status GlTexSubImage2D(grpc::ServerContext* context,
       const GlTexSubImage2DRequest* request, EmptyResponse* response) override;
 
+  grpc::Status GlGenerateMipmap(grpc::ServerContext* context,
+      const GlGenerateMipmapRequest* request, EmptyResponse* response) override;
+
  private:
   GlTextureService::AsyncService async_;
   Remote* remote_;

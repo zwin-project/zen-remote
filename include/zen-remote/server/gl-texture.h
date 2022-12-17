@@ -18,6 +18,8 @@ struct IGlTexture {
       int32_t yoffset, uint32_t width, uint32_t height, uint32_t format,
       uint32_t type, std::unique_ptr<IBuffer> buffer) = 0;
 
+  virtual void GlGenerateMipmap(uint32_t target) = 0;
+
   virtual uint64_t id() = 0;
 };
 

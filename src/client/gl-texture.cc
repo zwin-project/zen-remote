@@ -34,46 +34,59 @@ GlTexture::~GlTexture()
 void
 GlTexture::Commit()
 {
-  if (pending_.data_commands.empty()) return;
+  if (pending_.data_commands.empty() && pending_.generate_mipmap_target == 0)
+    return;
 
   std::list<DataCommand> data_commands;
   pending_.data_commands.swap(data_commands);
 
-  auto command = CreateCommand([data_commands = std::move(data_commands),
-                                   rendering = rendering_](bool cancel) {
-    if (cancel) {
-      return;
-    }
-
-    if (rendering->texture_id == 0) {
-      glGenTextures(1, &rendering->texture_id);
-    }
-
-    for (auto &command : data_commands) {
-      switch (command.type) {
-        case GlTexture::kImage2D: {
-          auto args = command.arg.image_2d;
-          glBindTexture(args.target, rendering->texture_id);
-          glTexImage2D(args.target, args.level, args.internal_format,
-              args.width, args.height, args.border, args.format, args.type,
-              command.data.data());
-          glBindTexture(args.target, 0);
-          break;
+  auto command = CreateCommand(
+      [data_commands = std::move(data_commands),
+          generate_mipmap_target = pending_.generate_mipmap_target,
+          rendering = rendering_](bool cancel) {
+        if (cancel) {
+          return;
         }
-        case GlTexture::kSubImage2D: {
-          auto args = command.arg.sub_image_2d;
-          glBindTexture(args.target, rendering->texture_id);
-          glTexSubImage2D(args.target, args.level, args.xoffset, args.yoffset,
-              args.width, args.height, args.format, args.type,
-              command.data.data());
-          glBindTexture(args.target, 0);
-          break;
+
+        if (rendering->texture_id == 0) {
+          glGenTextures(1, &rendering->texture_id);
         }
-      }
-    }
-  });
+
+        for (auto &command : data_commands) {
+          switch (command.type) {
+            case GlTexture::kImage2D: {
+              auto args = command.arg.image_2d;
+              glBindTexture(args.target, rendering->texture_id);
+              glTexImage2D(args.target, args.level, args.internal_format,
+                  args.width, args.height, args.border, args.format, args.type,
+                  command.data.data());
+              glBindTexture(args.target, 0);
+              break;
+            }
+            case GlTexture::kSubImage2D: {
+              auto args = command.arg.sub_image_2d;
+              glBindTexture(args.target, rendering->texture_id);
+              glTexSubImage2D(args.target, args.level, args.xoffset,
+                  args.yoffset, args.width, args.height, args.format, args.type,
+                  command.data.data());
+              glBindTexture(args.target, 0);
+              break;
+            }
+          }
+        }
+
+        // TODO: Should we preserve the order of data_commands and generating
+        // mipmap command?
+        if (generate_mipmap_target != 0) {
+          glBindTexture(generate_mipmap_target, rendering->texture_id);
+          glGenerateMipmap(generate_mipmap_target);
+          glBindTexture(generate_mipmap_target, 0);
+        }
+      });
 
   update_rendering_queue_->Push(std::move(command));
+
+  pending_.generate_mipmap_target = 0;
 }
 
 void
@@ -110,6 +123,12 @@ GlTexture::GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
   arg.sub_image_2d.type = type;
 
   pending_.data_commands.emplace_back(kSubImage2D, arg, data);
+}
+
+void
+GlTexture::GlGenerateMipmap(uint32_t target)
+{
+  pending_.generate_mipmap_target = target;
 }
 
 uint64_t

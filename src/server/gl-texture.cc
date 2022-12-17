@@ -229,6 +229,43 @@ GlTexture::GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
   session->job_queue()->Push(std::move(job));
 }
 
+void
+GlTexture::GlGenerateMipmap(uint32_t target)
+{
+  auto session = session_.lock();
+  if (!session) return;
+
+  auto context_raw = new SerialRequestContext(session.get());
+
+  auto job =
+      CreateJob([id = id_, connection = session->connection(), context_raw,
+                    grpc_queue = session->grpc_queue(), target](bool cancel) {
+        auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
+        if (cancel) {
+          return;
+        }
+
+        auto stub = GlTextureService::NewStub(connection->grpc_channel());
+
+        auto caller = new AsyncGrpcCaller<
+            &GlTextureService::Stub::PrepareAsyncGlGenerateMipmap>(
+            std::move(stub), std::move(context),
+            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+              if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+                LOG_WARN("Failed to call remote GlTexture::GlGenerateMipmap");
+                connection->NotifyDisconnection();
+              }
+            });
+
+        caller->request()->set_id(id);
+        caller->request()->set_target(target);
+
+        grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+      });
+
+  session->job_queue()->Push(std::move(job));
+}
+
 GlTexture::~GlTexture()
 {
   auto session = session_.lock();
