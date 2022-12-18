@@ -42,7 +42,7 @@ grpc::Status
 VirtualObjectServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto virtual_object = std::make_unique<VirtualObject>(
       request->id(), remote_->update_rendering_queue());
@@ -56,7 +56,7 @@ grpc::Status
 VirtualObjectServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->virtual_objects()->ScheduleRemove(request->id());
 
@@ -67,7 +67,7 @@ grpc::Status
 VirtualObjectServiceImpl::Commit(grpc::ServerContext* /*context*/,
     const VirtualObjectCommitRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto virtual_object = pool->virtual_objects()->Get(request->id());
 
@@ -80,7 +80,7 @@ grpc::Status
 VirtualObjectServiceImpl::Move(grpc::ServerContext* /*context*/,
     const VirtualObjectMoveRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto virtual_object = pool->virtual_objects()->Get(request->id());
 

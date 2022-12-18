@@ -61,7 +61,7 @@ grpc::Status
 GlSamplerServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto gl_sampler = std::make_unique<GlSampler>(
       request->id(), remote_->update_rendering_queue());
@@ -75,7 +75,7 @@ grpc::Status
 GlSamplerServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->gl_samplers()->ScheduleRemove(request->id());
 
@@ -86,7 +86,7 @@ grpc::Status
 GlSamplerServiceImpl::GlSamplerParameterf(grpc::ServerContext* /*context*/,
     const GlSamplerParameterfRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto sampler = pool->gl_samplers()->Get(request->id());
 
   sampler->Parameterf(request->pname(), request->param());
@@ -98,7 +98,7 @@ grpc::Status
 GlSamplerServiceImpl::GlSamplerParameteri(grpc::ServerContext* /*context*/,
     const GlSamplerParameteriRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto sampler = pool->gl_samplers()->Get(request->id());
 
   sampler->Parameteri(request->pname(), request->param());
@@ -110,7 +110,7 @@ grpc::Status
 GlSamplerServiceImpl::GlSamplerParameterfv(grpc::ServerContext* /*context*/,
     const GlSamplerParametervRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto sampler = pool->gl_samplers()->Get(request->id());
 
   sampler->Parameterfv(request->pname(), request->params());
@@ -122,7 +122,7 @@ grpc::Status
 GlSamplerServiceImpl::GlSamplerParameteriv(grpc::ServerContext* /*context*/,
     const GlSamplerParametervRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto sampler = pool->gl_samplers()->Get(request->id());
 
   sampler->Parameteriv(request->pname(), request->params());
@@ -134,7 +134,7 @@ grpc::Status
 GlSamplerServiceImpl::GlSamplerParameterIiv(grpc::ServerContext* /*context*/,
     const GlSamplerParametervRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto sampler = pool->gl_samplers()->Get(request->id());
 
   sampler->ParameterIiv(request->pname(), request->params());
@@ -146,7 +146,7 @@ grpc::Status
 GlSamplerServiceImpl::GlSamplerParameterIuiv(grpc::ServerContext* /*context*/,
     const GlSamplerParametervRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto sampler = pool->gl_samplers()->Get(request->id());
 
   sampler->ParameterIuiv(request->pname(), request->params());

@@ -26,14 +26,14 @@ grpc::Status
 SessionServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewSessionRequest* /*request*/, NewSessionResponse* response)
 {
-  auto id = remote_->session_manager()->ResetCurrent();
+  auto session = remote_->ResetSession();
 
-  response->set_id(id);
-
-  if (id == 0)
+  if (!session) {
     return grpc::Status(grpc::ABORTED, "Failed to create a session");
-  else
+  } else {
+    response->set_id(session->id());
     return grpc::Status::OK;
+  }
 }
 
 }  // namespace zen::remote::client::service

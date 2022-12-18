@@ -34,7 +34,7 @@ grpc::Status
 RenderingUnitServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewRenderingUnitRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto rendering_unit = std::make_shared<RenderingUnit>(
       request->id(), remote_->update_rendering_queue());
@@ -52,7 +52,7 @@ grpc::Status
 RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->rendering_units()->ScheduleRemove(request->id());
   return grpc::Status::OK;

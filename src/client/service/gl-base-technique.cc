@@ -64,7 +64,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewGlBaseTechniqueRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto gl_base_technique = std::make_shared<GlBaseTechnique>(
       request->id(), remote_->update_rendering_queue());
   auto rendering_unit =
@@ -81,7 +81,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   pool->gl_base_techniques()->ScheduleRemove(request->id());
   return grpc::Status::OK;
 }
@@ -90,7 +90,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::BindProgram(grpc::ServerContext* /*context*/,
     const BindProgramRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
   auto program = pool->gl_programs()->Get(request->program_id());
@@ -104,7 +104,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::BindVertexArray(grpc::ServerContext* /*context*/,
     const BindVertexArrayRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
   auto vertex_array = pool->gl_vertex_arrays()->Get(request->vertex_array_id());
@@ -118,7 +118,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::GlUniform(grpc::ServerContext* /*context*/,
     const GlUniformRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
 
@@ -133,7 +133,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::BindTexture(grpc::ServerContext* /*context*/,
     const BindTextureRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
   auto texture = pool->gl_textures()->Get(request->texture_id());
@@ -149,7 +149,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::GlDrawArrays(grpc::ServerContext* /*context*/,
     const GlDrawArraysRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
 
   base_technique->GlDrawArrays(
@@ -162,7 +162,7 @@ grpc::Status
 GlBaseTechniqueServiceImpl::GlDrawElements(grpc::ServerContext* /*context*/,
     const GlDrawElementsRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto base_technique = pool->gl_base_techniques()->Get(request->id());
 

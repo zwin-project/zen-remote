@@ -35,7 +35,7 @@ grpc::Status
 GlBufferServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto gl_buffer = std::make_unique<GlBuffer>(
       request->id(), remote_->update_rendering_queue());
@@ -49,7 +49,7 @@ grpc::Status
 GlBufferServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->gl_buffers()->ScheduleRemove(request->id());
   return grpc::Status::OK;
@@ -59,7 +59,7 @@ grpc::Status
 GlBufferServiceImpl::GlBufferData(grpc::ServerContext* /*context*/,
     const GlBufferDataRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto gl_buffer = pool->gl_buffers()->Get(request->id());
 

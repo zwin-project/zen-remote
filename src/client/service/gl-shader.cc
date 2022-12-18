@@ -31,7 +31,7 @@ grpc::Status
 GlShaderServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewGlShaderRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto gl_shader = std::make_unique<GlShader>(request->id(), request->source(),
       request->type(), remote_->update_rendering_queue());
@@ -45,7 +45,7 @@ grpc::Status
 GlShaderServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->gl_shaders()->ScheduleRemove(request->id());
 
