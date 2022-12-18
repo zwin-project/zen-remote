@@ -16,8 +16,6 @@ Session::Session(std::unique_ptr<ILoop> loop) : loop_(std::move(loop))
 
 Session::~Session()
 {
-  StopPingThread();
-
   /**
    * Terminate job queue first so that no additional work is enqueued to
    * grpc_queue after termination.
@@ -67,8 +65,6 @@ Session::Connect(std::shared_ptr<IPeer> peer)
 
   id_ = response.id();
 
-  StartPingThread();
-
   control_event_source_ = new FdSource();
 
   control_event_source_->fd = pipe_[0];
@@ -93,107 +89,6 @@ int32_t
 Session::GetPendingGrpcQueueCount()
 {
   return grpc_queue_->pending_count();
-}
-
-/**
- * Excuse: This is a stopgap implementation to prioritize other parts of the
- * development. It can use keepalive of gRPC or be more concise implementation.
- */
-void
-Session::StartPingThread()
-{
-  if (ping_thread_.joinable()) return;
-
-  should_ping_ = true;
-
-  ping_thread_ = std::thread([this, id = id_, connection = connection_] {
-    auto cq = std::make_shared<grpc::CompletionQueue>();
-
-    auto stub = SessionService::NewStub(connection->grpc_channel());
-
-    grpc::ClientContext context;
-    grpc::Status status;
-    SessionTerminateResponse response;
-
-    bool finished = false;
-    std::mutex finish_mutex;
-    std::condition_variable finish_cond;
-
-    auto writer = stub->AsyncPing(&context, &response, cq.get(), NULL);
-
-    auto completion_thread =
-        std::thread([cq, &finish_mutex, &finish_cond, &finished, connection] {
-          void *tag;
-          bool ok = false;
-
-          while (cq->Next(&tag, &ok)) {
-            if (!ok) {
-              connection->NotifyDisconnection();
-            }
-            if ((bool)tag) {  // finished
-              {
-                std::lock_guard<std::mutex> lock(finish_mutex);
-                finished = true;
-              }
-              finish_cond.notify_one();
-            }
-          }
-        });
-
-    SessionPingRequest request;
-    SessionPingRequest done_request;
-
-    writer->Finish(&status, (void *)true);
-
-    int i = 0;
-    for (;;) {
-      i++;
-      std::unique_lock<std::mutex> lock(ping_mutex_);
-
-      {
-        request.set_id(id);
-        request.set_done(false);
-        writer->Write(request, (void *)false);
-      }
-
-      ping_cond_.wait_for(lock, std::chrono::seconds(1),
-          [this] { return should_ping_ == false; });
-
-      if (should_ping_ == false) {
-        done_request.set_id(id);
-        done_request.set_done(true);
-        writer->Write(done_request, (void *)false);
-        break;
-      };
-    }
-
-    std::unique_lock<std::mutex> lock(finish_mutex);
-
-    finish_cond.wait_for(
-        lock, std::chrono::microseconds(100), [&finished] { return finished; });
-
-    lock.unlock();
-
-    context.TryCancel();
-    cq->Shutdown();
-
-    completion_thread.join();
-  });
-}
-
-void
-Session::StopPingThread()
-{
-  if (!ping_thread_.joinable()) return;
-
-  {
-    std::lock_guard<std::mutex> lock(ping_mutex_);
-    should_ping_ = false;
-  }
-
-  ping_cond_.notify_one();
-
-  ping_thread_.join();
 }
 
 void

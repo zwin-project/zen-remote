@@ -38,18 +38,10 @@ class Session final : public ISession {
  private:
   void HandleControlEvent(SessionConnection::ControlMessage message);
 
-  void StartPingThread();
-  void StopPingThread();
-
   JobQueue job_queue_;
   std::shared_ptr<AsyncGrpcQueue> grpc_queue_;     // shareable across threads
   std::shared_ptr<SessionConnection> connection_;  // sharable across threads
   std::unique_ptr<ILoop> loop_;
-
-  bool should_ping_;
-  std::thread ping_thread_;
-  std::mutex ping_mutex_;
-  std::condition_variable ping_cond_;
 
   uint64_t id_ = 0;
   bool connected_ = false;
