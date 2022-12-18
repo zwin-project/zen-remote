@@ -49,7 +49,7 @@ grpc::Status
 GlVertexArrayServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto gl_vertex_array = std::make_unique<GlVertexArray>(
       request->id(), remote_->update_rendering_queue());
@@ -63,7 +63,7 @@ grpc::Status
 GlVertexArrayServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->gl_vertex_arrays()->ScheduleRemove(request->id());
 
@@ -76,7 +76,7 @@ GlVertexArrayServiceImpl::GlEnableVertexAttribArray(
     const GlEnableVertexAttribArrayRequest* request,
     EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto vertex_array = pool->gl_vertex_arrays()->Get(request->id());
 
@@ -91,7 +91,7 @@ GlVertexArrayServiceImpl::GlDisableVertexAttribArray(
     const GlDisableVertexAttribArrayRequest* request,
     EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto vertex_array = pool->gl_vertex_arrays()->Get(request->id());
 
@@ -105,7 +105,7 @@ GlVertexArrayServiceImpl::GlVertexAttribPointer(
     grpc::ServerContext* /*context*/,
     const GlVertexAttribPointerRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto vertex_array = pool->gl_vertex_arrays()->Get(request->id());
   auto gl_buffer = pool->gl_buffers()->Get(request->gl_buffer_id());

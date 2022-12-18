@@ -57,7 +57,7 @@ class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
         return;
       }
 
-      auto &&session = remote_->session_manager()->current();
+      auto session = remote_->current();
       if (!session || session->id() != session_id) {
         state_ = kFinish;
         responder_.Finish(
@@ -84,7 +84,12 @@ class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
         responder_.Finish(response_, grpc_status, this);
       });
 
-      session->command_queue()->Push(request_serial, std::move(command));
+      if (!session->PushCommand(request_serial, std::move(command))) {
+        state_ = kFinish;
+        responder_.Finish(
+            response_, grpc::Status(grpc::ABORTED, "Session expired"), this);
+        return;
+      }
 
     } else {
       delete this;

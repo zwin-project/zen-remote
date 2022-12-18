@@ -41,7 +41,7 @@ grpc::Status
 GlProgramServiceImpl::New(grpc::ServerContext* /*context*/,
     const NewResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto gl_program = std::make_unique<GlProgram>(
       request->id(), remote_->update_rendering_queue());
@@ -55,7 +55,7 @@ grpc::Status
 GlProgramServiceImpl::Delete(grpc::ServerContext* /*context*/,
     const DeleteResourceRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   pool->gl_programs()->ScheduleRemove(request->id());
 
@@ -66,7 +66,7 @@ grpc::Status
 GlProgramServiceImpl::GlAttachShader(grpc::ServerContext* /*context*/,
     const GlAttachShaderRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto program = pool->gl_programs()->Get(request->id());
   auto shader = pool->gl_shaders()->Get(request->shader_id());
@@ -80,7 +80,7 @@ grpc::Status
 GlProgramServiceImpl::GlLinkProgram(::grpc::ServerContext* /*context*/,
     const GlLinkProgramRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto program = pool->gl_programs()->Get(request->id());
 

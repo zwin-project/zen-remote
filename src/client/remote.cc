@@ -2,13 +2,22 @@
 
 #include "client/grpc-server.h"
 #include "client/resource-pool.h"
-#include "client/session-manager.h"
 #include "client/session.h"
 #include "core/logger.h"
 
 namespace zen::remote::client {
 
 Remote::Remote(std::unique_ptr<ILoop> loop) : loop_(std::move(loop)) {}
+
+Remote::~Remote()
+{
+  std::lock_guard<std::mutex> lock(current_session_mutex_);
+  if (current_session_) {
+    current_session_->Shutdown();
+    current_session_.reset();
+  }
+  discovery_broadcast_.StopAndWait();
+}
 
 void
 Remote::StartGrpcServer()
@@ -20,13 +29,21 @@ Remote::StartGrpcServer()
 void
 Remote::EnableSession()
 {
-  session_manager_.EnableSession();
+  std::lock_guard<std::mutex> lock(current_session_mutex_);
+  session_is_enabled_ = true;
+  if (!current_session_) discovery_broadcast_.StartIfNotRunning();
 }
 
 void
 Remote::DisableSession()
 {
-  session_manager_.DisableSession();
+  std::lock_guard<std::mutex> lock(current_session_mutex_);
+  session_is_enabled_ = false;
+  discovery_broadcast_.StopAndWait();
+  if (current_session_) {
+    current_session_->Shutdown();
+    current_session_.reset();
+  }
 }
 
 void
@@ -39,10 +56,38 @@ Remote::UpdateScene()
   }
 }
 
+std::shared_ptr<Session>
+Remote::ResetSession()
+{
+  std::lock_guard<std::mutex> lock(current_session_mutex_);
+
+  if (!session_is_enabled_) return std::shared_ptr<Session>();
+
+  current_session_ = std::make_shared<Session>();
+
+  discovery_broadcast_.StopAndWait();
+
+  return current_session_;
+}
+
+void
+Remote::ClearSession()
+{
+  std::lock_guard<std::mutex> lock(current_session_mutex_);
+  if (current_session_) {
+    current_session_->Shutdown();
+    current_session_.reset();
+  }
+  if (session_is_enabled_) discovery_broadcast_.StartIfNotRunning();
+}
+
 void
 Remote::Render(Camera* camera)
 {
-  auto pool = session_manager_.GetCurrentResourcePool();
+  auto session = current_session_;
+  if (!session) return;
+
+  auto pool = session->pool();
   if (!pool) return;
 
   glEnable(GL_DEPTH_TEST);
