@@ -2,13 +2,12 @@
 
 #include "client/serial-command-queue.h"
 #include "core/common.h"
-#include "zen-remote/client/session.h"
 
 namespace zen::remote::client {
 
 class ResourcePool;
 
-class Session final : public ISession {
+class Session final {
  public:
   DISABLE_MOVE_AND_COPY(Session);
   Session();
