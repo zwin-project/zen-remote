@@ -3,6 +3,10 @@
 #include "client/serial-command-queue.h"
 #include "core/common.h"
 
+namespace zen::remote::client::service {
+class AsyncSessionKeepaliveCaller;
+}
+
 namespace zen::remote::client {
 
 class ResourcePool;
@@ -15,6 +19,9 @@ class Session final {
 
   void Shutdown();
 
+  bool SetKeepaliveCaller(
+      service::AsyncSessionKeepaliveCaller *keepalive_caller);
+
   bool PushCommand(uint64_t serial, std::unique_ptr<ICommand> command);
 
   inline uint64_t id();
@@ -24,10 +31,13 @@ class Session final {
   const uint64_t id_;
   const std::shared_ptr<ResourcePool> pool_;
   bool active_ = true;
-  std::mutex active_mutex_;
+  std::mutex active_mutex_;  // priority 0
 
   std::unique_ptr<SerialCommandQueue> command_queue_;
-  std::mutex command_queue_mutex_;
+  std::mutex command_queue_mutex_;  // priority 1
+
+  service::AsyncSessionKeepaliveCaller *keepalive_caller_ = nullptr;
+  std::mutex keepalive_caller_mutex_;  // priority 2
 
   static uint64_t next_id_;
 };
