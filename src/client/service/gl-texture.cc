@@ -99,7 +99,7 @@ grpc::Status
 GlTextureServiceImpl::GlGenerateMipmap(grpc::ServerContext* /*context*/,
     const GlGenerateMipmapRequest* request, EmptyResponse* /*response*/)
 {
-  auto pool = remote_->session_manager()->current()->pool();
+  auto pool = remote_->current()->pool();
 
   auto texture = pool->gl_textures()->Get(request->id());
 
