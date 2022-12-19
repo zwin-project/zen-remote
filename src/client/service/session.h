@@ -24,6 +24,9 @@ class SessionServiceImpl final : public SessionService::Service,
   grpc::Status New(grpc::ServerContext* context,
       const NewSessionRequest* request, NewSessionResponse* response) override;
 
+  grpc::Status Shutdown(grpc::ServerContext* context,
+      const SessionShutdownRequest* request, EmptyResponse* response) override;
+
  private:
   SessionService::AsyncService async_;
   Remote* remote_;

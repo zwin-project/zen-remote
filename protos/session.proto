@@ -2,11 +2,15 @@ syntax = "proto3";
 
 package zen.remote;
 
+import "common.proto";
+
 service SessionService
 {
   rpc New(NewSessionRequest) returns (NewSessionResponse);
 
-  rpc Ping(stream SessionPingRequest) returns (SessionTerminateResponse);
+  rpc Keepalive(SessionKeepaliveRequest) returns (SessionTerminateResponse);
+
+  rpc Shutdown(SessionShutdownRequest) returns (EmptyResponse);
 }
 
 message NewSessionRequest {}
@@ -16,10 +20,14 @@ message NewSessionResponse
   uint64 id = 1;  // session id
 }
 
-message SessionPingRequest
+message SessionKeepaliveRequest
 {
   uint64 id = 1;  // session id
-  bool done = 2;  // workaround for https://github.com/grpc/grpc/issues/10136
 }
 
 message SessionTerminateResponse {}
+
+message SessionShutdownRequest
+{
+  uint64 id = 1;  // session id
+}

@@ -1,6 +1,7 @@
 #include "server/session.h"
 
 #include "core/logger.h"
+#include "server/async-grpc-caller.h"
 #include "server/async-grpc-queue.h"
 #include "server/serial-request-context.h"
 #include "server/session-connection.h"
@@ -16,6 +17,31 @@ Session::Session(std::unique_ptr<ILoop> loop) : loop_(std::move(loop))
 
 Session::~Session()
 {
+  if (id_ != 0) {
+    grpc::ClientContext context;
+    auto stub = SessionService::NewStub(connection_->grpc_channel());
+    SessionShutdownRequest request;
+    request.set_id(id_);
+    EmptyResponse response;
+
+    std::mutex mutex;
+    std::condition_variable cond;
+    bool done = false;
+    grpc::Status status;
+
+    stub->async()->Shutdown(&context, &request, &response,
+        [&mutex, &cond, &done, &status](grpc::Status s) {
+          std::lock_guard<std::mutex> lock(mutex);
+          status = std::move(s);
+          done = true;
+          cond.notify_one();
+        });
+
+    std::unique_lock<std::mutex> lock(mutex);
+    cond.wait_for(
+        lock, std::chrono::milliseconds(300), [&done] { return done; });
+  }
+
   /**
    * Terminate job queue first so that no additional work is enqueued to
    * grpc_queue after termination.
@@ -33,6 +59,34 @@ Session::~Session()
   if (control_event_source_) {
     loop_->RemoveFd(control_event_source_);
   }
+}
+
+void
+Session::StartKeepalive()
+{
+  auto job = CreateJob([id = id_, connection = connection_,
+                           grpc_queue = grpc_queue_](bool cancel) {
+    if (cancel) {
+      return;
+    }
+
+    auto context = std::make_unique<grpc::ClientContext>();
+    auto stub = SessionService::NewStub(connection->grpc_channel());
+
+    auto caller =
+        new AsyncGrpcCaller<&SessionService::Stub::PrepareAsyncKeepalive>(
+            std::move(stub), std::move(context),
+            [connection](SessionTerminateResponse* /*response*/,
+                grpc::Status* /*status*/) {
+              connection->NotifyDisconnection();
+            });
+
+    caller->request()->set_id(id);
+
+    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
+
+  job_queue_.Push(std::move(job));
 }
 
 bool
@@ -81,6 +135,8 @@ Session::Connect(std::shared_ptr<IPeer> peer)
   connected_ = true;
 
   job_queue_.StartWorkerThread();
+
+  StartKeepalive();
 
   return true;
 }

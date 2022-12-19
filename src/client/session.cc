@@ -1,6 +1,7 @@
 #include "session.h"
 
 #include "client/resource-pool.h"
+#include "client/service/async-session-keepalive-caller.h"
 #include "core/logger.h"
 
 namespace zen::remote::client {
@@ -26,9 +27,29 @@ Session::~Session()
 void
 Session::Shutdown()
 {
-  std::lock_guard<std::mutex> lock(active_mutex_);
+  std::lock_guard<std::mutex> lock_active(active_mutex_);
+  std::lock_guard<std::mutex> lock_keepalive(keepalive_caller_mutex_);
+
   active_ = false;
-  // Send Session shutdown packet to zen
+
+  if (keepalive_caller_) {
+    keepalive_caller_->Finish();
+    keepalive_caller_ = nullptr;
+  }
+}
+
+bool
+Session::SetKeepaliveCaller(
+    service::AsyncSessionKeepaliveCaller *keepalive_caller)
+{
+  std::lock_guard<std::mutex> lock_active(active_mutex_);
+  std::lock_guard<std::mutex> lock_keepalive(keepalive_caller_mutex_);
+
+  if (!active_ || keepalive_caller_) return false;
+
+  keepalive_caller_ = keepalive_caller;
+
+  return true;
 }
 
 bool

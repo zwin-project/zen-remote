@@ -71,14 +71,15 @@ Remote::ResetSession()
 }
 
 void
-Remote::ClearSession()
+Remote::ClearSession(uint64_t id)
 {
   std::lock_guard<std::mutex> lock(current_session_mutex_);
-  if (current_session_) {
+  if (current_session_ && current_session_->id() == id) {
     current_session_->Shutdown();
     current_session_.reset();
   }
-  if (session_is_enabled_) discovery_broadcast_.StartIfNotRunning();
+  if (!current_session_ && session_is_enabled_)
+    discovery_broadcast_.StartIfNotRunning();
 }
 
 void

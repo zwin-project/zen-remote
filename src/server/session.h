@@ -38,6 +38,8 @@ class Session final : public ISession {
  private:
   void HandleControlEvent(SessionConnection::ControlMessage message);
 
+  void StartKeepalive();
+
   JobQueue job_queue_;
   std::shared_ptr<AsyncGrpcQueue> grpc_queue_;     // shareable across threads
   std::shared_ptr<SessionConnection> connection_;  // sharable across threads

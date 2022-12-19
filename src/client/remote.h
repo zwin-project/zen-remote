@@ -30,7 +30,7 @@ class Remote : public IRemote {
   std::shared_ptr<Session> ResetSession();
 
   /** Used from any threads */
-  void ClearSession();
+  void ClearSession(uint64_t id);
 
   /**
    * Before calling this, bind a framebuffer, set a viewport, and clear the
