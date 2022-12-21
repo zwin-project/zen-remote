@@ -136,6 +136,7 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
   if (!session) return;
 
   auto context_raw = new SerialRequestContext(session.get());
+  context_raw->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
 
   auto job = CreateJob([id = id_, connection = session->connection(),
                            context_raw, grpc_queue = session->grpc_queue(),
@@ -187,6 +188,7 @@ GlTexture::GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
   if (!session) return;
 
   auto context_raw = new SerialRequestContext(session.get());
+  context_raw->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
 
   auto job =
       CreateJob([id = id_, connection = session->connection(), context_raw,
