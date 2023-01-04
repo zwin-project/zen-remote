@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class GlBuffer final : public IGlBuffer {
  public:
   DISABLE_MOVE_AND_COPY(GlBuffer);
   GlBuffer() = delete;
-  GlBuffer(std::shared_ptr<Session> session);
+  GlBuffer(std::shared_ptr<Channel> channel);
   ~GlBuffer();
 
   void Init();
@@ -23,7 +23,7 @@ class GlBuffer final : public IGlBuffer {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class GlSampler final : public IGlSampler {
  public:
   DISABLE_MOVE_AND_COPY(GlSampler);
   GlSampler() = delete;
-  GlSampler(std::shared_ptr<Session> session);
+  GlSampler(std::shared_ptr<Channel> channel);
   ~GlSampler();
 
   void Init();
@@ -32,7 +32,7 @@ class GlSampler final : public IGlSampler {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

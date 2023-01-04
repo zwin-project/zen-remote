@@ -9,20 +9,12 @@ namespace zen::remote::client {
 /** session id 0 is reserved */
 uint64_t Session::next_id_ = 1;
 
-Session::Session()
-    : id_(next_id_++),
-      pool_(std::make_shared<ResourcePool>()),
-      command_queue_(std::make_unique<SerialCommandQueue>())
+Session::Session() : id_(next_id_++), pool_(std::make_shared<ResourcePool>())
 {
   LOG_DEBUG("Session %ld started", id_);
 }
 
-Session::~Session()
-{
-  LOG_DEBUG("Session %ld destroyed", id_);
-  std::lock_guard<std::mutex> lock(command_queue_mutex_);
-  command_queue_.reset();
-}
+Session::~Session() { LOG_DEBUG("Session %ld destroyed", id_); }
 
 void
 Session::Shutdown()
@@ -52,15 +44,27 @@ Session::SetKeepaliveCaller(
   return true;
 }
 
-bool
-Session::PushCommand(uint64_t serial, std::unique_ptr<ICommand> command)
+void
+Session::PushCommand(
+    uint64_t serial, uint64_t channel_id, std::unique_ptr<ICommand> command)
 {
   std::lock_guard<std::mutex> lock(command_queue_mutex_);
-  if (command_queue_) {
-    command_queue_->Push(serial, std::move(command));
-    return true;
-  } else {
-    return false;
+
+  auto new_queue = std::make_unique<SerialCommandQueue>();
+
+  auto [iter, _] =
+      command_queues_.try_emplace(channel_id, std::move(new_queue));
+
+  iter->second->Push(serial, std::move(command));
+
+  if (command_queues_.size() > 100) {
+    for (auto it = command_queues_.begin(); it != command_queues_.end();) {
+      if (it->second->IsEmpty()) {
+        it = command_queues_.erase(it);
+      } else {
+        it++;
+      }
+    }
   }
 }
 

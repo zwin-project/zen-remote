@@ -14,6 +14,9 @@ AsyncGrpcQueue::AsyncGrpcQueue()
 void
 AsyncGrpcQueue::Push(std::unique_ptr<AsyncGrpcCallerBase> caller)
 {
+  std::lock_guard<std::mutex> lock(mtx_);
+  if (!enabled_) return;
+
   auto caller_raw = caller.release();
 
   caller_raw->Start(cq_.get());
@@ -24,6 +27,9 @@ AsyncGrpcQueue::Push(std::unique_ptr<AsyncGrpcCallerBase> caller)
 void
 AsyncGrpcQueue::Start()
 {
+  std::lock_guard<std::mutex> lock(mtx_);
+  enabled_ = true;
+
   if (thread_.joinable()) return;
 
   thread_ = std::thread([cq = cq_, this] {
@@ -45,6 +51,10 @@ AsyncGrpcQueue::Start()
 void
 AsyncGrpcQueue::Terminate()
 {
+  std::lock_guard<std::mutex> lock(mtx_);
+  if (enabled_ == false) return;
+  enabled_ = false;
+
   if (!thread_.joinable()) return;
 
   cq_->Shutdown();

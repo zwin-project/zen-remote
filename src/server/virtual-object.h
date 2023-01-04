@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class VirtualObject final : public IVirtualObject {
  public:
   DISABLE_MOVE_AND_COPY(VirtualObject);
   VirtualObject() = delete;
-  VirtualObject(std::shared_ptr<Session> session);
+  VirtualObject(std::shared_ptr<Channel> channel);
   ~VirtualObject();
 
   void Init();
@@ -24,7 +24,7 @@ class VirtualObject final : public IVirtualObject {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class GlShader final : public IGlShader {
  public:
   DISABLE_MOVE_AND_COPY(GlShader);
   GlShader() = delete;
-  GlShader(std::shared_ptr<Session> session);
+  GlShader(std::shared_ptr<Channel> channel);
   ~GlShader();
 
   void Init(std::string source, uint32_t type);
@@ -20,7 +20,7 @@ class GlShader final : public IGlShader {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

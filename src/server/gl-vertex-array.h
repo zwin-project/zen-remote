@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class GlVertexArray final : public IGlVertexArray {
  public:
   DISABLE_MOVE_AND_COPY(GlVertexArray);
   GlVertexArray() = delete;
-  GlVertexArray(std::shared_ptr<Session> session);
+  GlVertexArray(std::shared_ptr<Channel> channel);
   ~GlVertexArray();
 
   void Init();
@@ -28,7 +28,7 @@ class GlVertexArray final : public IGlVertexArray {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

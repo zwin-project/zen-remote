@@ -6,13 +6,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class GlBaseTechnique final : public IGlBaseTechnique {
  public:
   DISABLE_MOVE_AND_COPY(GlBaseTechnique);
   GlBaseTechnique() = delete;
-  GlBaseTechnique(std::shared_ptr<Session> session);
+  GlBaseTechnique(std::shared_ptr<Channel> channel);
   ~GlBaseTechnique();
 
   void Init(uint64_t rendering_unit_id);
@@ -48,7 +48,7 @@ class GlBaseTechnique final : public IGlBaseTechnique {
       uint32_t col, uint32_t row, uint32_t count, bool transpose, void* value);
 
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

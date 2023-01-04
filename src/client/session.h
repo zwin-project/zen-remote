@@ -22,7 +22,8 @@ class Session final {
   bool SetKeepaliveCaller(
       service::AsyncSessionKeepaliveCaller *keepalive_caller);
 
-  bool PushCommand(uint64_t serial, std::unique_ptr<ICommand> command);
+  void PushCommand(
+      uint64_t serial, uint64_t channel_id, std::unique_ptr<ICommand> command);
 
   inline uint64_t id();
   inline std::shared_ptr<ResourcePool> pool();
@@ -33,7 +34,8 @@ class Session final {
   bool active_ = true;
   std::mutex active_mutex_;  // priority 0
 
-  std::unique_ptr<SerialCommandQueue> command_queue_;
+  std::unordered_map<uint64_t, std::unique_ptr<SerialCommandQueue>>
+      command_queues_;
   std::mutex command_queue_mutex_;  // priority 1
 
   service::AsyncSessionKeepaliveCaller *keepalive_caller_ = nullptr;

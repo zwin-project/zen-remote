@@ -7,9 +7,9 @@
 #include "server/async-grpc-caller.h"
 #include "server/async-grpc-queue.h"
 #include "server/buffer.h"
+#include "server/channel.h"
 #include "server/job.h"
 #include "server/serial-request-context.h"
-#include "server/session.h"
 
 namespace zen::remote::server {
 
@@ -87,44 +87,43 @@ CalcTextureSize(uint32_t width, uint32_t height, uint32_t format, uint32_t type)
 
 }  // namespace
 
-GlTexture::GlTexture(std::shared_ptr<Session> session)
-    : id_(session->NewSerial(Session::kResource)), session_(std::move(session))
+GlTexture::GlTexture(std::shared_ptr<Channel> channel)
+    : id_(channel->NewSerial(Channel::kResource)), channel_(std::move(channel))
 {
 }
 
 void
 GlTexture::Init()
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-
-  auto job = CreateJob([id = id_, connection = session->connection(),
-                           context_raw,
-                           grpc_queue = session->grpc_queue()](bool cancel) {
-    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-    if (cancel) {
+  auto job = CreateJob([id = id_, channel_weak = channel_](bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
-    auto stub = GlTextureService::NewStub(connection->grpc_channel());
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+
+    auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
     auto caller = new AsyncGrpcCaller<&GlTextureService::Stub::PrepareAsyncNew>(
         std::move(stub), std::move(context),
-        [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+        [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
           if (!status->ok() && status->error_code() != grpc::CANCELLED) {
             LOG_WARN("Failed to call remote GlTexture::New");
-            connection->NotifyDisconnection();
+            if (auto channel = channel_weak.lock())
+              channel->NotifyDisconnection();
           }
         });
 
     caller->request()->set_id(id);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 void
@@ -132,31 +131,28 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
     uint32_t width, uint32_t height, int32_t border, uint32_t format,
     uint32_t type, std::unique_ptr<IBuffer> buffer)
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-  context_raw->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
-
-  auto job = CreateJob([id = id_, connection = session->connection(),
-                           context_raw, grpc_queue = session->grpc_queue(),
-                           target, level, internal_format, width, height,
-                           border, format, type,
+  auto job = CreateJob([id = id_, channel_weak = channel_, target, level,
+                           internal_format, width, height, border, format, type,
                            buffer = std::move(buffer)](bool cancel) {
-    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-    if (cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
-    auto stub = GlTextureService::NewStub(connection->grpc_channel());
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+    context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+
+    auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
     auto caller =
         new AsyncGrpcCaller<&GlTextureService::Stub::PrepareAsyncGlTexImage2D>(
             std::move(stub), std::move(context),
-            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+            [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
               if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote GlTexture::GlTexImage2D");
-                connection->NotifyDisconnection();
+                if (auto channel = channel_weak.lock())
+                  channel->NotifyDisconnection();
               }
             });
 
@@ -173,10 +169,12 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
     caller->request()->set_type(type);
     caller->request()->set_data(buffer->data(), size);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 void
@@ -184,123 +182,121 @@ GlTexture::GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
     int32_t yoffset, uint32_t width, uint32_t height, uint32_t format,
     uint32_t type, std::unique_ptr<IBuffer> buffer)
 {
-  auto session = session_.lock();
-  if (!session) return;
+  auto job = CreateJob([id = id_, channel_weak = channel_, target, level,
+                           xoffset, yoffset, width, height, format, type,
+                           buffer = std::move(buffer)](bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
+      return;
+    }
 
-  auto context_raw = new SerialRequestContext(session.get());
-  context_raw->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+    context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
 
-  auto job =
-      CreateJob([id = id_, connection = session->connection(), context_raw,
-                    grpc_queue = session->grpc_queue(), target, level, xoffset,
-                    yoffset, width, height, format, type,
-                    buffer = std::move(buffer)](bool cancel) {
-        auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-        if (cancel) {
-          return;
-        }
+    auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
-        auto stub = GlTextureService::NewStub(connection->grpc_channel());
+    auto caller = new AsyncGrpcCaller<
+        &GlTextureService::Stub::PrepareAsyncGlTexSubImage2D>(std::move(stub),
+        std::move(context),
+        [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
+          if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote GlTexture::GlTexSubImage2D");
+            if (auto channel = channel_weak.lock())
+              channel->NotifyDisconnection();
+          }
+        });
 
-        auto caller = new AsyncGrpcCaller<
-            &GlTextureService::Stub::PrepareAsyncGlTexSubImage2D>(
-            std::move(stub), std::move(context),
-            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
-              if (!status->ok() && status->error_code() != grpc::CANCELLED) {
-                LOG_WARN("Failed to call remote GlTexture::GlTexSubImage2D");
-                connection->NotifyDisconnection();
-              }
-            });
+    size_t size = CalcTextureSize(width, height, format, type);
 
-        size_t size = CalcTextureSize(width, height, format, type);
+    caller->request()->set_id(id);
+    caller->request()->set_target(target);
+    caller->request()->set_level(level);
+    caller->request()->set_xoffset(xoffset);
+    caller->request()->set_yoffset(yoffset);
+    caller->request()->set_width(width);
+    caller->request()->set_height(height);
+    caller->request()->set_format(format);
+    caller->request()->set_type(type);
+    caller->request()->set_data(buffer->data(), size);
 
-        caller->request()->set_id(id);
-        caller->request()->set_target(target);
-        caller->request()->set_level(level);
-        caller->request()->set_xoffset(xoffset);
-        caller->request()->set_yoffset(yoffset);
-        caller->request()->set_width(width);
-        caller->request()->set_height(height);
-        caller->request()->set_format(format);
-        caller->request()->set_type(type);
-        caller->request()->set_data(buffer->data(), size);
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
 
-        grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
-      });
-
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 void
 GlTexture::GlGenerateMipmap(uint32_t target)
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-
   auto job =
-      CreateJob([id = id_, connection = session->connection(), context_raw,
-                    grpc_queue = session->grpc_queue(), target](bool cancel) {
-        auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-        if (cancel) {
+      CreateJob([id = id_, channel_weak = channel_, target](bool cancel) {
+        auto channel = channel_weak.lock();
+        if (cancel || !channel) {
           return;
         }
 
-        auto stub = GlTextureService::NewStub(connection->grpc_channel());
+        auto context = std::unique_ptr<grpc::ClientContext>(
+            new SerialRequestContext(channel));
+
+        auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
         auto caller = new AsyncGrpcCaller<
             &GlTextureService::Stub::PrepareAsyncGlGenerateMipmap>(
             std::move(stub), std::move(context),
-            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+            [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
               if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote GlTexture::GlGenerateMipmap");
-                connection->NotifyDisconnection();
+                if (auto channel = channel_weak.lock())
+                  channel->NotifyDisconnection();
               }
             });
 
         caller->request()->set_id(id);
         caller->request()->set_target(target);
 
-        grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+        channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
       });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 GlTexture::~GlTexture()
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-
-  auto job = CreateJob([id = id_, connection = session->connection(),
-                           context_raw,
-                           grpc_queue = session->grpc_queue()](bool cancel) {
-    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-    if (cancel) {
+  auto job = CreateJob([id = id_, channel_weak = channel_](bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
-    auto stub = GlTextureService::NewStub(connection->grpc_channel());
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+
+    auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
     auto caller =
         new AsyncGrpcCaller<&GlTextureService::Stub::PrepareAsyncDelete>(
             std::move(stub), std::move(context),
-            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+            [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
               if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote GlTexture::Delete");
-                connection->NotifyDisconnection();
+                if (auto channel = channel_weak.lock())
+                  channel->NotifyDisconnection();
               }
             });
 
     caller->request()->set_id(id);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 uint64_t
@@ -310,10 +306,10 @@ GlTexture::id()
 }
 
 std::unique_ptr<IGlTexture>
-CreateGlTexture(std::shared_ptr<ISession> session)
+CreateGlTexture(std::shared_ptr<IChannel> channel)
 {
   auto gl_texture =
-      std::make_unique<GlTexture>(std::dynamic_pointer_cast<Session>(session));
+      std::make_unique<GlTexture>(std::dynamic_pointer_cast<Channel>(channel));
   gl_texture->Init();
 
   return gl_texture;

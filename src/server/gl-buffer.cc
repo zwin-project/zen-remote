@@ -5,80 +5,77 @@
 #include "server/async-grpc-caller.h"
 #include "server/async-grpc-queue.h"
 #include "server/buffer.h"
+#include "server/channel.h"
 #include "server/job-queue.h"
 #include "server/job.h"
 #include "server/serial-request-context.h"
-#include "server/session.h"
 
 namespace zen::remote::server {
 
-GlBuffer::GlBuffer(std::shared_ptr<Session> session)
-    : id_(session->NewSerial(Session::kResource)), session_(std::move(session))
+GlBuffer::GlBuffer(std::shared_ptr<Channel> channel)
+    : id_(channel->NewSerial(Channel::kResource)), channel_(std::move(channel))
 {
 }
 
 void
 GlBuffer::Init()
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-
-  auto job = CreateJob([id = id_, connection = session->connection(),
-                           context_raw,
-                           grpc_queue = session->grpc_queue()](bool cancel) {
-    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-    if (cancel) {
+  auto job = CreateJob([id = id_, channel_weak = channel_](bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
-    auto stub = GlBufferService::NewStub(connection->grpc_channel());
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+
+    auto stub = GlBufferService::NewStub(channel->grpc_channel());
 
     auto caller = new AsyncGrpcCaller<&GlBufferService::Stub::PrepareAsyncNew>(
         std::move(stub), std::move(context),
-        [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+        [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
           if (!status->ok() && status->error_code() != grpc::CANCELLED) {
             LOG_WARN("Failed to call remote GlBuffer::New");
-            connection->NotifyDisconnection();
+            if (auto channel = channel_weak.lock())
+              channel->NotifyDisconnection();
           }
         });
 
     caller->request()->set_id(id);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 void
 GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint32_t target,
     size_t size, uint32_t usage)
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-
-  auto job = CreateJob([id = id_, connection = session->connection(),
-                           context_raw, grpc_queue = session->grpc_queue(),
+  auto job = CreateJob([id = id_, channel_weak = channel_,
                            buffer = std::move(buffer), target, size,
                            usage](bool cancel) {
-    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-    if (cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
-    auto stub = GlBufferService::NewStub(connection->grpc_channel());
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+
+    auto stub = GlBufferService::NewStub(channel->grpc_channel());
 
     auto caller =
         new AsyncGrpcCaller<&GlBufferService::Stub::PrepareAsyncGlBufferData>(
             std::move(stub), std::move(context),
-            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+            [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
               if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote GlBuffer::GlBufferData");
-                connection->NotifyDisconnection();
+                if (auto channel = channel_weak.lock())
+                  channel->NotifyDisconnection();
               }
             });
 
@@ -87,45 +84,46 @@ GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint32_t target,
     caller->request()->set_usage(usage);
     caller->request()->set_data(buffer->data(), size);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 GlBuffer::~GlBuffer()
 {
-  auto session = session_.lock();
-  if (!session) return;
-
-  auto context_raw = new SerialRequestContext(session.get());
-
-  auto job = CreateJob([id = id_, connection = session->connection(),
-                           context_raw,
-                           grpc_queue = session->grpc_queue()](bool cancel) {
-    auto context = std::unique_ptr<grpc::ClientContext>(context_raw);
-    if (cancel) {
+  auto job = CreateJob([id = id_, channel_weak = channel_](bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
-    auto stub = GlBufferService::NewStub(connection->grpc_channel());
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+
+    auto stub = GlBufferService::NewStub(channel->grpc_channel());
 
     auto caller =
         new AsyncGrpcCaller<&GlBufferService::Stub::PrepareAsyncDelete>(
             std::move(stub), std::move(context),
-            [connection](EmptyResponse* /*response*/, grpc::Status* status) {
+            [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
               if (!status->ok() && status->error_code() != grpc::CANCELLED) {
                 LOG_WARN("Failed to call remote GlBuffer::Delete");
-                connection->NotifyDisconnection();
+                if (auto channel = channel_weak.lock())
+                  channel->NotifyDisconnection();
               }
             });
 
     caller->request()->set_id(id);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  session->job_queue()->Push(std::move(job));
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
 }
 
 uint64_t
@@ -135,10 +133,10 @@ GlBuffer::id()
 }
 
 std::unique_ptr<IGlBuffer>
-CreateGlBuffer(std::shared_ptr<ISession> session)
+CreateGlBuffer(std::shared_ptr<IChannel> channel)
 {
   auto gl_buffer =
-      std::make_unique<GlBuffer>(std::dynamic_pointer_cast<Session>(session));
+      std::make_unique<GlBuffer>(std::dynamic_pointer_cast<Channel>(channel));
 
   gl_buffer->Init();
 
