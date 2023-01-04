@@ -23,6 +23,8 @@ class SerialCommandQueue {
 
   void Push(uint64_t serial, std::unique_ptr<ICommand> command);
 
+  bool IsEmpty();
+
  private:
   void Consume();
   void Insert(uint64_t serial, std::unique_ptr<ICommand> command);

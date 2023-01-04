@@ -5,7 +5,7 @@ project(
   LANGUAGES C CXX
   HOMEPAGE_URL https://github.com/zigen-project/zen-remote
   DESCRIPTION "Library for ZEN to communicate with devices over a network"
-  VERSION 0.1.0.25
+  VERSION 0.1.0.26
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -16,7 +16,7 @@ if (EXISTS local.cmake)
 endif()
 
 function(set_default variable default)
-  if (NOT DEFINED ${variable})
+  if (NOT DEFINED ${variable} OR ${variable} STREQUAL "")
     set(${variable} ${default} PARENT_SCOPE)
   endif()
 endfunction()
@@ -25,6 +25,8 @@ set_default(CMAKE_BUILD_TYPE Debug)
 set_default(ZEN_REMOTE_CLIENT ON)
 set_default(ZEN_REMOTE_SERVER ON)
 set_default(ZEN_REMOTE_GRAPHICS_API OpenGL)
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
 
 if(ZEN_REMOTE_REQUIRED_VERSION VERSION_GREATER ${PROJECT_VERSION})
   message(FATAL_ERROR string(CONCAT

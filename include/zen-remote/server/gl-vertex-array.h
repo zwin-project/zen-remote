@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zen-remote/server/session.h>
+#include <zen-remote/server/channel.h>
 
 #include <memory>
 
@@ -21,6 +21,6 @@ struct IGlVertexArray {
 };
 
 std::unique_ptr<IGlVertexArray> CreateGlVertexArray(
-    std::shared_ptr<ISession> session);
+    std::shared_ptr<IChannel> channel);
 
 }  // namespace zen::remote::server

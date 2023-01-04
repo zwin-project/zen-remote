@@ -67,5 +67,6 @@ inline constexpr uint16_t kGrpcPort = 50051;     // listen in client
 
 inline constexpr char kGrpcMetadataSerialKey[] = "serial";
 inline constexpr char kGrpcMetadataSessionKey[] = "session";
+inline constexpr char kGrpcMetadataChannelKey[] = "channel";
 
 }  // namespace zen::remote

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zen-remote/server/session.h>
+#include <zen-remote/server/channel.h>
 
 #include <memory>
 
@@ -13,6 +13,6 @@ struct IGlShader {
 };
 
 std::unique_ptr<IGlShader> CreateGlShader(
-    std::shared_ptr<ISession> session, std::string source, uint32_t type);
+    std::shared_ptr<IChannel> channel, std::string source, uint32_t type);
 
 }  // namespace zen::remote::server

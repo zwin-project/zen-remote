@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class GlTexture final : public IGlTexture {
  public:
   DISABLE_MOVE_AND_COPY(GlTexture);
   GlTexture() = delete;
-  GlTexture(std::shared_ptr<Session> session);
+  GlTexture(std::shared_ptr<Channel> channel);
   ~GlTexture();
 
   void Init();
@@ -30,7 +30,7 @@ class GlTexture final : public IGlTexture {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

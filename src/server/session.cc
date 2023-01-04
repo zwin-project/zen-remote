@@ -3,13 +3,15 @@
 #include "core/logger.h"
 #include "server/async-grpc-caller.h"
 #include "server/async-grpc-queue.h"
+#include "server/channel.h"
 #include "server/serial-request-context.h"
 #include "server/session-connection.h"
 #include "session.grpc.pb.h"
 
 namespace zen::remote::server {
 
-Session::Session(std::unique_ptr<ILoop> loop) : loop_(std::move(loop))
+Session::Session(std::unique_ptr<ILoop> loop)
+    : loop_(std::move(loop)), serial_(std::make_shared<SessionSerial>())
 {
   pipe_[0] = 0;
   pipe_[1] = 0;
@@ -19,7 +21,7 @@ Session::~Session()
 {
   if (id_ != 0) {
     grpc::ClientContext context;
-    auto stub = SessionService::NewStub(connection_->grpc_channel());
+    auto stub = SessionService::NewStub(session_channel_->grpc_channel());
     SessionShutdownRequest request;
     request.set_id(id_);
     EmptyResponse response;
@@ -42,14 +44,7 @@ Session::~Session()
         lock, std::chrono::milliseconds(300), [&done] { return done; });
   }
 
-  /**
-   * Terminate job queue first so that no additional work is enqueued to
-   * grpc_queue after termination.
-   */
-  job_queue_.Terminate();
-  if (grpc_queue_) grpc_queue_->Terminate();
-
-  if (connection_) connection_->Disable();
+  DisableChannels();
 
   if (pipe_[0] != 0) {
     close(pipe_[0]);
@@ -64,29 +59,32 @@ Session::~Session()
 void
 Session::StartKeepalive()
 {
-  auto job = CreateJob([id = id_, connection = connection_,
-                           grpc_queue = grpc_queue_](bool cancel) {
-    if (cancel) {
+  std::weak_ptr<Channel> channel_weak = session_channel_;
+  auto job = CreateJob([id = id_, channel_weak](bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
       return;
     }
 
     auto context = std::make_unique<grpc::ClientContext>();
-    auto stub = SessionService::NewStub(connection->grpc_channel());
+    auto stub = SessionService::NewStub(channel->grpc_channel());
 
     auto caller =
         new AsyncGrpcCaller<&SessionService::Stub::PrepareAsyncKeepalive>(
             std::move(stub), std::move(context),
-            [connection](SessionTerminateResponse* /*response*/,
+            [channel_weak](SessionTerminateResponse* /*response*/,
                 grpc::Status* /*status*/) {
-              connection->NotifyDisconnection();
+              if (auto channel = channel_weak.lock()) {
+                channel->NotifyDisconnection();
+              }
             });
 
     caller->request()->set_id(id);
 
-    grpc_queue->Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
 
-  job_queue_.Push(std::move(job));
+  session_channel_->PushJob(std::move(job));
 }
 
 bool
@@ -94,13 +92,13 @@ Session::Connect(std::shared_ptr<IPeer> peer)
 {
   if (pipe2(pipe_, O_CLOEXEC | O_NONBLOCK) == -1) return false;
 
-  auto host_port = peer->host() + ":" + std::to_string(kGrpcPort);
-  connection_ = std::make_shared<SessionConnection>(pipe_[1], host_port);
+  host_port_ = peer->host() + ":" + std::to_string(kGrpcPort);
 
-  grpc_queue_ = std::make_shared<AsyncGrpcQueue>();
-  grpc_queue_->Start();
+  auto shared_this = std::dynamic_pointer_cast<ISession>(shared_from_this());
+  session_channel_ =
+      std::dynamic_pointer_cast<Channel>(CreateChannel(shared_this));
 
-  auto stub = SessionService::NewStub(connection_->grpc_channel());
+  auto stub = SessionService::NewStub(session_channel_->grpc_channel());
 
   grpc::ClientContext context;
   NewSessionRequest request;
@@ -112,8 +110,8 @@ Session::Connect(std::shared_ptr<IPeer> peer)
     LOG_DEBUG("Failed to start session: %s", status.error_message().c_str());
     close(pipe_[0]);
     close(pipe_[1]);
-    grpc_queue_.reset();
-    connection_.reset();
+    session_channel_.reset();
+    host_port_ = "";
     return false;
   }
 
@@ -134,17 +132,9 @@ Session::Connect(std::shared_ptr<IPeer> peer)
 
   connected_ = true;
 
-  job_queue_.StartWorkerThread();
-
   StartKeepalive();
 
   return true;
-}
-
-int32_t
-Session::GetPendingGrpcQueueCount()
-{
-  return grpc_queue_->pending_count();
 }
 
 void
@@ -155,7 +145,7 @@ Session::HandleControlEvent(SessionConnection::ControlMessage message)
     case SessionConnection::kError:
       if (connected_ == false) return;
       connected_ = false;
-      this->connection_->Disable();
+      DisableChannels();
       this->on_disconnect();  // this may destroy self
       return;
 
@@ -164,16 +154,38 @@ Session::HandleControlEvent(SessionConnection::ControlMessage message)
   }
 }
 
-uint64_t
-Session::NewSerial(Session::SerialType type)
+void
+Session::AddChannel(std::weak_ptr<Channel> channel)
 {
-  return serials_[type]++;
+  for (auto it = channels_.begin(); it != channels_.end();) {
+    if ((*it).expired()) {
+      it = channels_.erase(it);
+    } else {
+      it++;
+    }
+  }
+
+  channels_.push_back(channel);
 }
 
-std::unique_ptr<ISession>
+void
+Session::DisableChannels()
+{
+  for (auto channel_weak : channels_) {
+    if (auto channel = channel_weak.lock()) {
+      channel->Disable();
+    }
+  }
+
+  if (session_channel_) {
+    session_channel_->Disable();
+  }
+}
+
+std::shared_ptr<ISession>
 CreateSession(std::unique_ptr<ILoop> loop)
 {
-  return std::make_unique<Session>(std::move(loop));
+  return std::make_shared<Session>(std::move(loop));
 }
 
 }  // namespace zen::remote::server

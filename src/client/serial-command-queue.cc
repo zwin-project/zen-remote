@@ -28,6 +28,12 @@ SerialCommandQueue::Push(uint64_t serial, std::unique_ptr<ICommand> command)
   }
 }
 
+bool
+SerialCommandQueue::IsEmpty()
+{
+  return list_.empty();
+}
+
 void
 SerialCommandQueue::Consume()
 {

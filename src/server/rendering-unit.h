@@ -5,13 +5,13 @@
 
 namespace zen::remote::server {
 
-class Session;
+class Channel;
 
 class RenderingUnit final : public IRenderingUnit {
  public:
   DISABLE_MOVE_AND_COPY(RenderingUnit);
   RenderingUnit() = delete;
-  RenderingUnit(std::shared_ptr<Session> session);
+  RenderingUnit(std::shared_ptr<Channel> channel);
   ~RenderingUnit();
 
   void Init(uint64_t virtual_object_id);
@@ -19,7 +19,7 @@ class RenderingUnit final : public IRenderingUnit {
 
  private:
   uint64_t id_;
-  std::weak_ptr<Session> session_;
+  std::weak_ptr<Channel> channel_;
 };
 
 }  // namespace zen::remote::server

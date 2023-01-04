@@ -24,6 +24,9 @@ class AsyncGrpcQueue {
   std::thread thread_;
   std::shared_ptr<grpc::CompletionQueue> cq_;
   std::atomic_int32_t pending_count_ = 0;
+
+  bool enabled_ = false;
+  std::mutex mtx_;
 };
 
 inline uint32_t

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zen-remote/server/session.h>
+#include <zen-remote/server/channel.h>
 
 #include <climits>
 #include <memory>
@@ -53,6 +53,6 @@ struct IGlBaseTechnique {
 };
 
 std::unique_ptr<IGlBaseTechnique> CreateGlBaseTechnique(
-    std::shared_ptr<ISession> session, uint64_t rendering_unit_id);
+    std::shared_ptr<IChannel> channel, uint64_t rendering_unit_id);
 
 }  // namespace zen::remote::server

@@ -49,8 +49,9 @@ class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
       new AsyncSessionServiceCaller<AsyncServiceRequest, Handler>(
           async_service_, service_impl_, completion_queue_, remote_);
 
-      uint64_t session_id, request_serial;
-      if (IsSessionContext(&session_id, &request_serial) == false) {
+      uint64_t session_id, request_serial, channel_id;
+      if (IsSessionContext(&session_id, &request_serial, &channel_id) ==
+          false) {
         state_ = kFinish;
         responder_.Finish(response_,
             grpc::Status(grpc::ABORTED, "Client context is invalid"), this);
@@ -84,13 +85,7 @@ class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
         responder_.Finish(response_, grpc_status, this);
       });
 
-      if (!session->PushCommand(request_serial, std::move(command))) {
-        state_ = kFinish;
-        responder_.Finish(
-            response_, grpc::Status(grpc::ABORTED, "Session expired"), this);
-        return;
-      }
-
+      session->PushCommand(request_serial, channel_id, std::move(command));
     } else {
       delete this;
     }
@@ -129,9 +124,10 @@ class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
     return true;
   }
 
-  bool IsSessionContext(uint64_t *session_id, uint64_t *request_serial) const
+  bool IsSessionContext(uint64_t *session_id, uint64_t *request_serial,
+      uint64_t *channel_id) const
   {
-    uint64_t session_id_tmp, request_serial_tmp;
+    uint64_t session_id_tmp, request_serial_tmp, channel_id_tmp;
 
     auto result = context_.client_metadata().find(kGrpcMetadataSessionKey);
     if (result == context_.client_metadata().end()) {
@@ -149,8 +145,17 @@ class AsyncSessionServiceCaller final : public IAsyncServiceCaller {
     if (StringRefToUint64((*result).second, &request_serial_tmp) == false)
       return false;
 
+    result = context_.client_metadata().find(kGrpcMetadataChannelKey);
+    if (result == context_.client_metadata().end()) {
+      return false;
+    }
+
+    if (StringRefToUint64((*result).second, &channel_id_tmp) == false)
+      return false;
+
     *session_id = session_id_tmp;
     *request_serial = request_serial_tmp;
+    *channel_id = channel_id_tmp;
 
     return true;
   }

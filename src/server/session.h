@@ -3,20 +3,21 @@
 #include "core/common.h"
 #include "server/job-queue.h"
 #include "server/session-connection.h"
+#include "server/session-serial.h"
 #include "zen-remote/loop.h"
 #include "zen-remote/server/session.h"
 
 namespace zen::remote::server {
 
 class AsyncGrpcQueue;
+class Channel;
 
-/** Use this only in main thread */
-class Session final : public ISession {
+class Session final : public ISession,
+                      public std::enable_shared_from_this<Session> {
  public:
-  enum SerialType {
-    kResource = 0,
-    kRequest = 1,
-    kCount,
+  enum ControlMessage : uint8_t {
+    kError = 0,
+    kDisconnect,
   };
 
   DISABLE_MOVE_AND_COPY(Session);
@@ -26,56 +27,58 @@ class Session final : public ISession {
   // TODO: make this async
   bool Connect(std::shared_ptr<IPeer> peer) override;
 
-  int32_t GetPendingGrpcQueueCount() override;
+  void AddChannel(std::weak_ptr<Channel> channel);
 
-  uint64_t NewSerial(SerialType type);
-
-  inline JobQueue* job_queue();
-  inline std::shared_ptr<AsyncGrpcQueue> grpc_queue();
-  inline std::shared_ptr<SessionConnection> connection();
   inline uint64_t id();
+
+  inline int control_fd();
+
+  inline std::string host_port();
+
+  inline std::shared_ptr<SessionSerial> serial();
 
  private:
   void HandleControlEvent(SessionConnection::ControlMessage message);
 
   void StartKeepalive();
 
-  JobQueue job_queue_;
-  std::shared_ptr<AsyncGrpcQueue> grpc_queue_;     // shareable across threads
-  std::shared_ptr<SessionConnection> connection_;  // sharable across threads
+  void DisableChannels();
+
+  std::list<std::weak_ptr<Channel>> channels_;
+  std::shared_ptr<Channel> session_channel_;
   std::unique_ptr<ILoop> loop_;
 
   uint64_t id_ = 0;
   bool connected_ = false;
+  std::shared_ptr<SessionSerial> serial_;
 
-  uint64_t serials_[SerialType::kCount] = {0};
-
-  FdSource* control_event_source_;  // null before connected
+  FdSource* control_event_source_ = nullptr;  // null before connected
   int pipe_[2];
+  std::string host_port_;
 };
-
-inline JobQueue*
-Session::job_queue()
-{
-  return &job_queue_;
-}
-
-inline std::shared_ptr<AsyncGrpcQueue>
-Session::grpc_queue()
-{
-  return grpc_queue_;
-}
-
-inline std::shared_ptr<SessionConnection>
-Session::connection()
-{
-  return connection_;
-}
 
 inline uint64_t
 Session::id()
 {
   return id_;
+}
+
+inline int
+Session::control_fd()
+{
+  return pipe_[1];
+}
+
+inline std::string
+Session::host_port()
+{
+  return host_port_;
+}
+
+inline std::shared_ptr<SessionSerial>
+Session::serial()
+{
+  return serial_;
 }
 
 }  // namespace zen::remote::server

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zen-remote/server/session.h>
+#include <zen-remote/server/channel.h>
 
 #include <memory>
 
@@ -17,6 +17,6 @@ struct IVirtualObject {
 };
 
 std::unique_ptr<IVirtualObject> CreateVirtualObject(
-    std::shared_ptr<ISession> session);
+    std::shared_ptr<IChannel> channel);
 
 }  // namespace zen::remote::server
