@@ -16,6 +16,8 @@ struct IChannel {
   virtual ~IChannel() = default;
 
   virtual uint32_t GetBusyness() = 0;
+
+  virtual bool wired() = 0;
 };
 
 std::shared_ptr<IChannel> CreateChannel(std::shared_ptr<ISession>& session);

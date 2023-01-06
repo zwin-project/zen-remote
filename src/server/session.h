@@ -15,11 +15,14 @@ class Channel;
 class Session final : public ISession,
                       public std::enable_shared_from_this<Session> {
  public:
+  enum Characteristic : uint8_t {
+    kWired = 1 << 0,
+  };
+
   enum ControlMessage : uint8_t {
     kError = 0,
     kDisconnect,
   };
-
   DISABLE_MOVE_AND_COPY(Session);
   Session(std::unique_ptr<ILoop> loop);
   ~Session();
@@ -30,6 +33,8 @@ class Session final : public ISession,
   void AddChannel(std::weak_ptr<Channel> channel);
 
   inline uint64_t id();
+
+  inline uint32_t characteristics();
 
   inline int control_fd();
 
@@ -52,7 +57,9 @@ class Session final : public ISession,
   bool connected_ = false;
   std::shared_ptr<SessionSerial> serial_;
 
-  FdSource* control_event_source_ = nullptr;  // null before connected
+  uint32_t characteristics_ = 0;
+
+  std::unique_ptr<FdSource> control_event_source_;
   int pipe_[2];
   std::string host_port_;
 };
@@ -61,6 +68,12 @@ inline uint64_t
 Session::id()
 {
   return id_;
+}
+
+inline uint32_t
+Session::characteristics()
+{
+  return characteristics_;
 }
 
 inline int

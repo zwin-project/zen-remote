@@ -8,6 +8,7 @@
 #include "client/service/gl-shader.h"
 #include "client/service/gl-texture.h"
 #include "client/service/gl-vertex-array.h"
+#include "client/service/peer.h"
 #include "client/service/rendering-unit.h"
 #include "client/service/session.h"
 #include "client/service/virtual-object.h"
@@ -48,6 +49,7 @@ GrpcServer::Start()
     services.emplace_back(new service::GlBaseTechniqueServiceImpl(remote_));
     services.emplace_back(new service::SessionServiceImpl(remote_));
     services.emplace_back(new service::GlVertexArrayServiceImpl(remote_));
+    services.emplace_back(new service::PeerServiceImpl(remote_));
 
     for (auto &service : services) {
       service->Register(builder);

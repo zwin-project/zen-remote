@@ -2,6 +2,9 @@
 
 #include "core/connection/packet.h"
 #include "core/logger.h"
+#include "peer.grpc.pb.h"
+#include "server/async-grpc-caller.h"
+#include "server/async-grpc-queue.h"
 #include "server/peer.h"
 
 namespace zen::remote::server {
@@ -9,9 +12,16 @@ namespace zen::remote::server {
 namespace ip = boost::asio::ip;
 namespace asio = boost::asio;
 
+constexpr char kPortForwardedPeerHost[] = "127.0.0.1";
+
 bool
 PeerManager::Init()
 {
+  if (!notifier_.Init()) {
+    return false;
+  }
+
+  StartPortForwardedPeerProber();
   return ListenUdpBroadcast();
 }
 
@@ -107,7 +117,7 @@ PeerManager::AcceptUdpBroadcast(int /*fd*/, uint32_t mask)
     }
   }
 
-  auto peer = CreatePeer(client_endpoint.address().to_string(), loop_);
+  auto peer = CreatePeer(client_endpoint.address().to_string(), loop_, false);
   if (!peer) {
     LOG_ERROR("Failed to create a peer");
     return;
@@ -126,14 +136,133 @@ PeerManager::AcceptUdpBroadcast(int /*fd*/, uint32_t mask)
   on_peer_discover(peer->id());
 }
 
+void
+PeerManager::StartPortForwardedPeerProber()
+{
+  prober_.enable = true;
+  port_forwarded_peer_prober_ = std::thread([this] {
+    std::string host = kPortForwardedPeerHost;
+    auto host_port = host + ":" + std::to_string(kGrpcPort);
+
+    AsyncGrpcQueue grpc_queue;
+    grpc_queue.Start();
+
+    for (;;) {
+      std::unique_lock<std::mutex> lock(prober_.mtx);
+
+      grpc::ChannelArguments args;
+      auto channel = grpc::CreateCustomChannel(
+          host_port, grpc::InsecureChannelCredentials(), args);
+
+      auto stub = PeerService::NewStub(channel);
+      auto context = std::make_unique<grpc::ClientContext>();
+
+      auto caller = new AsyncGrpcCaller<&PeerService::Stub::PrepareAsyncProbe>(
+          std::move(stub), std::move(context),
+          [this](EmptyResponse* /*response*/, grpc::Status* status) {
+            if (status->ok()) {
+              notifier_.Notify(kPortForwardedPeerProbeSuccess);
+            } else {
+              notifier_.Notify(kPortForwardedPeerProbeFailure);
+            }
+          });
+
+      grpc_queue.Push(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+
+      prober_.cond.wait_for(
+          lock, std::chrono::seconds(1), [this] { return !prober_.enable; });
+
+      if (!prober_.enable) break;
+    }
+
+    grpc_queue.Terminate();
+  });
+}
+
+void
+PeerManager::StopPortForwardedPeerProber()
+{
+  if (!port_forwarded_peer_prober_.joinable()) return;
+
+  {
+    std::lock_guard<std::mutex> lock(prober_.mtx);
+    prober_.enable = false;
+  }
+
+  prober_.cond.notify_one();
+
+  port_forwarded_peer_prober_.join();
+}
+
+void
+PeerManager::PortForwardedPeerProbe(bool success)
+{
+  std::string host = kPortForwardedPeerHost;
+  if (success) {
+    for (auto& peer : peers_) {
+      if (peer->host() == host) {
+        peer->Ping();
+        return;
+      }
+    }
+
+    auto peer = CreatePeer(host, loop_, true);
+    if (!peer) {
+      LOG_ERROR("Failed to create a port forwarded peer");
+      return;
+    }
+
+    peer->on_expired = [this, id = peer->id()]() {
+      peers_.remove_if(
+          [id](std::shared_ptr<Peer>& peer) { return peer->id() == id; });
+      on_peer_lost(id);
+    };
+
+    peer->Ping();
+
+    peers_.push_back(peer);
+
+    on_peer_discover(peer->id());
+  } else {
+    for (auto it = peers_.begin(); it != peers_.end();) {
+      if ((*it)->host() == host) {
+        auto id = (*it)->id();
+        it = peers_.erase(it);
+        on_peer_lost(id);
+      } else {
+        it++;
+      }
+    }
+  }
+}
+
+void
+PeerManager::Notify(uint8_t signal)
+{
+  switch (signal) {
+    case kPortForwardedPeerProbeSuccess:
+      PortForwardedPeerProbe(true);
+      break;
+
+    case kPortForwardedPeerProbeFailure:
+      PortForwardedPeerProbe(false);
+      break;
+
+    default:
+      LOG_WARN("Unknown peer manager signal %u", signal);
+      break;
+  }
+}
+
 PeerManager::PeerManager(std::unique_ptr<ILoop> loop)
-    : loop_(std::move(loop)), udp_socket_(io_context_)
+    : loop_(std::move(loop)), udp_socket_(io_context_), notifier_(loop_, this)
 {
 }
 
 PeerManager::~PeerManager()
 {
   if (udp_socket_source_) loop_->RemoveFd(udp_socket_source_.get());
+  StopPortForwardedPeerProber();
 }
 
 std::unique_ptr<IPeerManager>

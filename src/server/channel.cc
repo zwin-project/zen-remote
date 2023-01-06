@@ -6,9 +6,11 @@
 namespace zen::remote::server {
 
 Channel::Channel(int control_fd, std::string host_port, uint64_t session_id,
-    std::shared_ptr<SessionSerial> session_serial)
+    std::shared_ptr<SessionSerial> session_serial,
+    uint32_t session_characteristics)
     : id_(session_serial->NextChannelSerial()),
       session_id_(session_id),
+      session_characteristics_(session_characteristics),
       enabled_(true),
       control_fd_(control_fd),
       session_serial_(std::move(session_serial))
@@ -68,6 +70,12 @@ Channel::GetBusyness()
   return grpc_queue_.pending_count();
 }
 
+bool
+Channel::wired()
+{
+  return session_characteristics_ & Session::kWired;
+}
+
 uint64_t
 Channel::NewSerial(SerialType type)
 {
@@ -88,8 +96,9 @@ std::shared_ptr<IChannel>
 CreateChannel(std::shared_ptr<ISession>& session_base)
 {
   auto session = std::dynamic_pointer_cast<Session>(session_base);
-  auto channel = std::make_shared<Channel>(session->control_fd(),
-      session->host_port(), session->id(), session->serial());
+  auto channel =
+      std::make_shared<Channel>(session->control_fd(), session->host_port(),
+          session->id(), session->serial(), session->characteristics());
   session->AddChannel(channel);
   return channel;
 }

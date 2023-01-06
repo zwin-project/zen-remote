@@ -10,7 +10,7 @@ class Peer final : public IPeer {
  public:
   DISABLE_MOVE_AND_COPY(Peer);
   Peer() = delete;
-  Peer(std::string host, std::shared_ptr<ILoop> loop);
+  Peer(std::string host, std::shared_ptr<ILoop> loop, bool wired);
   ~Peer();
 
   bool Init();
@@ -18,6 +18,7 @@ class Peer final : public IPeer {
   void Ping();
 
   std::string host() override;
+  bool wired() override;
   uint64_t id() override;
 
   std::function<void()> on_expired;
@@ -25,7 +26,8 @@ class Peer final : public IPeer {
  private:
   void Expire();
 
-  std::string host_;
+  const std::string host_;
+  const bool wired_;
   uint64_t id_;
   std::shared_ptr<ILoop> loop_;
   int ping_timer_fd_ = -1;
@@ -35,6 +37,7 @@ class Peer final : public IPeer {
   static uint64_t next_id_;
 };
 
-std::shared_ptr<Peer> CreatePeer(std::string host, std::shared_ptr<ILoop> loop);
+std::shared_ptr<Peer> CreatePeer(
+    std::string host, std::shared_ptr<ILoop> loop, bool wired);
 
 }  // namespace zen::remote::server

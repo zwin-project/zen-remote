@@ -19,7 +19,8 @@ class Channel final : public IChannel {
 
   DISABLE_MOVE_AND_COPY(Channel);
   Channel(int control_fd, std::string host_port, uint64_t session_id,
-      std::shared_ptr<SessionSerial> session_serial);
+      std::shared_ptr<SessionSerial> session_serial,
+      uint32_t session_characteristics);
   ~Channel();
 
   /**
@@ -41,10 +42,13 @@ class Channel final : public IChannel {
 
   uint32_t GetBusyness() override;
 
+  bool wired() override;
+
   inline std::shared_ptr<grpc::Channel> grpc_channel();
   inline bool enabled();
   inline uint64_t id();
   inline uint64_t session_id();
+  inline uint32_t session_characteristics();
 
  private:
   JobQueue job_queue_;
@@ -53,6 +57,7 @@ class Channel final : public IChannel {
 
   const uint64_t id_;
   const uint64_t session_id_;
+  const uint32_t session_characteristics_;
 
   bool enabled_;
   int control_fd_ = -1;  // if enabled_ then control_fd_ is valid
@@ -87,6 +92,12 @@ inline uint64_t
 Channel::session_id()
 {
   return session_id_;
+}
+
+inline uint32_t
+Channel::session_characteristics()
+{
+  return session_characteristics_;
 }
 
 }  // namespace zen::remote::server

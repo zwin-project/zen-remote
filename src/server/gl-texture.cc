@@ -141,7 +141,9 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
 
     auto context =
         std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
-    context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+    if ((channel->session_characteristics() & Session::kWired) == 0) {
+      context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+    }
 
     auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
@@ -192,7 +194,9 @@ GlTexture::GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
 
     auto context =
         std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
-    context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+    if ((channel->session_characteristics() & Session::kWired) == 0) {
+      context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+    }
 
     auto stub = GlTextureService::NewStub(channel->grpc_channel());
 
