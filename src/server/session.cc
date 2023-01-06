@@ -52,7 +52,7 @@ Session::~Session()
   }
 
   if (control_event_source_) {
-    loop_->RemoveFd(control_event_source_);
+    loop_->RemoveFd(control_event_source_.get());
   }
 }
 
@@ -116,8 +116,11 @@ Session::Connect(std::shared_ptr<IPeer> peer)
   }
 
   id_ = response.id();
+  if (peer->wired()) {
+    characteristics_ |= kWired;
+  }
 
-  control_event_source_ = new FdSource();
+  control_event_source_ = std::make_unique<FdSource>();
 
   control_event_source_->fd = pipe_[0];
   control_event_source_->mask = FdSource::kReadable;
@@ -128,7 +131,7 @@ Session::Connect(std::shared_ptr<IPeer> peer)
     HandleControlEvent(message);  // this may destroy self
   };
 
-  loop_->AddFd(control_event_source_);
+  loop_->AddFd(control_event_source_.get());
 
   connected_ = true;
 

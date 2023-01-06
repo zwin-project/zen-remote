@@ -4,8 +4,8 @@ namespace zen::remote::server {
 
 uint64_t Peer::next_id_ = 0;
 
-Peer::Peer(std::string host, std::shared_ptr<ILoop> loop)
-    : host_(host), id_(next_id_++), loop_(std::move(loop))
+Peer::Peer(std::string host, std::shared_ptr<ILoop> loop, bool wired)
+    : host_(host), wired_(wired), id_(next_id_++), loop_(std::move(loop))
 {
 }
 
@@ -71,6 +71,12 @@ Peer::host()
   return host_;
 }
 
+bool
+Peer::wired()
+{
+  return wired_;
+}
+
 uint64_t
 Peer::id()
 {
@@ -78,9 +84,9 @@ Peer::id()
 }
 
 std::shared_ptr<Peer>
-CreatePeer(std::string host, std::shared_ptr<ILoop> loop)
+CreatePeer(std::string host, std::shared_ptr<ILoop> loop, bool wired)
 {
-  auto peer = std::make_shared<Peer>(host, loop);
+  auto peer = std::make_shared<Peer>(host, loop, wired);
   if (peer->Init() == false) return std::shared_ptr<Peer>();
   return peer;
 }

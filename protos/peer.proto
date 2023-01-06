@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package zen.remote;
+
+import "common.proto";
+
+service PeerService
+{
+  rpc Probe(PeerProbeRequest) returns (EmptyResponse);
+}
+
+message PeerProbeRequest {}

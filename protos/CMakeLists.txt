@@ -29,6 +29,7 @@ set(protos
   "gl-shader"
   "gl-texture"
   "gl-vertex-array"
+  "peer"
   "rendering-unit"
   "session"
   "virtual-object"
