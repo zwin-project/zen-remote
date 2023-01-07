@@ -82,6 +82,13 @@ Remote::ClearSession(uint64_t id)
     discovery_broadcast_.StartIfNotRunning();
 }
 
+bool
+Remote::IsNewSessionAcceptable()
+{
+  std::lock_guard<std::mutex> lock(current_session_mutex_);
+  return !current_session_ && session_is_enabled_;
+}
+
 void
 Remote::Render(Camera* camera)
 {

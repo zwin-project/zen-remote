@@ -32,6 +32,9 @@ class Remote : public IRemote {
   /** Used from any threads */
   void ClearSession(uint64_t id);
 
+  /** Used from any threads */
+  bool IsNewSessionAcceptable();
+
   /**
    * Before calling this, bind a framebuffer, set a viewport, and clear the
    * framebuffer
