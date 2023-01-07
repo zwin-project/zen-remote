@@ -25,7 +25,7 @@ grpc::Status
 PeerServiceImpl::Probe(grpc::ServerContext* /*context*/,
     const PeerProbeRequest* /*request*/, EmptyResponse* /*response*/)
 {
-  if (remote_->current()) {
+  if (!remote_->IsNewSessionAcceptable()) {
     return grpc::Status(
         grpc::StatusCode::UNAVAILABLE, "Current Session Exists");
   } else {
