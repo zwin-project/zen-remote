@@ -236,9 +236,27 @@ void
 GlBaseTechnique::ApplyUniformVariables(
     GLuint program_id, Camera* camera, const glm::mat4& model)
 {
-  glm::mat4 vp;
-  std::memcpy(&vp, &camera->vp, sizeof(glm::mat4));
+  glm::mat4 view;
+  std::memcpy(&view, &camera->view, sizeof(glm::mat4));
+
+  glm::mat4 projection;
+  std::memcpy(&projection, &camera->projection, sizeof(glm::mat4));
+
+  glm::mat4 vp = projection * view;
   glm::mat4 mvp = vp * model;
+
+  auto model_location = glGetUniformLocation(program_id, "zModel");
+  glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
+
+  auto view_location = glGetUniformLocation(program_id, "zView");
+  glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
+
+  auto projection_location = glGetUniformLocation(program_id, "zProjection");
+  glUniformMatrix4fv(
+      projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+
+  auto vp_location = glGetUniformLocation(program_id, "zVP");
+  glUniformMatrix4fv(vp_location, 1, GL_FALSE, glm::value_ptr(vp));
 
   auto mvp_location = glGetUniformLocation(program_id, "zMVP");
   glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
