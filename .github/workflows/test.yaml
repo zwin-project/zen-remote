@@ -21,7 +21,7 @@ jobs:
 
       - name: Download grpc-dev
         run: |
-          curl -L https://github.com/zigen-project/grpc-dev/releases/download/0.0.1/grpc-dev-refs.heads.main-github-host.zip -o grpc-dev.zip
+          curl -L https://github.com/zwin-project/grpc-dev/releases/download/0.0.1/grpc-dev-refs.heads.main-github-host.zip -o grpc-dev.zip
           unzip grpc-dev.zip
         working-directory: ./grpc-dev
 
