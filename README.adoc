@@ -11,7 +11,7 @@ build from source with all dependencies.
 
 === gRPC
 
-Clone and build https://github.com/zigen-project/grpc-dev[grpc-dev],
+Clone and build https://github.com/zwin-project/grpc-dev[grpc-dev],
 using the v1.49.1 branch. We assume that you clone it to `$MY_DIR/grpc-dev`.
 
 If you have already built `grpc-dev`, this is not required.
