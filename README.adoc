@@ -7,6 +7,10 @@ This project will generate libraries for each of the client and server (ZEN).
 The client may run on Android, so the library for the client must be able to 
 build from source with all dependencies.
 
+== Issue
+
+Please report issues related to this repository to https://github.com/zwin-project/zen[zwin-project / zen].
+
 == Build & Install
 
 === gRPC
