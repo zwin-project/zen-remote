@@ -1,9 +1,10 @@
 == ZEN Remote
 
-Library for ZEN to work with devices such as head-mounted displays and
-controllers over the network.
+A library that implements the communication layer between Zen running on the PC
+and Zen Mirror running on the HMD.
 
-This project will generate libraries for each of the client and server (ZEN).
+This project will generate libraries for each of the client (Zen Mirror) and
+server (Zen).
 The client may run on Android, so the library for the client must be able to 
 build from source with all dependencies.
 
@@ -16,26 +17,14 @@ Please report issues related to this repository to https://github.com/zwin-proje
 === gRPC
 
 Clone and build https://github.com/zwin-project/grpc-dev[grpc-dev],
-using the v1.49.1 branch. We assume that you clone it to `$MY_DIR/grpc-dev`.
+using the v1.49.1 branch.
+The following assumes that you have cloned it to `$MY_DIR/grpc-dev`.
 
-If you have already built `grpc-dev`, this is not required.
+If you have already built `grpc-dev`, you can use it.
 
-=== Build & Install
+=== Clone
 
 Clone the `zen-remote` repo and *its submodules*
-
-[source, shell]
-----
-$ mkdir build
-$ cd build
-$ export CXX=clang++ # use clang
-$ export CC=clang
-$ cmake \
-    -DZEN_REMOTE_GRPC_SYSROOT=${MY_DIR}/grpc-dev/native/Debug \
-    ..
-$ make -j
-$ sudo make install
-----
 
 === Configuration
 
@@ -44,7 +33,7 @@ The following CMake variable can be set.
 . `ZEN_REMOTE_GRPC_SYSROOT`(required) +
 Specify a sysroot that contains headers, libraries, executables, etc.
 When cross-compiling for such as Android, those libraries and executables must
-be compiled for that target.
+be compiled for that target. It's typically `$MY_DIR/grpc-dev/native/Debug`.
 . `ZEN_REMOTE_PROTOC_EXECUTABLE`(optional) +
 Specify the path to the `protoc` executable.
 The `protoc` specified here will be executed at build time, so please specify
@@ -65,5 +54,15 @@ You can set these variables via command line arguments or `local.cmake`
 [shell, cmake]
 .local.cmake
 ----
-set(ZEN_REMOTE_GRPC_SYSROOT $ENV{MY_DIR}/grpc-dev/native/Debug)
+set(ZEN_REMOTE_GRPC_SYSROOT $ENV{MY_DIR}/grpc-dev/native/Debug CACHE STRING "")
 ----
+
+=== Build & Install
+
+[source, shell]
+----
+$ cmake -B build -G Ninja
+$ cmake --build build
+$ sudo cmake --install build
+----
+
