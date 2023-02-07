@@ -34,6 +34,8 @@ The following CMake variable can be set.
 Specify a sysroot that contains headers, libraries, executables, etc.
 When cross-compiling for such as Android, those libraries and executables must
 be compiled for that target. It's typically `$MY_DIR/grpc-dev/native/Debug`.
+. `ZEN_REMOTE_SERVER` / `ZEN_REMOTE_CLIENT` +
+Specify a boolean whether to build the server / client library. Default is both ON.
 . `ZEN_REMOTE_PROTOC_EXECUTABLE`(optional) +
 Specify the path to the `protoc` executable.
 The `protoc` specified here will be executed at build time, so please specify
@@ -55,6 +57,7 @@ You can set these variables via command line arguments or `local.cmake`
 .local.cmake
 ----
 set(ZEN_REMOTE_GRPC_SYSROOT $ENV{MY_DIR}/grpc-dev/native/Debug CACHE STRING "")
+set(ZEN_REMOTE_CLIENT OFF CACHE STRING "")
 ----
 
 === Build & Install
