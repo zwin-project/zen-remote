@@ -213,9 +213,14 @@ PeerManager::PortForwardedPeerProbe(bool success)
     }
 
     peer->on_expired = [this, id = peer->id()]() {
-      peers_.remove_if(
-          [id](std::shared_ptr<Peer>& peer) { return peer->id() == id; });
-      on_peer_lost(id);
+      for (auto it = peers_.begin(); it != peers_.end();) {
+        if ((*it)->id() == id) {
+          it = peers_.erase(it);
+          on_peer_lost(id);
+        } else {
+          it++;
+        }
+      }
     };
 
     peer->Ping();

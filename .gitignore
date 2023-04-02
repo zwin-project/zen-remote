@@ -15,3 +15,5 @@ subprojects/*
 !subprojects/*.wrap
 
 local.cmake
+
+.cache/
