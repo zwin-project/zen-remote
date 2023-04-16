@@ -82,7 +82,10 @@ GlBuffer::GlBufferData(std::unique_ptr<IBuffer> buffer, uint32_t target,
     caller->request()->set_id(id);
     caller->request()->set_target(target);
     caller->request()->set_usage(usage);
-    caller->request()->set_data(buffer->data(), size);
+
+    void* data = buffer->begin_access();
+    caller->request()->set_data(data, size);
+    buffer->end_access();
 
     channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });

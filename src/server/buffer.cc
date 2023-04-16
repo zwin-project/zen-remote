@@ -4,9 +4,13 @@
 
 namespace zen::remote::server {
 
-Buffer::Buffer(
-    void *data, std::function<void()> on_release, std::unique_ptr<ILoop> loop)
-    : data_(data), on_release_(on_release), loop_(std::move(loop))
+Buffer::Buffer(std::function<void *()> on_begin_access,
+    std::function<bool()> on_end_access, std::function<void()> on_release,
+    std::unique_ptr<ILoop> loop)
+    : on_begin_access_(on_begin_access),
+      on_end_access_(on_end_access),
+      on_release_(on_release),
+      loop_(std::move(loop))
 {
   pipe_[0] = 0;
   pipe_[1] = 0;
@@ -49,21 +53,30 @@ Buffer::Init()
 }
 
 void *
-Buffer::data()
+Buffer::begin_access()
 {
-  return data_;
+  return on_begin_access_();
+}
+
+bool
+Buffer::end_access()
+{
+  return on_end_access_();
 }
 
 std::unique_ptr<IBuffer>
-CreateBuffer(
-    void *data, std::function<void()> on_release, std::unique_ptr<ILoop> loop)
+CreateBuffer(std::function<void *()> on_begin_access,
+    std::function<bool()> on_end_access, std::function<void()> on_release,
+    std::unique_ptr<ILoop> loop)
 {
-  auto buffer = std::make_unique<Buffer>(data, on_release, std::move(loop));
+  auto buffer = std::make_unique<Buffer>(
+      on_begin_access, on_end_access, on_release, std::move(loop));
 
-  if (buffer->Init() == false)
-    return std::unique_ptr<IBuffer>();
-  else
-    return buffer;
+  if (buffer->Init() == false) {
+    return nullptr;
+  }
+
+  return buffer;
 }
 
 }  // namespace zen::remote::server

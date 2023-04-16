@@ -169,7 +169,10 @@ GlTexture::GlTexImage2D(uint32_t target, int32_t level, int32_t internal_format,
     caller->request()->set_border(border);
     caller->request()->set_format(format);
     caller->request()->set_type(type);
-    caller->request()->set_data(buffer->data(), size);
+
+    void* data = buffer->begin_access();
+    caller->request()->set_data(data, size);
+    buffer->end_access();
 
     channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });
@@ -222,7 +225,10 @@ GlTexture::GlTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
     caller->request()->set_height(height);
     caller->request()->set_format(format);
     caller->request()->set_type(type);
-    caller->request()->set_data(buffer->data(), size);
+
+    void* data = buffer->begin_access();
+    caller->request()->set_data(data, size);
+    buffer->end_access();
 
     channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
   });

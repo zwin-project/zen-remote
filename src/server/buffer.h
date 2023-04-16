@@ -14,16 +14,20 @@ class Buffer final : public IBuffer {
  public:
   DISABLE_MOVE_AND_COPY(Buffer);
   Buffer() = delete;
-  Buffer(void *data, std::function<void()> on_release,
+  Buffer(std::function<void *()> on_begin_access,
+      std::function<bool()> on_end_access, std::function<void()> on_release,
       std::unique_ptr<ILoop> loop);
   ~Buffer();
 
   bool Init();
 
-  void *data() override;
+  void *begin_access() override;
+
+  bool end_access() override;
 
  private:
-  void *data_;
+  std::function<void *()> on_begin_access_;
+  std::function<bool()> on_end_access_;
   std::function<void()> on_release_;
   std::shared_ptr<ILoop> loop_;
 
