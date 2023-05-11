@@ -27,6 +27,10 @@ class RenderingUnitServiceImpl final : public RenderingUnitService::Service,
   grpc::Status Delete(grpc::ServerContext* context,
       const DeleteResourceRequest* request, EmptyResponse* response) override;
 
+  grpc::Status ChangeVisibility(grpc::ServerContext* context,
+      const RenderingUnitChangeVisibilityRequest* request,
+      EmptyResponse* response) override;
+
  private:
   RenderingUnitService::AsyncService async_;
   Remote* remote_;

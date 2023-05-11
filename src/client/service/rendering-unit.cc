@@ -28,6 +28,11 @@ RenderingUnitServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
   AsyncSessionServiceCaller<&RenderingUnitService::AsyncService::RequestDelete,
       &RenderingUnitServiceImpl::Delete>::Listen(&async_, this,
       completion_queue, remote_);
+
+  AsyncSessionServiceCaller<
+      &RenderingUnitService::AsyncService::RequestChangeVisibility,
+      &RenderingUnitServiceImpl::ChangeVisibility>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -55,6 +60,20 @@ RenderingUnitServiceImpl::Delete(grpc::ServerContext* /*context*/,
   auto pool = remote_->current()->pool();
 
   pool->rendering_units()->ScheduleRemove(request->id());
+  return grpc::Status::OK;
+}
+
+grpc::Status
+RenderingUnitServiceImpl::ChangeVisibility(grpc::ServerContext* /*context*/,
+    const RenderingUnitChangeVisibilityRequest* request,
+    EmptyResponse* /*response*/)
+{
+  auto pool = remote_->current()->pool();
+
+  auto rendering_unit = pool->rendering_units()->Get(request->id());
+
+  rendering_unit->ChangeVisibility(request->visible());
+
   return grpc::Status::OK;
 }
 

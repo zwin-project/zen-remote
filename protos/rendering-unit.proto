@@ -9,10 +9,18 @@ service RenderingUnitService
   rpc New(NewRenderingUnitRequest) returns (EmptyResponse);
 
   rpc Delete(DeleteResourceRequest) returns (EmptyResponse);
+
+  rpc ChangeVisibility(RenderingUnitChangeVisibilityRequest) returns (EmptyResponse);
 }
 
 message NewRenderingUnitRequest
 {
   uint64 id = 1;
   uint64 virtual_object_id = 2;
+}
+
+message RenderingUnitChangeVisibilityRequest
+{
+  uint64 id = 1;
+  bool visible = 2;
 }

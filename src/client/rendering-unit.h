@@ -13,6 +13,7 @@ struct Camera;
 class RenderingUnit final : public IResource {
   struct RenderingState {
     std::weak_ptr<GlBaseTechnique> gl_base_technique;
+    bool visible = false;
   };
 
  public:
@@ -27,6 +28,9 @@ class RenderingUnit final : public IResource {
   /** Used in the update thread */
   void SetGlBaseTechnique(std::weak_ptr<GlBaseTechnique> gl_base_technique);
 
+  /** Used in the update thread */
+  void ChangeVisibility(bool visible);
+
   /** Used in the rendering thread */
   void Render(Camera *camera, const glm::mat4 &model);
 
@@ -38,6 +42,7 @@ class RenderingUnit final : public IResource {
 
   struct {
     std::weak_ptr<GlBaseTechnique> gl_base_technique;
+    bool visible = false;
   } pending_;
 
   std::shared_ptr<RenderingState> rendering_;  // nonnull

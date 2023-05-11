@@ -15,6 +15,9 @@ class RenderingUnit final : public IRenderingUnit {
   ~RenderingUnit();
 
   void Init(uint64_t virtual_object_id);
+
+  void ChangeVisibility(bool visible) override;
+
   uint64_t id() override;
 
  private:

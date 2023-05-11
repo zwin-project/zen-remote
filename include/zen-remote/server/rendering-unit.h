@@ -10,6 +10,8 @@ struct IRenderingUnit {
   virtual ~IRenderingUnit() = default;
 
   virtual uint64_t id() = 0;
+
+  virtual void ChangeVisibility(bool visible) = 0;
 };
 
 std::unique_ptr<IRenderingUnit> CreateRenderingUnit(

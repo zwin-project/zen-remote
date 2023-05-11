@@ -31,14 +31,16 @@ RenderingUnit::Commit()
     gl_base_technique->Commit();
   }
 
-  auto command = CreateCommand([technique = pending_.gl_base_technique,
-                                   rendering = rendering_](bool cancel) {
-    if (cancel) {
-      return;
-    }
+  auto command = CreateCommand(
+      [technique = pending_.gl_base_technique, visible = pending_.visible,
+          rendering = rendering_](bool cancel) {
+        if (cancel) {
+          return;
+        }
 
-    rendering->gl_base_technique = technique;
-  });
+        rendering->gl_base_technique = technique;
+        rendering->visible = visible;
+      });
 
   update_rendering_queue_->Push(std::move(command));
 }
@@ -51,8 +53,18 @@ RenderingUnit::SetGlBaseTechnique(
 }
 
 void
+RenderingUnit::ChangeVisibility(bool visible)
+{
+  pending_.visible = visible;
+}
+
+void
 RenderingUnit::Render(Camera* camera, const glm::mat4& model)
 {
+  if (!rendering_->visible) {
+    return;
+  }
+
   if (auto gl_base_technique = rendering_->gl_base_technique.lock()) {
     gl_base_technique->Render(camera, model);
   }
