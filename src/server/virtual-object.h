@@ -20,6 +20,8 @@ class VirtualObject final : public IVirtualObject {
 
   void Move(float position[3], float quaternion[4]) override;
 
+  void ChangeVisibility(bool visible) override;
+
   uint64_t id() override;
 
  private:

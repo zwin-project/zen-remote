@@ -15,6 +15,7 @@ class VirtualObject final : public IResource {
     std::list<std::weak_ptr<RenderingUnit>> rendering_units_;
     glm::vec3 position = {0, 0, 0};
     glm::quat quaternion = {1, 0, 0, 0};
+    bool visible = false;
   };
 
  public:
@@ -28,6 +29,9 @@ class VirtualObject final : public IResource {
 
   /** Used in the update thread */
   void Move(glm::vec3 position, glm::quat quaternion);
+
+  /** Used in the update thread */
+  void ChangeVisibility(bool visible);
 
   /** Used in the update thread */
   void AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit);

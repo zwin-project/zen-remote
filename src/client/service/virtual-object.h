@@ -35,6 +35,10 @@ class VirtualObjectServiceImpl final : public VirtualObjectService::Service,
       const VirtualObjectMoveRequest* request,
       EmptyResponse* response) override;
 
+  grpc::Status ChangeVisibility(grpc::ServerContext* context,
+      const VirtualObjectChangeVisibility* request,
+      EmptyResponse* response) override;
+
  private:
   VirtualObjectService::AsyncService async_;
   Remote* remote_;

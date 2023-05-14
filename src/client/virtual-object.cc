@@ -58,6 +58,20 @@ VirtualObject::Move(glm::vec3 position, glm::quat quaternion)
 }
 
 void
+VirtualObject::ChangeVisibility(bool visible)
+{
+  auto command = CreateCommand([rendering = rendering_, visible](bool cancel) {
+    if (cancel) return;
+
+    rendering->visible = visible;
+  });
+
+  update_rendering_queue_->Push(std::move(command));
+
+  update_rendering_queue_->Commit();
+}
+
+void
 VirtualObject::AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit)
 {
   pending_.rendering_units_.push_back(rendering_unit);
@@ -66,6 +80,10 @@ VirtualObject::AddRenderingUnit(std::weak_ptr<RenderingUnit> rendering_unit)
 void
 VirtualObject::Render(Camera *camera)
 {
+  if (!rendering_->visible) {
+    return;
+  }
+
   glm::mat4 rotate = glm::toMat4(rendering_->quaternion);
   glm::mat4 translate = glm::translate(glm::mat4(1.0f), rendering_->position);
   glm::mat4 model = translate * rotate;

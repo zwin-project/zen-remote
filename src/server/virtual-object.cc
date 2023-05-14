@@ -131,6 +131,44 @@ VirtualObject::Move(float position[3], float quaternion[4])
   }
 }
 
+void
+VirtualObject::ChangeVisibility(bool visible)
+{
+  auto job = CreateJob([id = id_, channel_weak = channel_, visible](
+                           bool cancel) {
+    auto channel = channel_weak.lock();
+    if (cancel || !channel) {
+      return;
+    }
+
+    auto context =
+        std::unique_ptr<grpc::ClientContext>(new SerialRequestContext(channel));
+
+    auto stub = VirtualObjectService::NewStub(channel->grpc_channel());
+
+    auto caller = new AsyncGrpcCaller<
+        &VirtualObjectService::Stub::PrepareAsyncChangeVisibility>(
+        std::move(stub), std::move(context),
+        [channel_weak](EmptyResponse* /*response*/, grpc::Status* status) {
+          if (!status->ok() && status->error_code() != grpc::CANCELLED) {
+            LOG_WARN("Failed to call remote VirtualObject::ChangeVisibility");
+            if (auto channel = channel_weak.lock()) {
+              channel->NotifyDisconnection();
+            }
+          }
+        });
+
+    caller->request()->set_id(id);
+    caller->request()->set_visible(visible);
+
+    channel->PushGrpcCaller(std::unique_ptr<AsyncGrpcCallerBase>(caller));
+  });
+
+  if (auto channel = channel_.lock()) {
+    channel->PushJob(std::move(job));
+  }
+}
+
 VirtualObject::~VirtualObject()
 {
   auto job = CreateJob([id = id_, channel_weak = channel_](bool cancel) {

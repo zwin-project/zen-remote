@@ -36,6 +36,11 @@ VirtualObjectServiceImpl::Listen(grpc::ServerCompletionQueue* completion_queue)
   AsyncSessionServiceCaller<&VirtualObjectService::AsyncService::RequestMove,
       &VirtualObjectServiceImpl::Move>::Listen(&async_, this, completion_queue,
       remote_);
+
+  AsyncSessionServiceCaller<
+      &VirtualObjectService::AsyncService::RequestChangeVisibility,
+      &VirtualObjectServiceImpl::ChangeVisibility>::Listen(&async_, this,
+      completion_queue, remote_);
 }
 
 grpc::Status
@@ -91,6 +96,19 @@ VirtualObjectServiceImpl::Move(grpc::ServerContext* /*context*/,
   std::memcpy(&quaternion, request->quaternion().data(), sizeof(glm::quat));
 
   virtual_object->Move(position, quaternion);
+
+  return grpc::Status::OK;
+}
+
+grpc::Status
+VirtualObjectServiceImpl::ChangeVisibility(grpc::ServerContext* /*context*/,
+    const VirtualObjectChangeVisibility* request, EmptyResponse* /*response*/)
+{
+  auto pool = remote_->current()->pool();
+
+  auto virtual_object = pool->virtual_objects()->Get(request->id());
+
+  virtual_object->ChangeVisibility(request->visible());
 
   return grpc::Status::OK;
 }

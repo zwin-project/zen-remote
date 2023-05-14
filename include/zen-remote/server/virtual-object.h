@@ -13,6 +13,8 @@ struct IVirtualObject {
 
   virtual void Move(float position[3], float quaternion[4]) = 0;
 
+  virtual void ChangeVisibility(bool visible) = 0;
+
   virtual uint64_t id() = 0;
 };
 
