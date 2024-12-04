@@ -142,7 +142,8 @@ GlBaseTechnique::Commit()
 
             auto [iterator, newly_inserted] =
                 rendering->uniform_variables.insert(
-                    std::pair<uint32_t, UniformVariable>{location, {}});
+                    std::pair<uint32_t, UniformVariable>{
+                        static_cast<uint32_t>(location), {}});
 
             if (newly_inserted) {
               (*iterator).second.location = location;
@@ -301,7 +302,7 @@ void
 GlBaseTechnique::SetupTextures(GLuint program_id)
 {
   for (auto it = rendering_->texture_bindings.begin();
-       it != rendering_->texture_bindings.end();) {
+      it != rendering_->texture_bindings.end();) {
     auto& texture_binding = (*it).second;
     uint32_t binding = (*it).first;
 
